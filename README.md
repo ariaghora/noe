@@ -1,6 +1,6 @@
 # Darkteal
 
-Darkteal is a library to perform some basic scientific computing in (object) pascal. **Still in heavy development**. It is built purely in pascal language, with standard primitives. For now, its purpose is merely to kickstart your project without painful configurations. Do not expect too much for optimized codes and a blazing fast performance. Darkteal provides some linear algebra functionality, such as vector and matrix operations including transpose, multiplication, dot products, etc.
+Darkteal is a library to perform some basic scientific computing in (object) pascal. **Still under a heavy development**. It is built purely in pascal language, with standard primitives. For now, its purpose is merely to kickstart your project without painful configurations. Do not expect too much for optimized codes and a blazing fast performance. Darkteal provides some linear algebra functionality, such as vector and matrix operations including transpose, multiplication, dot products, etc.
 
 In the near future, darkteal is aimed to be a foundation to make the development of machine learning algorithm easier. That is why you will notice some neural network-related functions, such as data preprocessing function, a collection of activations, and loss functions.
 
