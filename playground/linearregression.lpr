@@ -2,7 +2,7 @@ program linearregression;
 
 {
   This program demonstrates the usage of darkteal library to perform linear
-  regression based on gradient descent algorithm form optimization.
+  regression based on gradient descent algorithm for optimization.
 }
 
 uses
@@ -58,7 +58,7 @@ begin
       Writeln('Error at epoch ', i, ': ', J);
 
     // calculate first order derivative of J with respect to theta
-    // ∇J = transpose((2/m) * sum((ŷ - y) * X))
+    // ∇J = (2/m) * sum((ŷ - y) * X))
     dJTheta := Multiply(2 / m,
       sum(Multiply(Transpose(Subtract(yHat, y)), Transpose(X)), 1));
 
