@@ -15,8 +15,8 @@ function Relu(x: real): real;
 implementation
 
 {
- A collection of loss function. Note that the loss is performed row-wise.
- At least for now.
+  A collection of loss function. Note that the loss is performed row-wise.
+  At least for now.
 }
 function CategoricalCrossEntropy(ypred, y: TFloatVector): real;
 begin
