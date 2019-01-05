@@ -4,7 +4,8 @@ uses
   wincrt,
   SysUtils,
   DTCommon,
-  DTLinAlg;
+  DTLinAlg,
+  DTPreprocessing;
 
 var
   A, B, C: TFloatMatrix;

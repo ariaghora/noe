@@ -32,22 +32,19 @@
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
-        <Filename Value="dtcommon.pas"/>
+        <Filename Value="src\dtcommon.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="DTCommon"/>
       </Unit1>
       <Unit2>
-        <Filename Value="dtlinalg.pas"/>
+        <Filename Value="src\dtlinalg.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="DTLinAlg"/>
       </Unit2>
       <Unit3>
-        <Filename Value="dtmlutils.pas"/>
+        <Filename Value="src\dtmlutils.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="DTMLUtils"/>
       </Unit3>
       <Unit4>
-        <Filename Value="dtpreprocessing.pas"/>
+        <Filename Value="src\dtpreprocessing.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DTPreprocessing"/>
       </Unit4>
@@ -61,6 +58,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
+      <OtherUnitFiles Value="src"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <CodeGeneration>
