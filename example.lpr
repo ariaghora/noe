@@ -40,5 +40,8 @@ begin
   PrintMatrix(C);
   writeln();
 
+  C := FloatMatrixFromCSV('iris.csv');
+  PrintMatrix(C);
+
   ReadLn();
 end.

@@ -1,4 +1,5 @@
 *.exe
 *.lps
+*.csv
 backup/
 lib/

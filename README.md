@@ -2,18 +2,19 @@
 
 Darkteal is a library to perform some basic scientific computing in (object) pascal. It is, as well, built **purely** in pascal language, with standard primitives. Darkteal provides some linear algebra functionality, such as vector and matrix operations including transpose, multiplication, dot products, etc.
 
-Darkteal is aimed to be a foundation to make the development of machine learning algorithm easier. That is why you will notice some neural network-related functions, such as data preprocessing function, a collection of activations, and loss functions.
+In the near future, darkteal is aimed to be a foundation to make the development of machine learning algorithm easier. That is why you will notice some neural network-related functions, such as data preprocessing function, a collection of activations, and loss functions.
 
 **Important note:** This library is:
 - In a very early development, thus, many missing functionality
-- Not for production, since it is not built for performance-critical applications
+- Not for production purpose, since it is not built for performance-critical applications
 
 ## Quick Start
 
 ### Installing
-Include "dtcommon.pas", "dtlinalg.pas", "dtmlutils.pas", and "dtpreprocessing.pas" into your project, and you are ready to go.
+Include darkteal's "src" folder into your search path.
 
-### Try the example
+### Initializing matrices
+Matrices is a wrapper of pascal's 2D dynamic array. Thus, initialization is the same, i.e., by using ```setLength``` on both dimensions. However, darkteal provides helper functions to initialize matrices in various ways. 
 ```pascal
 program example;
 
@@ -37,7 +38,19 @@ begin
   WriteLn('Matrix B: ');
   PrintMatrix(B);
   WriteLn();
+end;
+```
 
+It is also possible to create a matrix by loading from a CSV file by using ```FloatMatrixFromCSV``` function.
+```pascal
+  ...
+  C := FloatMatrixFromCSV('yourfilename.csv');
+  PrintMatrix(C);
+  ...
+```
+
+Following examples are the example of arithmetical operations using matrices and vectors.
+```pascal
   // Addition
   WriteLn('A + B:');
   C := Add(A, Transpose(B));
@@ -57,13 +70,11 @@ begin
   writeln();
 
   ReadLn();  
-end;
 ```
+*For now please explore the source code by yourself to see the complete functionality. Don't worry, the code base is not that large yet.*
 
 ### Some known issues
 - **Some operations are painfully slow:** darkteal is still in a very early development. What you can do for now is making optimization on the compiler side, e.g., using "-O3" if you are using freepascal compiler.
 
 ## License
 This project is licensed under the MIT License
-
-## Acknowledgements

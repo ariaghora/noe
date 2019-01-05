@@ -5,7 +5,7 @@ unit DTCommon;
 interface
 
 uses
-  Classes, SysUtils, wincrt;
+  Classes, SysUtils, wincrt, csvdocument;
 
 const
   ERR_MSG_DIMENSION_MISMATCH = 'Dimension mismatch.';
@@ -21,6 +21,7 @@ type
   TCallbackString = function: string;
 
 
+function FloatMatrixFromCSV(s: string): TFloatMatrix;
 function Shape(mat: TFloatMatrix): TIntVector;
 function CreateMatrix(row, col: integer; x: real): TFloatMatrix; overload;
 function CreateMatrix(row, col: integer): TFloatMatrix; overload;
@@ -32,7 +33,6 @@ function GetColumn(mat: TFloatMatrix; idx: integer): TFloatVector;
 }
 function Exp(x: real): real;
 function Log(x: real): real;
-
 
 function ElementWise(func: TCallbackFloat; mat: TFloatMatrix): TFloatMatrix; overload;
 function ElementWise(func: TCallbackFloat; vec: TFloatVector): TFloatVector; overload;
@@ -47,7 +47,27 @@ procedure PrintVector(vec: TFloatVector);
 
 implementation
 
-
+function FloatMatrixFromCSV(s: string): TFloatMatrix;
+var
+  i, j, m, n: integer;
+  csvReader: TCSVDocument;
+  res: TFloatMatrix;
+begin
+  csvReader := TCSVDocument.Create();
+  csvReader.LoadFromFile('iris.csv');
+  m := csvReader.RowCount;
+  n := csvReader.ColCount[0];
+  SetLength(res, m);
+  for i := 0 to m - 1 do
+  begin
+    SetLength(res[i], n);
+    for j := 0 to n - 1 do
+    begin
+      res[i][j] := StrToFloat(csvReader.Cells[j, i]);
+    end;
+  end;
+  Result := res;
+end;
 
 // Outputs the shape of a matrix, as [row, col]
 function Shape(mat: TFloatMatrix): TIntVector;
