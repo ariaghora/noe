@@ -10,7 +10,7 @@ In the near future, darkteal is aimed to be a foundation to make the development
 
 ## Quick Start
 
-### Installing
+### Usage
 Include darkteal's "src" folder into your search path.
 
 ### Initializing matrices
@@ -53,7 +53,7 @@ Following examples are the example of arithmetical operations using matrices and
 ```pascal
   // Addition
   WriteLn('A + B:');
-  C := Add(A, Transpose(B));
+  C := Add(A, B);
   PrintMatrix(C);
   writeln();  
 
