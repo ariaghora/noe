@@ -14,7 +14,7 @@ In the near future, darkteal is aimed to be a foundation to make the development
 Include darkteal's "src" folder into your search path.
 
 ### Initializing matrices
-Matrices is a wrapper of pascal's 2D dynamic array. Thus, initialization is the same, i.e., by using ```setLength``` on both dimensions. However, darkteal provides helper functions to initialize matrices in various ways. 
+Matrix is essentially just a wrapper of pascal's 2D dynamic array. Thus, initialization is the same, i.e., by using ```setLength``` on both dimensions. However, darkteal provides helper functions to initialize matrices in various ways. 
 ```pascal
 program example;
 
@@ -75,6 +75,13 @@ For now please explore the source code by yourself to see the complete functiona
 
 ### Some known issues
 - **Some operations are painfully slow:** darkteal is still in a very early development. What you can do for now is making optimization on the compiler side, e.g., using "-O3" if you are using freepascal compiler.
+- **Successful matrix operation despite of being under dimension mismatch:** Set the compiler to check assertion.
+
+### Near-future plans
+- [ ] Examples for multi-layer perceptron (low-level usage)
+- [ ] Proper documentation
+- [ ] Wrapper classes for some classification algorithms
+- [ ] Operator overloading
 
 ## License
 This project is licensed under the MIT License
