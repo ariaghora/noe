@@ -21,15 +21,17 @@ type
   TCallbackFloatArray = function(v: TFloatVector): TFloatVector;
   TCallbackString = function: string;
 
-  TFMatrix = record
+  TDTMatrix = record
     val: TFloatMatrix;
-    class operator Implicit(mat: TFloatMatrix): TFMatrix;
-    class operator Explicit(mat: TFloatMatrix): TFMatrix;
-    class operator Add(A, B: TFMatrix): TFloatMatrix;
-    function T: TFMatrix;
+    class operator Implicit(mat: TFloatMatrix): TDTMatrix;
+    class operator Explicit(mat: TFloatMatrix): TDTMatrix;
+    class operator Add(A, B: TDTMatrix): TDTMatrix;
+    class operator Subtract(A, B: TDTMatrix): TDTMatrix;
+    class operator Multiply(A, B: TDTMatrix): TDTMatrix;
+    function T: TDTMatrix;
+    function ToStr: string;
+    function Dot(A: TDTMatrix): TDTMatrix;
   end;
-
-
 
 function Shape(mat: TFloatMatrix): TIntVector;
 function CreateVector(size: integer; x: real): TFloatVector; overload;
@@ -74,25 +76,49 @@ implementation
 
 uses DTLinAlg;
 
-class operator TFMatrix.Explicit(mat: TFloatMatrix): TFMatrix;
+//========= End of TDMatrix implementations =========//
+
+class operator TDTMatrix.Explicit(mat: TFloatMatrix): TDTMatrix;
 begin
   Result.val := mat;
 end;
 
-class operator TFMatrix.Implicit(mat: TFloatMatrix): TFMatrix;
+class operator TDTMatrix.Implicit(mat: TFloatMatrix): TDTMatrix;
 begin
   Result.val := mat;
 end;
 
-class operator TFMatrix.Add(A, B: TFMatrix): TFloatMatrix;
+class operator TDTMatrix.add(A, B: TDTMatrix): TDTMatrix;
 begin
-  Result := Add(A.val, B.val);
+  Result.val := Add(A.val, B.val);
 end;
 
-function TFMatrix.T: TFMatrix;
+class operator TDTMatrix.Subtract(A, B: TDTMatrix): TDTMatrix;
+begin
+  Result.val := Subtract(A.val, B.val);
+end;
+
+class operator TDTMatrix.Multiply(A, B: TDTMatrix): TDTMatrix;
+begin
+  Result.val := Multiply(A.val, B.val);
+end;
+
+function TDTMatrix.T: TDTMatrix;
 begin
   Result.val := Transpose(self.val);
 end;
+
+function TDTMatrix.ToStr: string;
+begin
+  Result := MatToStr(self.val);
+end;
+
+function TDTMatrix.Dot(A: TDTMatrix): TDTMatrix;
+begin
+  Result.val := DotProduct(Self.val, A.val);
+end;
+
+//========= End of TDMatrix implementations =========//
 
 function stripNonAscii(const s: string): string;
 var
@@ -225,8 +251,28 @@ end;
 
 // convert matrix to string
 function MatToStr(mat: TFloatMatrix): string;
+var
+  i, j: integer;
+  matShape: TIntVector;
 begin
-
+  Result := '[';
+  matShape := Shape(mat);
+  for i := 0 to matShape[0] - 1 do
+  begin
+    //if i = 0 then
+    Result := Result + '[';
+    for j := 0 to matShape[1] - 1 do
+    begin
+      Result := Result + FloatToStr(mat[i][j]);
+      if j < matShape[1] - 1 then
+        Result := Result + ', '
+      else
+        Result := Result + ']';
+    end;
+    if i < matShape[0] - 1 then
+      Result := Result + ',' + sLineBreak;
+  end;
+  Result := Result + ']';
 end;
 
 // Matrix transpose
