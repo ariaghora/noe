@@ -15,12 +15,19 @@ type
   TFloatMatrix = array of array of real;
   TIntVector = array of integer;
   TIntMatrix = array of array of integer;
-
   TCallbackFloat = function(x: real): real;
-  TCallbackInt = function(x: real): Integer;
+  TCallbackInt = function(x: real): integer;
   TCallbackFloat1param = function(x: real; param1: real): real;
   TCallbackFloatArray = function(v: TFloatVector): TFloatVector;
   TCallbackString = function: string;
+
+  TFMatrix = record
+    val: TFloatMatrix;
+    class operator Implicit(mat: TFloatMatrix): TFMatrix;
+    class operator Explicit(mat: TFloatMatrix): TFMatrix;
+    class operator Add(A, B: TFMatrix): TFloatMatrix;
+    function T: TFMatrix;
+  end;
 
 
 
@@ -42,24 +49,16 @@ procedure InsertRowAt(var A: TFloatMatrix; const Index: integer;
 procedure InsertColumnAt(var mat: TFloatMatrix; const index: integer;
   const Value: TFloatVector);
 
-
 function FloatMatrixFromCSV(s: string): TFloatMatrix;
 
-
-//function AddColumnAt(var mat:TFloatMatrix)
-
-{
-  Math function wrapper, to make them in compliant with the helper functions.
-}
 function Exp(x: real): real;
 function Log(x: real): real;
 function Pow(base, exponent: real): real;
-function Round(x: real): Integer;
+function Round(x: real): integer;
 
 function ElementWise(func: TCallbackFloat; mat: TFloatMatrix): TFloatMatrix; overload;
 function ElementWise(func: TCallbackFloat; vec: TFloatVector): TFloatVector; overload;
-function ElementWise(func: TCallbackInt; vec: TFloatVector): TIntVector;overload;
-
+function ElementWise(func: TCallbackInt; vec: TFloatVector): TIntVector; overload;
 function ElementWise(func: TCallbackFloat1param; param1: real;
   mat: TFloatMatrix): TFloatMatrix; overload;
 
@@ -72,6 +71,28 @@ procedure PrintVector(vec: TIntVector); overload;
 
 
 implementation
+
+uses DTLinAlg;
+
+class operator TFMatrix.Explicit(mat: TFloatMatrix): TFMatrix;
+begin
+  Result.val := mat;
+end;
+
+class operator TFMatrix.Implicit(mat: TFloatMatrix): TFMatrix;
+begin
+  Result.val := mat;
+end;
+
+class operator TFMatrix.Add(A, B: TFMatrix): TFloatMatrix;
+begin
+  Result := Add(A.val, B.val);
+end;
+
+function TFMatrix.T: TFMatrix;
+begin
+  Result.val := Transpose(self.val);
+end;
 
 function stripNonAscii(const s: string): string;
 var
@@ -317,7 +338,7 @@ begin
   Result := System.ln(x);
 end;
 
-function Round(x: real): Integer;
+function Round(x: real): integer;
 begin
   Result := System.round(x);
 end;
