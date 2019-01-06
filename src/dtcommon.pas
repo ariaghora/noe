@@ -28,9 +28,12 @@ type
     class operator Add(A, B: TDTMatrix): TDTMatrix;
     class operator Subtract(A, B: TDTMatrix): TDTMatrix;
     class operator Multiply(A, B: TDTMatrix): TDTMatrix;
+    class operator Divide(A, B: TDTMatrix): TDTMatrix;
     function T: TDTMatrix;
     function ToStr: string;
     function Dot(A: TDTMatrix): TDTMatrix;
+    function Sum: real; overload;
+    function Sum(dims: integer): TDTMatrix; overload;
   end;
 
 function Shape(mat: TFloatMatrix): TIntVector;
@@ -90,17 +93,21 @@ end;
 
 class operator TDTMatrix.add(A, B: TDTMatrix): TDTMatrix;
 begin
-  Result.val := Add(A.val, B.val);
+  Result := Add(A.val, B.val);
 end;
 
 class operator TDTMatrix.Subtract(A, B: TDTMatrix): TDTMatrix;
 begin
-  Result.val := Subtract(A.val, B.val);
+  Result := Subtract(A.val, B.val);
 end;
 
 class operator TDTMatrix.Multiply(A, B: TDTMatrix): TDTMatrix;
 begin
-  Result.val := Multiply(A.val, B.val);
+  Result := Multiply(A.val, B.val);
+end;
+class operator TDTMatrix.Divide(A, B: TDTMatrix): TDTMatrix;
+begin
+  Result := DTLinAlg.Divide(A.val, B.val);
 end;
 
 function TDTMatrix.T: TDTMatrix;
@@ -116,6 +123,16 @@ end;
 function TDTMatrix.Dot(A: TDTMatrix): TDTMatrix;
 begin
   Result.val := DotProduct(Self.val, A.val);
+end;
+
+function TDTMatrix.Sum: real;
+begin
+  Result := DTLinAlg.Sum(self.val);
+end;
+
+function TDTMatrix.Sum(dims: integer): TDTMatrix;
+begin
+  Result.val := DTLinAlg.Sum(self.val, dims);
 end;
 
 //========= End of TDMatrix implementations =========//

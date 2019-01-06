@@ -22,6 +22,8 @@ function Multiply(v: TFloatVector; mat: TFloatMatrix): TFloatMatrix; overload;
 
 function Divide(v1, v2: TFloatVector): TFloatVector; overload;
 function Divide(v: TFloatVector; x: real): TFloatVector; overload;
+function Divide(x: real; v: TFloatVector): TFloatVector; overload;
+function Divide(m1, m2: TFloatMatrix): TFloatMatrix; overload;
 function Sum(v: TFloatVector): real; overload;
 function Sum(mat: TFloatMatrix): real; overload;
 function Sum(mat: TFloatMatrix; dims: integer): TFloatMatrix; overload;
@@ -214,6 +216,45 @@ begin
   for i := 0 to m - 1 do
     res[i] := v1[i] / v2[i];
   Result := res;
+end;
+
+// matrix-vector division
+function Divide(mat: TFloatMatrix; v: TFloatVector): TFloatMatrix;
+var
+  i, m, n: integer;
+  res: TFloatMatrix;
+begin
+  m := Shape(mat)[0];
+  n := Shape(mat)[1];
+  res := CreateMatrix(m, n, 0);
+  for i := 0 to m - 1 do
+    res[i] := Divide(mat[i], v);
+  Result := res;
+end;
+
+// matrix-matrix division
+function Divide(m1, m2: TFloatMatrix): TFloatMatrix;
+var
+  i, m, n: integer;
+  res: TFloatMatrix;
+begin
+  //if either one has row=1, then use the broadcast instead
+  if (Length(m1) > 1) and (Length(m2) = 1) then
+    Result := Divide(m1, m2[0])
+  else
+  begin
+    // otherwise, perform usual hadamard
+    m := Length(m1);
+    n := Length(m2);
+    //Assert(m = n, ERR_MSG_DIMENSION_MISMATCH);
+    SetLength(res, m);
+    for i := 0 to m - 1 do
+    begin
+      SetLength(res[i], n);
+      res[i] := Divide(m1[i], m2[i]);
+    end;
+    Result := res;
+  end;
 end;
 
 // vector-scalar division
