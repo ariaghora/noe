@@ -17,6 +17,7 @@ type
   TIntMatrix = array of array of integer;
 
   TCallbackFloat = function(x: real): real;
+  TCallbackInt = function(x: real): Integer;
   TCallbackFloat1param = function(x: real; param1: real): real;
   TCallbackFloatArray = function(v: TFloatVector): TFloatVector;
   TCallbackString = function: string;
@@ -28,11 +29,14 @@ function CreateVector(size: integer; x: real): TFloatVector; overload;
 function CreateVector(size: integer): TFloatVector; overload;
 function CreateMatrix(row, col: integer; x: real): TFloatMatrix; overload;
 function CreateMatrix(row, col: integer): TFloatMatrix; overload;
+function MatToStr(mat: TFloatMatrix): string;
 function VecToMat(v: TFloatVector): TFloatMatrix;
 function ones(row, col: integer): TFloatMatrix;
 function Transpose(mat: TFloatMatrix): TFloatMatrix;
 function GetColumnVector(mat: TFloatMatrix; idx: integer): TFloatVector;
 function GetColumn(mat: TFloatMatrix; idx: integer): TFloatMatrix;
+function GetRange(mat: TFloatMatrix;
+  rowFrom, colFrom, Height, Width: integer): TFloatMatrix;
 procedure InsertRowAt(var A: TFloatMatrix; const Index: integer;
   const Value: TFloatVector);
 procedure InsertColumnAt(var mat: TFloatMatrix; const index: integer;
@@ -50,11 +54,15 @@ function FloatMatrixFromCSV(s: string): TFloatMatrix;
 function Exp(x: real): real;
 function Log(x: real): real;
 function Pow(base, exponent: real): real;
+function Round(x: real): Integer;
 
 function ElementWise(func: TCallbackFloat; mat: TFloatMatrix): TFloatMatrix; overload;
 function ElementWise(func: TCallbackFloat; vec: TFloatVector): TFloatVector; overload;
+function ElementWise(func: TCallbackInt; vec: TFloatVector): TIntVector;overload;
+
 function ElementWise(func: TCallbackFloat1param; param1: real;
   mat: TFloatMatrix): TFloatMatrix; overload;
+
 function RowWise(func: TCallbackFloat; mat: TFloatMatrix): TFloatMatrix;
 procedure AppendVector(var v: TFloatVector; x: real); overload;
 procedure AppendVector(var v: TIntVector; x: integer); overload;
@@ -194,6 +202,12 @@ begin
   Result := res;
 end;
 
+// convert matrix to string
+function MatToStr(mat: TFloatMatrix): string;
+begin
+
+end;
+
 // Matrix transpose
 function Transpose(mat: TFloatMatrix): TFloatMatrix;
 var
@@ -243,6 +257,22 @@ begin
   Result := res;
 end;
 
+function GetRange(mat: TFloatMatrix;
+  rowFrom, colFrom, Height, Width: integer): TFloatMatrix;
+var
+  res: TFloatMatrix;
+  i, j: integer;
+begin
+  SetLength(res, Height);
+  for i := rowFrom to Height - 1 do
+  begin
+    SetLength(res[i], Width);
+    for j := colFrom to Width - 1 do
+      res[i - rowFrom][j - colFrom] := mat[i][j];
+  end;
+  Result := res;
+end;
+
 procedure InsertRowAt(var A: TFloatMatrix; const Index: integer;
   const Value: TFloatVector);
 var
@@ -285,6 +315,11 @@ end;
 function Log(x: real): real;
 begin
   Result := System.ln(x);
+end;
+
+function Round(x: real): Integer;
+begin
+  Result := System.round(x);
 end;
 
 function Pow(base, exponent: real): real;
@@ -340,6 +375,18 @@ function ElementWise(func: TCallbackFloat; vec: TFloatVector): TFloatVector;
 var
   i, m: integer;
   res: TFloatVector;
+begin
+  m := Length(vec);
+  SetLength(res, m);
+  for i := 0 to m - 1 do
+    res[i] := func(vec[i]);
+  Result := res;
+end;
+
+function ElementWise(func: TCallbackInt; vec: TFloatVector): TIntVector;
+var
+  i, m: integer;
+  res: TIntVector;
 begin
   m := Length(vec);
   SetLength(res, m);

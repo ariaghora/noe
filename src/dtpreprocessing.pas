@@ -81,8 +81,8 @@ begin
 
   for i := 0 to n - 1 do
   begin
-    maxes[i] := Math.MaxValue(GetColumn(mat, i));
-    mins[i] := Math.MinValue(GetColumn(mat, i));
+    maxes[i] := Math.MaxValue(GetColumnVector(mat,  i));
+    mins[i] := Math.MinValue(GetColumnVector(mat, i));
   end;
   range := Subtract(maxes, mins);
 

@@ -22,6 +22,7 @@ function Multiply(v: TFloatVector; mat: TFloatMatrix): TFloatMatrix; overload;
 
 function Divide(v1, v2: TFloatVector): TFloatVector; overload;
 function Divide(v: TFloatVector; x: real): TFloatVector; overload;
+function Sum(v: TFloatVector): real; overload;
 function Sum(mat: TFloatMatrix): real; overload;
 function Sum(mat: TFloatMatrix; dims: integer): TFloatMatrix; overload;
 
@@ -239,6 +240,13 @@ begin
   for i := 0 to m - 1 do
     res[i] := x / v[i];
   Result := res;
+end;
+
+
+// sum of vector
+function Sum(v: TFloatVector): real;
+begin
+  Result := Math.sum(v);
 end;
 
 // sum of matrix

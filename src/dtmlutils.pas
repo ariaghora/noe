@@ -20,7 +20,7 @@ implementation
 }
 function CategoricalCrossEntropy(ypred, y: TFloatVector): real;
 begin
-  Result := -sum(Multiply(y, ElementWise(@Log, ypred)));
+  //Result := -sum(Multiply(y, ElementWise(@Log, ypred)));
 end;
 
 
