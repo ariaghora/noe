@@ -30,10 +30,12 @@ type
     class operator Multiply(A, B: TDTMatrix): TDTMatrix;
     class operator Divide(A, B: TDTMatrix): TDTMatrix;
     function T: TDTMatrix;
+    function Shape: TIntVector;
     function ToStr: string;
     function Dot(A: TDTMatrix): TDTMatrix;
     function Sum: real; overload;
     function Sum(dims: integer): TDTMatrix; overload;
+    function GetRange(rowDrom, colFrom, Height, Width: integer): TDTMatrix;
   end;
 
 function Shape(mat: TFloatMatrix): TIntVector;
@@ -105,6 +107,7 @@ class operator TDTMatrix.Multiply(A, B: TDTMatrix): TDTMatrix;
 begin
   Result := Multiply(A.val, B.val);
 end;
+
 class operator TDTMatrix.Divide(A, B: TDTMatrix): TDTMatrix;
 begin
   Result := DTLinAlg.Divide(A.val, B.val);
@@ -113,6 +116,11 @@ end;
 function TDTMatrix.T: TDTMatrix;
 begin
   Result.val := Transpose(self.val);
+end;
+
+function TDTMatrix.Shape: TIntVector;
+begin
+  Result := DTCommon.Shape(Self.val);
 end;
 
 function TDTMatrix.ToStr: string;
@@ -133,6 +141,11 @@ end;
 function TDTMatrix.Sum(dims: integer): TDTMatrix;
 begin
   Result.val := DTLinAlg.Sum(self.val, dims);
+end;
+
+function TDTMatrix.GetRange(rowDrom, colFrom, Height, Width: integer): TDTMatrix;
+begin
+  Result := DTCommon.GetRange(Self.val, rowDrom, colFrom, Height, Width);
 end;
 
 //========= End of TDMatrix implementations =========//
@@ -348,10 +361,10 @@ var
   i, j: integer;
 begin
   SetLength(res, Height);
-  for i := rowFrom to Height - 1 do
+  for i := rowFrom to rowFrom + Height - 1 do
   begin
     SetLength(res[i], Width);
-    for j := colFrom to Width - 1 do
+    for j := colFrom to colFrom + Width - 1 do
       res[i - rowFrom][j - colFrom] := mat[i][j];
   end;
   Result := res;
