@@ -9,8 +9,9 @@ uses
 
 function Add(mat1, mat2: TFloatMatrix): TFloatMatrix; overload;
 function Add(v1, v2: TFloatVector): TFloatVector; overload;
-function Subtract(mat1, mat2: TFloatMatrix): TFloatMatrix; overload;
 function Subtract(v1, v2: TFloatVector): TFloatVector; overload;
+function Subtract(mat: TFloatMatrix; v: TFloatVector): TFloatMatrix; overload;
+function Subtract(mat1, mat2: TFloatMatrix): TFloatMatrix; overload;
 function DotProduct(v1: TFloatVector; v2: TFloatVector): real; overload;
 function DotProduct(m1: TFloatMatrix; m2: TFloatMatrix): TFloatMatrix; overload;
 // same kinds
@@ -66,26 +67,6 @@ begin
   Result := res;
 end;
 
-
-
-// Matrix-matrix subtraction
-function Subtract(mat1, mat2: TFloatMatrix): TFloatMatrix;
-var
-  i, j, m, n: integer;
-  res: TFloatMatrix;
-begin
-  m := Shape(mat1)[0];
-  n := Shape(mat1)[1];
-  SetLength(res, m);
-  for i := 0 to m - 1 do
-  begin
-    SetLength(res[i], n);
-    for j := 0 to n - 1 do
-      res[i][j] := mat1[i][j] - mat2[i][j];
-  end;
-  Result := res;
-end;
-
 // vector-vector subtraction
 function Subtract(v1, v2: TFloatVector): TFloatVector;
 var
@@ -99,6 +80,44 @@ begin
     res[i] := v1[i] - v2[i];
   end;
   Result := res;
+end;
+
+// Matrix-vector subtraction
+function Subtract(mat: TFloatMatrix; v: TFloatVector): TFloatMatrix;
+var
+  i, m: integer;
+  res: TFloatMatrix;
+begin
+  m := Shape(mat)[0];
+  SetLength(res, m);
+  for i := 0 to m - 1 do
+    res[i] := Subtract(mat[i], v);
+  Result := res;
+end;
+
+// Matrix-matrix subtraction
+function Subtract(mat1, mat2: TFloatMatrix): TFloatMatrix;
+var
+  i, j, m1, n1, m2, n2: integer;
+  res: TFloatMatrix;
+begin
+  m1 := Shape(mat1)[0];
+  n1 := Shape(mat1)[1];
+  m2 := Shape(mat2)[0];
+  n2 := Shape(mat2)[1];
+  if (m1 > 1) and (m2 = 1) then
+    Result := Subtract(mat1, mat2[0])
+  else
+  begin
+    SetLength(res, m1);
+    for i := 0 to m1 - 1 do
+    begin
+      SetLength(res[i], n1);
+      for j := 0 to n1 - 1 do
+        res[i][j] := mat1[i][j] - mat2[i][j];
+    end;
+    Result := res;
+  end;
 end;
 
 // Vector dot product

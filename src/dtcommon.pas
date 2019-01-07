@@ -27,7 +27,8 @@ type
     class operator Explicit(mat: TFloatMatrix): TDTMatrix;
     class operator Add(A, B: TDTMatrix): TDTMatrix;
     class operator Subtract(A, B: TDTMatrix): TDTMatrix;
-    class operator Multiply(A, B: TDTMatrix): TDTMatrix;
+    class operator Multiply(x: real; A: TDTMatrix): TDTMatrix; overload;
+    class operator Multiply(A, B: TDTMatrix): TDTMatrix; overload;
     class operator Divide(A, B: TDTMatrix): TDTMatrix;
     function T: TDTMatrix;
     function Shape: TIntVector;
@@ -101,6 +102,11 @@ end;
 class operator TDTMatrix.Subtract(A, B: TDTMatrix): TDTMatrix;
 begin
   Result := Subtract(A.val, B.val);
+end;
+
+class operator TDTMatrix.Multiply(x: real; A: TDTMatrix): TDTMatrix;
+begin
+  Result := Multiply(x, A.val);
 end;
 
 class operator TDTMatrix.Multiply(A, B: TDTMatrix): TDTMatrix;
