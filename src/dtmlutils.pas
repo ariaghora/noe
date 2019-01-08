@@ -11,6 +11,7 @@ function CategoricalCrossEntropy(ypred, y: TFloatVector): real;
 function Sigmoid(x: real): real;
 function SigmoidPrime(x: real): real;
 function Relu(x: real): real;
+function ReluPrime(x: real): real;
 
 implementation
 
@@ -40,6 +41,11 @@ end;
 function Relu(x: real): real;
 begin
   Result := x * integer(x > 0);
+end;
+
+function ReluPrime(x: real): real;
+begin
+  Result := 1 * integer(x > 0);
 end;
 
 

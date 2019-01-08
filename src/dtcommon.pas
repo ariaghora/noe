@@ -58,6 +58,7 @@ procedure InsertColumnAt(var mat: TFloatMatrix; const index: integer;
   const Value: TFloatVector);
 
 function FloatMatrixFromCSV(s: string): TFloatMatrix;
+function TDTMatrixFromCSV(f: string): TDTMatrix;
 
 function Exp(x: real): real;
 function Log(x: real): real;
@@ -191,6 +192,52 @@ begin
     begin
       res[i][j] := StrToFloat(stripNonAscii(csvReader.Cells[j, i]));
     end;
+  end;
+  Result := res;
+end;
+
+function TDTMatrixFromCSV(f: string): TDTMatrix;
+var
+  tfIn: TextFile;
+  s, row: string;
+  i, cntRow, cntCol: integer;
+  res: TDTMatrix;
+begin
+  assignfile(tfIn, f);
+  try
+    Reset(tfIn); // open file
+    cntRow := 0;
+    s := '';
+    while not EOF(tfIn) do
+    begin
+      Readln(tfIn, row);
+      Inc(cntRow);
+      SetLength(res.val, cntRow);
+      cntCol := 0;
+      for i := 1 to Length(row) do
+      begin
+        if (row[i] <> ',') then
+          s := s + row[i]
+        else
+        begin
+          Inc(cntCol);
+          SetLength(res.val[cntRow - 1], cntCol);
+          res.val[cntRow - 1][cntCol - 1] := StrToFloat(s);
+          s := '';
+        end;
+        if i = Length(row) then
+        begin
+          Inc(cntCol);
+          SetLength(res.val[cntRow - 1], cntCol);
+          res.val[cntRow - 1][cntCol - 1] := StrToFloat(s);
+        end;
+      end;
+      s := '';
+    end;
+    CloseFile(tfIn); // close file
+  except
+    on E: EInOutError do
+      writeln('File handling error occurred. Details: ', E.Message);
   end;
   Result := res;
 end;
