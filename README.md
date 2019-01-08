@@ -77,12 +77,5 @@ For now please explore the source code by yourself to see the complete functiona
 - **Some operations are painfully slow:** darkteal is still in a very early development. What you can do for now is making optimization on the compiler side, e.g., using "-O3" if you are using freepascal compiler.
 - **Successful matrix operation despite of being under dimension mismatch:** Set the compiler to check assertion.
 
-### Near-future plans
-- [ ] Examples for multi-layer perceptron (low-level usage)
-- [ ] Complete broadcasting for all operations
-- [ ] Proper documentation
-- [ ] Wrapper classes for some classification algorithms
-- [ ] Operator overloading
-
 ## License
 This project is licensed under the MIT License
