@@ -11,13 +11,13 @@ const
   ERR_MSG_DIMENSION_MISMATCH = 'Dimension mismatch.';
 
 type
-  TFloatVector = array of real;
-  TFloatMatrix = array of array of real;
+  TFloatVector = array of Double;
+  TFloatMatrix = array of array of Double;
   TIntVector = array of integer;
   TIntMatrix = array of array of integer;
-  TCallbackFloat = function(x: real): real;
-  TCallbackInt = function(x: real): integer;
-  TCallbackFloat1param = function(x: real; param1: real): real;
+  TCallbackFloat = function(x: Double): Double;
+  TCallbackInt = function(x: Double): integer;
+  TCallbackFloat1param = function(x: Double; param1: Double): Double;
   TCallbackFloatArray = function(v: TFloatVector): TFloatVector;
   TCallbackString = function: string;
 
@@ -27,7 +27,7 @@ type
     class operator Explicit(mat: TFloatMatrix): TDTMatrix;
     class operator Add(A, B: TDTMatrix): TDTMatrix;
     class operator Subtract(A, B: TDTMatrix): TDTMatrix;
-    class operator Multiply(x: real; A: TDTMatrix): TDTMatrix; overload;
+    class operator Multiply(x: Double; A: TDTMatrix): TDTMatrix; overload;
     class operator Multiply(A, B: TDTMatrix): TDTMatrix; overload;
     class operator Divide(A, B: TDTMatrix): TDTMatrix; overload;
     class operator Divide(A: TDTMatrix; x: double): TDTMatrix; overload;
@@ -35,16 +35,16 @@ type
     function Shape: TIntVector;
     function ToStr: string;
     function Dot(A: TDTMatrix): TDTMatrix;
-    function Sum: real; overload;
+    function Sum: Double; overload;
     function Sum(dims: integer): TDTMatrix; overload;
     function GetRange(rowDrom, colFrom, Height, Width: integer): TDTMatrix;
     function Flatten: TDTMatrix;
   end;
 
 function Shape(mat: TFloatMatrix): TIntVector;
-function CreateVector(size: integer; x: real): TFloatVector; overload;
+function CreateVector(size: integer; x: Double): TFloatVector; overload;
 function CreateVector(size: integer): TFloatVector; overload;
-function CreateMatrix(row, col: integer; x: real): TFloatMatrix; overload;
+function CreateMatrix(row, col: integer; x: Double): TFloatMatrix; overload;
 function CreateMatrix(row, col: integer): TFloatMatrix; overload;
 function MatToStr(mat: TFloatMatrix): string;
 function VecToMat(v: TFloatVector): TFloatMatrix;
@@ -63,19 +63,19 @@ procedure InsertColumnAt(var mat: TFloatMatrix; const index: integer;
 function FloatMatrixFromCSV(s: string): TFloatMatrix;
 function TDTMatrixFromCSV(f: string): TDTMatrix;
 
-function Exp(x: real): real;
-function Log(x: real): real;
-function Pow(base, exponent: real): real;
-function Round(x: real): integer;
+function Exp(x: Double): Double;
+function Log(x: Double): Double;
+function Pow(base, exponent: Double): Double;
+function Round(x: Double): integer;
 
 function ElementWise(func: TCallbackFloat; mat: TFloatMatrix): TFloatMatrix; overload;
 function ElementWise(func: TCallbackFloat; vec: TFloatVector): TFloatVector; overload;
 function ElementWise(func: TCallbackInt; vec: TFloatVector): TIntVector; overload;
-function ElementWise(func: TCallbackFloat1param; param1: real;
+function ElementWise(func: TCallbackFloat1param; param1: Double;
   mat: TFloatMatrix): TFloatMatrix; overload;
 
 function RowWise(func: TCallbackFloat; mat: TFloatMatrix): TFloatMatrix;
-procedure AppendVector(var v: TFloatVector; x: real); overload;
+procedure AppendVector(var v: TFloatVector; x: Double); overload;
 procedure AppendVector(var v: TIntVector; x: integer); overload;
 procedure PrintMatrix(Mat: TFloatMatrix);
 procedure PrintVector(vec: TFloatVector); overload;
@@ -108,7 +108,7 @@ begin
   Result := Subtract(A.val, B.val);
 end;
 
-class operator TDTMatrix.Multiply(x: real; A: TDTMatrix): TDTMatrix;
+class operator TDTMatrix.Multiply(x: Double; A: TDTMatrix): TDTMatrix;
 begin
   Result := Multiply(x, A.val);
 end;
@@ -148,7 +148,7 @@ begin
   Result.val := DotProduct(Self.val, A.val);
 end;
 
-function TDTMatrix.Sum: real;
+function TDTMatrix.Sum: Double;
 begin
   Result := DTLinAlg.Sum(self.val);
 end;
@@ -273,7 +273,7 @@ begin
 end;
 
 // create 'size'-length vector, and set all values to x
-function CreateVector(size: integer; x: real): TFloatVector;
+function CreateVector(size: integer; x: Double): TFloatVector;
 var
   i: integer;
   res: TFloatVector;
@@ -297,7 +297,7 @@ begin
 end;
 
 // create 'row' by 'col' matrix, and set all values to x
-function CreateMatrix(row, col: integer; x: real): TFloatMatrix;
+function CreateMatrix(row, col: integer; x: Double): TFloatMatrix;
 var
   i, j: integer;
   res: TFloatMatrix;
@@ -465,7 +465,7 @@ begin
   TailElements := ALength - Index;
   if TailElements > 0 then
   begin
-    Move(A[Index], A[Index + 1], SizeOf(real) * TailElements);
+    Move(A[Index], A[Index + 1], SizeOf(Double) * TailElements);
     Initialize(A[Index]);
     A[Index] := Value;
   end;
@@ -487,22 +487,22 @@ end;
 {
   Math function wrapper, to make them in compliant with the helper functions.
 }
-function Exp(x: real): real;
+function Exp(x: Double): Double;
 begin
   Result := system.exp(x);
 end;
 
-function Log(x: real): real;
+function Log(x: Double): Double;
 begin
   Result := System.ln(x);
 end;
 
-function Round(x: real): integer;
+function Round(x: Double): integer;
 begin
   Result := System.round(x);
 end;
 
-function Pow(base, exponent: real): real;
+function Pow(base, exponent: Double): Double;
 begin
   Result := Math.power(base, exponent);
 end;
@@ -531,8 +531,8 @@ begin
   Result := res;
 end;
 
-// apply element-wise operation on 2D array taking a real parameter
-function ElementWise(func: TCallbackFloat1param; param1: real;
+// apply element-wise operation on 2D array taking a Double parameter
+function ElementWise(func: TCallbackFloat1param; param1: Double;
   mat: TFloatMatrix): TFloatMatrix;
 var
   i, j, m, n: integer;
@@ -592,7 +592,7 @@ begin
   Result := res;
 end;
 
-procedure AppendVector(var v: TFloatVector; x: real);
+procedure AppendVector(var v: TFloatVector; x: Double);
 begin
   SetLength(v, Length(v) + 1);
   v[Length(v) - 1] := x;
