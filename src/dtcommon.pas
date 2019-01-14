@@ -29,7 +29,8 @@ type
     class operator Subtract(A, B: TDTMatrix): TDTMatrix;
     class operator Multiply(x: real; A: TDTMatrix): TDTMatrix; overload;
     class operator Multiply(A, B: TDTMatrix): TDTMatrix; overload;
-    class operator Divide(A, B: TDTMatrix): TDTMatrix;
+    class operator Divide(A, B: TDTMatrix): TDTMatrix; overload;
+    class operator Divide(A: TDTMatrix; x: double): TDTMatrix; overload;
     function T: TDTMatrix;
     function Shape: TIntVector;
     function ToStr: string;
@@ -37,6 +38,7 @@ type
     function Sum: real; overload;
     function Sum(dims: integer): TDTMatrix; overload;
     function GetRange(rowDrom, colFrom, Height, Width: integer): TDTMatrix;
+    function Flatten: TDTMatrix;
   end;
 
 function Shape(mat: TFloatMatrix): TIntVector;
@@ -52,6 +54,7 @@ function GetColumnVector(mat: TFloatMatrix; idx: integer): TFloatVector;
 function GetColumn(mat: TFloatMatrix; idx: integer): TFloatMatrix;
 function GetRange(mat: TFloatMatrix;
   rowFrom, colFrom, Height, Width: integer): TFloatMatrix;
+function Flatten(mat: TFloatMatrix): TFloatMatrix;
 procedure InsertRowAt(var A: TFloatMatrix; const Index: integer;
   const Value: TFloatVector);
 procedure InsertColumnAt(var mat: TFloatMatrix; const index: integer;
@@ -120,6 +123,11 @@ begin
   Result := DTLinAlg.Divide(A.val, B.val);
 end;
 
+class operator TDTMatrix.Divide(A: TDTMatrix; x: double): TDTMatrix;
+begin
+  Result := DTLinAlg.Divide(A.val, x);
+end;
+
 function TDTMatrix.T: TDTMatrix;
 begin
   Result.val := Transpose(self.val);
@@ -153,6 +161,11 @@ end;
 function TDTMatrix.GetRange(rowDrom, colFrom, Height, Width: integer): TDTMatrix;
 begin
   Result := DTCommon.GetRange(Self.val, rowDrom, colFrom, Height, Width);
+end;
+
+function TDTMatrix.Flatten: TDTMatrix;
+begin
+  Result := DTCommon.Flatten(self.val);
 end;
 
 //========= End of TDMatrix implementations =========//
@@ -421,6 +434,23 @@ begin
       res[i - rowFrom][j - colFrom] := mat[i][j];
   end;
   Result := res;
+end;
+
+function Flatten(mat: TFloatMatrix): TFloatMatrix;
+var
+  i, j, idx, m, n: integer;
+begin
+  m := Shape(mat)[0];
+  n := Shape(mat)[1];
+  SetLength(Result, 1);
+  SetLength(Result[0], m * n);
+  idx := 0;
+  for i := 0 to m - 1 do
+    for j := 0 to n - 1 do
+    begin
+      Result[0][idx] := mat[i][j];
+      Inc(idx);
+    end;
 end;
 
 procedure InsertRowAt(var A: TFloatMatrix; const Index: integer;

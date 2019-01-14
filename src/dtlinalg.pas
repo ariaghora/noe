@@ -24,6 +24,7 @@ function Multiply(v: TFloatVector; mat: TFloatMatrix): TFloatMatrix; overload;
 function Divide(v1, v2: TFloatVector): TFloatVector; overload;
 function Divide(v: TFloatVector; x: real): TFloatVector; overload;
 function Divide(x: real; v: TFloatVector): TFloatVector; overload;
+function Divide(m1: TFloatMatrix; x: real): TFloatMatrix; overload;
 function Divide(m1, m2: TFloatMatrix): TFloatMatrix; overload;
 function Sum(v: TFloatVector): real; overload;
 function Sum(mat: TFloatMatrix): real; overload;
@@ -235,6 +236,16 @@ begin
   for i := 0 to m - 1 do
     res[i] := v1[i] / v2[i];
   Result := res;
+end;
+
+function Divide(m1: TFloatMatrix; x: real): TFloatMatrix;
+var
+  i, m: integer;
+begin
+  m := Shape(m1)[0];
+  SetLength(Result, m);
+  for i := 0 to m - 1 do
+    Result[i] := Divide(m1[i], x);
 end;
 
 // matrix-vector division
