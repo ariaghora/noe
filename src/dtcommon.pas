@@ -1,25 +1,42 @@
 unit DTCommon;
 
 {$mode delphi}
+//{$mode objfpc}{$H+}
 
 interface
 
 uses
-  Classes, SysUtils, wincrt, Math, csvdocument;
+  Classes, SysUtils, wincrt, Math, dynlibs, csvdocument;
 
 const
   ERR_MSG_DIMENSION_MISMATCH = 'Dimension mismatch.';
 
 type
-  TFloatVector = array of Double;
-  TFloatMatrix = array of array of Double;
+  TFloatVector = array of double;
+  TFloatMatrix = array of array of double;
   TIntVector = array of integer;
   TIntMatrix = array of array of integer;
-  TCallbackFloat = function(x: Double): Double;
-  TCallbackInt = function(x: Double): integer;
-  TCallbackFloat1param = function(x: Double; param1: Double): Double;
+  TCallbackFloat = function(x: double): double;
+  TCallbackInt = function(x: double): integer;
+  TCallbackFloat1param = function(x: double; param1: double): double;
   TCallbackFloatArray = function(v: TFloatVector): TFloatVector;
   TCallbackString = function: string;
+
+  CBLAS_ORDER = (CblasRowMajor = 101, CblasColMajor = 102);
+  CBLAS_TRANSPOSE = (CblasNoTrans = 111, CblasTrans = 112, CblasConjTrans = 113);
+
+  _sdot = function(N: longint; X: PSingle; incX: longint; Y: PSingle;
+    incY: longint): single; cdecl;
+  _ddot = function(N: longint; X: TFloatVector; incX: longint;
+    Y: TFloatVector; incY: longint): double; cdecl;
+  _dgemm = procedure(Order: CBLAS_ORDER; TransA: CBLAS_TRANSPOSE;
+    TransB: CBLAS_TRANSPOSE; M: longint; N: longint; K: longint;
+    alpha: double; A: TFloatVector; lda: longint; B: TFloatVector;
+    ldb: longint; beta: double; C: TFloatVector; ldc: longint); cdecl;
+  _sgemm = procedure(Order: CBLAS_ORDER; TransA: CBLAS_TRANSPOSE;
+    TransB: CBLAS_TRANSPOSE; M: longint; N: longint; K: longint;
+    alpha: single; A: Psingle; lda: longint; B: Psingle; ldb: longint;
+    beta: single; C: Psingle; ldc: longint); cdecl;
 
   TDTMatrix = record
     val: TFloatMatrix;
@@ -27,7 +44,7 @@ type
     class operator Explicit(mat: TFloatMatrix): TDTMatrix;
     class operator Add(A, B: TDTMatrix): TDTMatrix;
     class operator Subtract(A, B: TDTMatrix): TDTMatrix;
-    class operator Multiply(x: Double; A: TDTMatrix): TDTMatrix; overload;
+    class operator Multiply(x: double; A: TDTMatrix): TDTMatrix; overload;
     class operator Multiply(A, B: TDTMatrix): TDTMatrix; overload;
     class operator Divide(A, B: TDTMatrix): TDTMatrix; overload;
     class operator Divide(A: TDTMatrix; x: double): TDTMatrix; overload;
@@ -35,16 +52,16 @@ type
     function Shape: TIntVector;
     function ToStr: string;
     function Dot(A: TDTMatrix): TDTMatrix;
-    function Sum: Double; overload;
+    function Sum: double; overload;
     function Sum(dims: integer): TDTMatrix; overload;
     function GetRange(rowDrom, colFrom, Height, Width: integer): TDTMatrix;
     function Flatten: TDTMatrix;
   end;
 
 function Shape(mat: TFloatMatrix): TIntVector;
-function CreateVector(size: integer; x: Double): TFloatVector; overload;
+function CreateVector(size: integer; x: double): TFloatVector; overload;
 function CreateVector(size: integer): TFloatVector; overload;
-function CreateMatrix(row, col: integer; x: Double): TFloatMatrix; overload;
+function CreateMatrix(row, col: integer; x: double): TFloatMatrix; overload;
 function CreateMatrix(row, col: integer): TFloatMatrix; overload;
 function MatToStr(mat: TFloatMatrix): string;
 function VecToMat(v: TFloatVector): TFloatMatrix;
@@ -63,23 +80,31 @@ procedure InsertColumnAt(var mat: TFloatMatrix; const index: integer;
 function FloatMatrixFromCSV(s: string): TFloatMatrix;
 function TDTMatrixFromCSV(f: string): TDTMatrix;
 
-function Exp(x: Double): Double;
-function Log(x: Double): Double;
-function Pow(base, exponent: Double): Double;
-function Round(x: Double): integer;
+function Exp(x: double): double;
+function Log(x: double): double;
+function Pow(base, exponent: double): double;
+function Round(x: double): integer;
 
 function ElementWise(func: TCallbackFloat; mat: TFloatMatrix): TFloatMatrix; overload;
 function ElementWise(func: TCallbackFloat; vec: TFloatVector): TFloatVector; overload;
 function ElementWise(func: TCallbackInt; vec: TFloatVector): TIntVector; overload;
-function ElementWise(func: TCallbackFloat1param; param1: Double;
+function ElementWise(func: TCallbackFloat1param; param1: double;
   mat: TFloatMatrix): TFloatMatrix; overload;
 
 function RowWise(func: TCallbackFloat; mat: TFloatMatrix): TFloatMatrix;
-procedure AppendVector(var v: TFloatVector; x: Double); overload;
+procedure AppendVector(var v: TFloatVector; x: double); overload;
 procedure AppendVector(var v: TIntVector; x: integer); overload;
 procedure PrintMatrix(Mat: TFloatMatrix);
 procedure PrintVector(vec: TFloatVector); overload;
 procedure PrintVector(vec: TIntVector); overload;
+
+var
+
+  blas_sdot: _sdot;
+  blas_ddot: _ddot;
+  blas_dgemm: _dgemm;
+  blas_sgemm: _sgemm;
+  libHandle: TLibHandle;
 
 
 implementation
@@ -108,7 +133,7 @@ begin
   Result := Subtract(A.val, B.val);
 end;
 
-class operator TDTMatrix.Multiply(x: Double; A: TDTMatrix): TDTMatrix;
+class operator TDTMatrix.Multiply(x: double; A: TDTMatrix): TDTMatrix;
 begin
   Result := Multiply(x, A.val);
 end;
@@ -148,7 +173,7 @@ begin
   Result.val := DotProduct(Self.val, A.val);
 end;
 
-function TDTMatrix.Sum: Double;
+function TDTMatrix.Sum: double;
 begin
   Result := DTLinAlg.Sum(self.val);
 end;
@@ -169,6 +194,15 @@ begin
 end;
 
 //========= End of TDMatrix implementations =========//
+
+procedure DarkTealInit;
+begin
+  libHandle := LoadLibrary('libopenblas.dll');
+  Pointer(@blas_sdot) := GetProcedureAddress(libHandle, 'cblas_sdot');
+  Pointer(@blas_ddot) := GetProcedureAddress(libHandle, 'cblas_ddot');
+  Pointer(@blas_dgemm) := GetProcedureAddress(libHandle, 'cblas_dgemm');
+  Pointer(@blas_sgemm) := GetProcedureAddress(libHandle, 'cblas_sgemm');
+end;
 
 function stripNonAscii(const s: string): string;
 var
@@ -273,7 +307,7 @@ begin
 end;
 
 // create 'size'-length vector, and set all values to x
-function CreateVector(size: integer; x: Double): TFloatVector;
+function CreateVector(size: integer; x: double): TFloatVector;
 var
   i: integer;
   res: TFloatVector;
@@ -297,7 +331,7 @@ begin
 end;
 
 // create 'row' by 'col' matrix, and set all values to x
-function CreateMatrix(row, col: integer; x: Double): TFloatMatrix;
+function CreateMatrix(row, col: integer; x: double): TFloatMatrix;
 var
   i, j: integer;
   res: TFloatMatrix;
@@ -465,7 +499,7 @@ begin
   TailElements := ALength - Index;
   if TailElements > 0 then
   begin
-    Move(A[Index], A[Index + 1], SizeOf(Double) * TailElements);
+    Move(A[Index], A[Index + 1], SizeOf(double) * TailElements);
     Initialize(A[Index]);
     A[Index] := Value;
   end;
@@ -487,22 +521,22 @@ end;
 {
   Math function wrapper, to make them in compliant with the helper functions.
 }
-function Exp(x: Double): Double;
+function Exp(x: double): double;
 begin
   Result := system.exp(x);
 end;
 
-function Log(x: Double): Double;
+function Log(x: double): double;
 begin
   Result := System.ln(x);
 end;
 
-function Round(x: Double): integer;
+function Round(x: double): integer;
 begin
   Result := System.round(x);
 end;
 
-function Pow(base, exponent: Double): Double;
+function Pow(base, exponent: double): double;
 begin
   Result := Math.power(base, exponent);
 end;
@@ -532,7 +566,7 @@ begin
 end;
 
 // apply element-wise operation on 2D array taking a Double parameter
-function ElementWise(func: TCallbackFloat1param; param1: Double;
+function ElementWise(func: TCallbackFloat1param; param1: double;
   mat: TFloatMatrix): TFloatMatrix;
 var
   i, j, m, n: integer;
@@ -592,7 +626,7 @@ begin
   Result := res;
 end;
 
-procedure AppendVector(var v: TFloatVector; x: Double);
+procedure AppendVector(var v: TFloatVector; x: double);
 begin
   SetLength(v, Length(v) + 1);
   v[Length(v) - 1] := x;
@@ -656,6 +690,8 @@ begin
   end;
   Writeln(s);
 end;
+
+//showmess
 
 
 
