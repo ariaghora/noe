@@ -6,7 +6,7 @@ interface
 
 
 uses
-  Classes, SysUtils, GQueue, Math, DTCommon, DTLinAlg;
+  Classes, SysUtils, GQueue, Math, DTLinAlg, DTCommon;
 
 type
   TItemRadixSort = integer;
@@ -18,6 +18,11 @@ function OneHotEncode(y: TFloatVector): TFloatMatrix;
 function Getunique(y: TFloatVector): TFloatVector;
 
 implementation
+
+//function TOneHotEncoder.Fit(y: TDTMatrix): TOneHotEncoder;
+//begin
+//  Result := self;
+//end;
 
 procedure RadixSort(var a: array of TItemRadixSort);
 const

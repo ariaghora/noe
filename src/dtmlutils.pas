@@ -7,12 +7,12 @@ interface
 uses
   Classes, SysUtils, Math, DTCommon, DTLinAlg;
 
-function CategoricalCrossEntropy(ypred, y: TFloatVector): real; overload;
-function CategoricalCrossEntropy(ypred, y: TFloatMatrix): real; overload;
-function Sigmoid(x: real): real;
-function SigmoidPrime(x: real): real;
-function Relu(x: real): real;
-function ReluPrime(x: real): real;
+function CategoricalCrossEntropy(ypred, y: TFloatVector): Double; overload;
+function CategoricalCrossEntropy(ypred, y: TFloatMatrix): Double; overload;
+function Sigmoid(x: Double): Double;
+function SigmoidPrime(x: Double): Double;
+function Relu(x: Double): Double;
+function ReluPrime(x: Double): Double;
 
 implementation
 
@@ -20,7 +20,7 @@ implementation
   A collection of loss function. Note that the loss is performed row-wise.
   At least for now.
 }
-function CategoricalCrossEntropy(ypred, y: TFloatVector): real;
+function CategoricalCrossEntropy(ypred, y: TFloatVector): Double;
 var
   i, m: integer;
 begin
@@ -32,7 +32,7 @@ begin
   Result := Result;
 end;
 
-function CategoricalCrossEntropy(ypred, y: TFloatMatrix): real;
+function CategoricalCrossEntropy(ypred, y: TFloatMatrix): Double;
 var
   i, m: integer;
 begin
@@ -47,22 +47,22 @@ end;
 {
   A collection of nonlinear activation functions
 }
-function Sigmoid(x: real): real;
+function Sigmoid(x: Double): Double;
 begin
   Result := 1 / (1 + exp(-x));
 end;
 
-function SigmoidPrime(x: real): real;
+function SigmoidPrime(x: Double): Double;
 begin
   Result := Sigmoid(x) * (1 - Sigmoid(x));
 end;
 
-function Relu(x: real): real;
+function Relu(x: Double): Double;
 begin
   Result := x * integer(x > 0);
 end;
 
-function ReluPrime(x: real): real;
+function ReluPrime(x: Double): Double;
 begin
   Result := 1 * integer(x > 0);
 end;
