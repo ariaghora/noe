@@ -1,6 +1,6 @@
 # Darkteal
 
-Darkteal is a library to perform some basic scientific computing in (object) pascal. **Still under a heavy development**. It is built purely in pascal language, with standard primitives. For now, its purpose is merely to kickstart your project without painful configurations. Do not expect too much for optimized codes and a blazing fast performance. Darkteal provides some linear algebra functionality, such as vector and matrix operations including transpose, multiplication, dot products, etc.
+Darkteal is a library to perform some basic scientific computing in (object) pascal. **Still under a heavy development**. It is built purely in pascal language, with OpenBLAS backend for heavy matrix operations.
 
 In the near future, darkteal is aimed to be a foundation to make the development of machine learning algorithm easier. That is why you will notice some neural network-related functions, such as data preprocessing function, a collection of activations, and loss functions.
 
@@ -14,22 +14,24 @@ In the near future, darkteal is aimed to be a foundation to make the development
 Include darkteal's "src" folder into your search path.
 
 ### Initializing matrices
-Matrix is essentially just a wrapper of pascal's 2D dynamic array. Thus, initialization is the same, i.e., by using ```setLength``` on both dimensions. However, darkteal provides helper functions to initialize matrices in various ways. 
+Darkteal revolves around the usage of TDTMatrix. The TDTMatrix is essentially a wrapper of pascal's 2D dynamic array with OpenBLAS as the backend for some matrix operations. Darkteal provides helper functions to initialize matrices in various ways:
 ```pascal
 program example;
 
 uses
   wincrt,
   SysUtils,
-  DTCommon,
-  DTLinAlg;
+  DTCore; // core include
 
 var
-  A, B, C: TFloatMatrix;
+  A, B, C: TDTMatrix;
 
 begin
+  DarkTealInit;
+
   A := CreateMatrix(3, 4);     // 3x4 matrix with random values
   B := CreateMatrix(3, 4, 10); // 3x4 matrix filled with 10
+
 
   WriteLn('Matrix A: ');
   PrintMatrix(A);
@@ -37,29 +39,34 @@ begin
 
   WriteLn('Matrix B: ');
   PrintMatrix(B);
-  WriteLn();
 end;
 ```
 
 It is also possible to create a matrix by loading from a CSV file by using ```FloatMatrixFromCSV``` function.
 ```pascal
   ...
-  C := FloatMatrixFromCSV('yourfilename.csv');
+  C := TDTMatrixFromCSV('yourfilename.csv');
   PrintMatrix(C);
   ...
 ```
 
 Following examples are the example of arithmetical operations using matrices and vectors.
 ```pascal
+  // Transpose
+  WriteLn('A transpose:');
+  C := A.T;
+  PrintMatrix(C);
+  writeln();
+
   // Addition
   WriteLn('A + B:');
-  C := Add(A, B);
+  C := A + B;
   PrintMatrix(C);
-  writeln();  
+  writeln();
 
   // Dot product
   WriteLn('<A, B>:');
-  C := DotProduct(A, Transpose(B));
+  C := A.Dot(B.T);
   PrintMatrix(C);
   writeln();
 
@@ -67,7 +74,6 @@ Following examples are the example of arithmetical operations using matrices and
   WriteLn('A .* B:');
   C := Multiply(A, B);
   PrintMatrix(C);
-  writeln();
 
   ReadLn();  
 ```
