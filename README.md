@@ -1,5 +1,7 @@
 # Darkteal
 
+<img src="logo.png" alt="logo" width="100"/>
+
 Darkteal is a library to perform some basic scientific computing in (object) pascal. **Still under a heavy development**. It is built purely in pascal language, with OpenBLAS backend for heavy matrix operations.
 
 In the near future, darkteal is aimed to be a foundation to make the development of machine learning algorithm easier. That is why you will notice some neural network-related functions, such as data preprocessing function, a collection of activations, and loss functions.
