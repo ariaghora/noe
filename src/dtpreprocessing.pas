@@ -1,4 +1,4 @@
-unit DTPreprocessingExperimental;
+unit DTPreprocessing;
 
 {$mode delphi}
 //{$M+}
@@ -19,6 +19,15 @@ type
   public
     function Fit(y: TDTMatrix): TOneHotEncoder;
     function Transform(y: TDTMatrix): TDTMatrix;
+  end;
+
+  TMinMaxScaler = class
+    Maxs: TDTMatrix;
+    Mins: TDTMatrix;
+  private
+  public
+    function Fit(X: TDTMatrix): TMinMaxScaler;
+    function Transform(X: TDTMatrix): TDTMatrix;
   end;
 
 implementation
@@ -67,6 +76,22 @@ begin
       Inc(idx);
     end;
   end;
+end;
+
+function TMinMaxScaler.Fit(X: TDTMatrix): TMinMaxScaler;
+var
+  i: integer;
+  Mins, Maxs: TDTMatrix;
+begin
+  self.Maxs := Max(X, 0);
+  self.Mins := Min(X, 0);
+end;
+
+function TMinMaxScaler.Transform(X: TDTMatrix): TDTMatrix;
+begin
+  Result := (X - TileDown(self.Mins, X.Height)) /
+    (TileDown(self.Maxs, X.Height) - TileDown(self.Mins, X.Height));
+  PrintMatrix(Result);
 end;
 
 end.
