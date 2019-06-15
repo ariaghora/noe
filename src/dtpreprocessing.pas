@@ -1,3 +1,4 @@
+{ A unit containing data preprocessing functionality. }
 unit DTPreprocessing;
 
 {$mode delphi}
@@ -10,7 +11,7 @@ uses
 type
   TMap = TFPGMap<double, longint>;
 
-  { A class to encode labels in a one-vs-all fashion. }
+  { @abstract(A class to encode labels in a one-vs-all fashion.) }
   TOneHotEncoder = class
     uniqueLabels: TFloatVector;
     mapperEncode: TMap;
@@ -21,7 +22,7 @@ type
     function Transform(y: TDTMatrix): TDTMatrix;
   end;
 
-  { A class to scale the data between 0 and 1.
+  { @abstract(A class to scale the data between 0 and 1.)
     The min and max are calculated per-column, by which each column is scaled
     between 0 and 1. }
   TMinMaxScaler = class

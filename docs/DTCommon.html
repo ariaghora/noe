@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>darkteal: DTCommon</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generator" content="PasDoc 0.15.0">
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<link rel="StyleSheet" type="text/css" href="pasdoc.css">
+</head>
+<body>
+<table class="container"><tr><td class="navigation">
+<h2>darkteal</h2><p><a href="AllUnits.html" class="navigation">Units</a></p><p><a href="ClassHierarchy.html" class="navigation">Class Hierarchy</a></p><p><a href="AllClasses.html" class="navigation">Classes, Interfaces, Objects and Records</a></p><p><a href="AllTypes.html" class="navigation">Types</a></p><p><a href="AllVariables.html" class="navigation">Variables</a></p><p><a href="AllConstants.html" class="navigation">Constants</a></p><p><a href="AllFunctions.html" class="navigation">Functions and Procedures</a></p><p><a href="AllIdentifiers.html" class="navigation">Identifiers</a></p></td><td class="content">
+<h1 class="unit">Unit DTCommon</h1>
+<div class="sections">
+<div class="one_section"><a class="section" href="#PasDoc-Description">Description</a></div><div class="one_section">Uses</div><div class="one_section"><a class="section" href="#PasDoc-Classes">Classes, Interfaces, Objects and Records</a></div><div class="one_section"><a class="section" href="#PasDoc-FuncsProcs">Functions and Procedures</a></div><div class="one_section"><a class="section" href="#PasDoc-Types">Types</a></div><div class="one_section"><a class="section" href="#PasDoc-Constants">Constants</a></div><div class="one_section"><a class="section" href="#PasDoc-Variables">Variables</a></div></div>
+<span id="PasDoc-Description"></span><h2 class="description">Description</h2>
+&nbsp;<span id="PasDoc-Uses"></span><h2 class="overview">Overview</h2>
+<span id="PasDoc-Classes"></span><h3 class="cio">Classes, Interfaces, Objects and Records</h3>
+<table class="classestable wide_list">
+<tr class="listheader">
+<th class="itemname">Name</th>
+<th class="itemdesc">Description</th>
+</tr>
+<tr class="list">
+<td class="itemname">Record&nbsp;<a class="bold" href="DTCommon.TDTMatrix.html"><code>TDTMatrix</code></a></td>
+<td class="itemdesc">&nbsp;</td>
+</tr>
+</table>
+<span id="PasDoc-FuncsProcs"></span><h3 class="summary">Functions and Procedures</h3>
+<table class="summary wide_list">
+<tr class="list">
+<td class="itemcode"><code>function <b><a  href="DTCommon.html#Shape">Shape</a></b>(mat: <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>): <a  href="DTCommon.html#TIntVector">TIntVector</a>;</code></td>
+</tr>
+<tr class="list2">
+<td class="itemcode"><code>function <b><a  href="DTCommon.html#CreateVector">CreateVector</a></b>(size: integer; x: double): <a  href="DTCommon.html#TFloatVector">TFloatVector</a>; overload;</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code>function <b><a  href="DTCommon.html#CreateVector">CreateVector</a></b>(size: integer): <a  href="DTCommon.html#TFloatVector">TFloatVector</a>; overload;</code></td>
+</tr>
+<tr class="list2">
+<td class="itemcode"><code>function <b><a  href="DTCommon.html#CreateMatrix">CreateMatrix</a></b>(row, col: integer; x: double): <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>; overload;</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code>function <b><a  href="DTCommon.html#CreateMatrix">CreateMatrix</a></b>(row, col: integer): <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>; overload;</code></td>
+</tr>
+<tr class="list2">
+<td class="itemcode"><code>function <b><a  href="DTCommon.html#MatToStr">MatToStr</a></b>(mat: <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>): string;</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code>function <b><a  href="DTCommon.html#VecToMat">VecToMat</a></b>(v: <a  href="DTCommon.html#TFloatVector">TFloatVector</a>): <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>;</code></td>
+</tr>
+<tr class="list2">
+<td class="itemcode"><code>function <b><a  href="DTCommon.html#ones">ones</a></b>(row, col: integer): <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>;</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code>function <b><a  href="DTCommon.html#Transpose">Transpose</a></b>(mat: <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>): <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>;</code></td>
+</tr>
+<tr class="list2">
+<td class="itemcode"><code>function <b><a  href="DTCommon.html#GetColumnVector">GetColumnVector</a></b>(mat: <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>; idx: integer): <a  href="DTCommon.html#TFloatVector">TFloatVector</a>;</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code>function <b><a  href="DTCommon.html#GetColumn">GetColumn</a></b>(mat: <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>; idx: integer): <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>;</code></td>
+</tr>
+<tr class="list2">
+<td class="itemcode"><code>function <b><a  href="DTCommon.html#GetRange">GetRange</a></b>(mat: <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>; rowFrom, colFrom, Height, Width: integer): <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>;</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code>function <b><a  href="DTCommon.html#Flatten">Flatten</a></b>(mat: <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>): <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>;</code></td>
+</tr>
+<tr class="list2">
+<td class="itemcode"><code>procedure <b><a  href="DTCommon.html#InsertRowAt">InsertRowAt</a></b>(var A: <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>; const Index: integer; const Value: <a  href="DTCommon.html#TFloatVector">TFloatVector</a>);</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code>procedure <b><a  href="DTCommon.html#InsertColumnAt">InsertColumnAt</a></b>(var mat: <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>; const index: integer; const Value: <a  href="DTCommon.html#TFloatVector">TFloatVector</a>);</code></td>
+</tr>
+<tr class="list2">
+<td class="itemcode"><code>function <b><a  href="DTCommon.html#FloatMatrixFromCSV">FloatMatrixFromCSV</a></b>(s: string): <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>;</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code>function <b><a  href="DTCommon.html#TDTMatrixFromCSV">TDTMatrixFromCSV</a></b>(f: string): <a  href="DTCommon.TDTMatrix.html">TDTMatrix</a>;</code></td>
+</tr>
+<tr class="list2">
+<td class="itemcode"><code>function <b><a  href="DTCommon.html#Exp">Exp</a></b>(x: double): double;</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code>function <b><a  href="DTCommon.html#Log">Log</a></b>(x: double): double;</code></td>
+</tr>
+<tr class="list2">
+<td class="itemcode"><code>function <b><a  href="DTCommon.html#Pow">Pow</a></b>(base, exponent: double): double;</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code>function <b><a  href="DTCommon.html#Round">Round</a></b>(x: double): integer;</code></td>
+</tr>
+<tr class="list2">
+<td class="itemcode"><code>function <b><a  href="DTCommon.html#ElementWise">ElementWise</a></b>(func: <a  href="DTCommon.html#TCallbackFloat">TCallbackFloat</a>; mat: <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>): <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>; overload;</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code>function <b><a  href="DTCommon.html#ElementWise">ElementWise</a></b>(func: <a  href="DTCommon.html#TCallbackFloat">TCallbackFloat</a>; vec: <a  href="DTCommon.html#TFloatVector">TFloatVector</a>): <a  href="DTCommon.html#TFloatVector">TFloatVector</a>; overload;</code></td>
+</tr>
+<tr class="list2">
+<td class="itemcode"><code>function <b><a  href="DTCommon.html#ElementWise">ElementWise</a></b>(func: <a  href="DTCommon.html#TCallbackInt">TCallbackInt</a>; vec: <a  href="DTCommon.html#TFloatVector">TFloatVector</a>): <a  href="DTCommon.html#TIntVector">TIntVector</a>; overload;</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code>function <b><a  href="DTCommon.html#ElementWise">ElementWise</a></b>(func: <a  href="DTCommon.html#TCallbackFloat1param">TCallbackFloat1param</a>; param1: double; mat: <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>): <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>; overload;</code></td>
+</tr>
+<tr class="list2">
+<td class="itemcode"><code>function <b><a  href="DTCommon.html#RowWise">RowWise</a></b>(func: <a  href="DTCommon.html#TCallbackFloat">TCallbackFloat</a>; mat: <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>): <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>;</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code>procedure <b><a  href="DTCommon.html#AppendVector">AppendVector</a></b>(var v: <a  href="DTCommon.html#TFloatVector">TFloatVector</a>; x: double); overload;</code></td>
+</tr>
+<tr class="list2">
+<td class="itemcode"><code>procedure <b><a  href="DTCommon.html#AppendVector">AppendVector</a></b>(var v: <a  href="DTCommon.html#TIntVector">TIntVector</a>; x: integer); overload;</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code>procedure <b><a  href="DTCommon.html#PrintMatrix">PrintMatrix</a></b>(Mat: <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>);</code></td>
+</tr>
+<tr class="list2">
+<td class="itemcode"><code>procedure <b><a  href="DTCommon.html#PrintVector">PrintVector</a></b>(vec: <a  href="DTCommon.html#TFloatVector">TFloatVector</a>); overload;</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code>procedure <b><a  href="DTCommon.html#PrintVector">PrintVector</a></b>(vec: <a  href="DTCommon.html#TIntVector">TIntVector</a>); overload;</code></td>
+</tr>
+</table>
+<span id="PasDoc-Types"></span><h3 class="summary">Types</h3>
+<table class="summary wide_list">
+<tr class="list">
+<td class="itemcode"><code><b><a  href="DTCommon.html#TFloatVector">TFloatVector</a></b> = array of double;</code></td>
+</tr>
+<tr class="list2">
+<td class="itemcode"><code><b><a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a></b> = array of array of double;</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code><b><a  href="DTCommon.html#TIntVector">TIntVector</a></b> = array of integer;</code></td>
+</tr>
+<tr class="list2">
+<td class="itemcode"><code><b><a  href="DTCommon.html#TIntMatrix">TIntMatrix</a></b> = array of array of integer;</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code><b><a  href="DTCommon.html#TCallbackFloat">TCallbackFloat</a></b> = function(x: double): double;</code></td>
+</tr>
+<tr class="list2">
+<td class="itemcode"><code><b><a  href="DTCommon.html#TCallbackInt">TCallbackInt</a></b> = function(x: double): integer;</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code><b><a  href="DTCommon.html#TCallbackFloat1param">TCallbackFloat1param</a></b> = function(x: double; param1: double): double;</code></td>
+</tr>
+<tr class="list2">
+<td class="itemcode"><code><b><a  href="DTCommon.html#TCallbackFloatArray">TCallbackFloatArray</a></b> = function(v: <a  href="DTCommon.html#TFloatVector">TFloatVector</a>): <a  href="DTCommon.html#TFloatVector">TFloatVector</a>;</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code><b><a  href="DTCommon.html#TCallbackString">TCallbackString</a></b> = function: string;</code></td>
+</tr>
+<tr class="list2">
+<td class="itemcode"><code><b><a  href="DTCommon.html#CBLAS_ORDER">CBLAS_ORDER</a></b> = (...);</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code><b><a  href="DTCommon.html#CBLAS_TRANSPOSE">CBLAS_TRANSPOSE</a></b> = (...);</code></td>
+</tr>
+<tr class="list2">
+<td class="itemcode"><code><b><a  href="DTCommon.html#_sdot">_sdot</a></b> = function(N: longint; X: PSingle; incX: longint; Y: PSingle; incY: longint): single; cdecl;</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code><b><a  href="DTCommon.html#_ddot">_ddot</a></b> = function(N: longint; X: <a  href="DTCommon.html#TFloatVector">TFloatVector</a>; incX: longint; Y: <a  href="DTCommon.html#TFloatVector">TFloatVector</a>; incY: longint): double; cdecl;</code></td>
+</tr>
+<tr class="list2">
+<td class="itemcode"><code><b><a  href="DTCommon.html#_dgemm">_dgemm</a></b> = procedure(Order: <a  href="DTCommon.html#CBLAS_ORDER">CBLAS_ORDER</a>; TransA: <a  href="DTCommon.html#CBLAS_TRANSPOSE">CBLAS_TRANSPOSE</a>; TransB: <a  href="DTCommon.html#CBLAS_TRANSPOSE">CBLAS_TRANSPOSE</a>; M: longint; N: longint; K: longint; alpha: double; A: <a  href="DTCommon.html#TFloatVector">TFloatVector</a>; lda: longint; B: <a  href="DTCommon.html#TFloatVector">TFloatVector</a>; ldb: longint; beta: double; C: <a  href="DTCommon.html#TFloatVector">TFloatVector</a>; ldc: longint); cdecl;</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code><b><a  href="DTCommon.html#_sgemm">_sgemm</a></b> = procedure(Order: <a  href="DTCommon.html#CBLAS_ORDER">CBLAS_ORDER</a>; TransA: <a  href="DTCommon.html#CBLAS_TRANSPOSE">CBLAS_TRANSPOSE</a>; TransB: <a  href="DTCommon.html#CBLAS_TRANSPOSE">CBLAS_TRANSPOSE</a>; M: longint; N: longint; K: longint; alpha: single; A: Psingle; lda: longint; B: Psingle; ldb: longint; beta: single; C: Psingle; ldc: longint); cdecl;</code></td>
+</tr>
+</table>
+<span id="PasDoc-Constants"></span><h3 class="summary">Constants</h3>
+<table class="summary wide_list">
+<tr class="list">
+<td class="itemcode"><code><b><a  href="DTCommon.html#ERR_MSG_DIMENSION_MISMATCH">ERR_MSG_DIMENSION_MISMATCH</a></b> = 'Dimension mismatch.';</code></td>
+</tr>
+</table>
+<span id="PasDoc-Variables"></span><h3 class="summary">Variables</h3>
+<table class="summary wide_list">
+<tr class="list">
+<td class="itemcode"><code><b><a  href="DTCommon.html#blas_sdot">blas_sdot</a></b>: <a  href="DTCommon.html#_sdot">_sdot</a>;</code></td>
+</tr>
+<tr class="list2">
+<td class="itemcode"><code><b><a  href="DTCommon.html#blas_ddot">blas_ddot</a></b>: <a  href="DTCommon.html#_ddot">_ddot</a>;</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code><b><a  href="DTCommon.html#blas_dgemm">blas_dgemm</a></b>: <a  href="DTCommon.html#_dgemm">_dgemm</a>;</code></td>
+</tr>
+<tr class="list2">
+<td class="itemcode"><code><b><a  href="DTCommon.html#blas_sgemm">blas_sgemm</a></b>: <a  href="DTCommon.html#_sgemm">_sgemm</a>;</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code><b><a  href="DTCommon.html#libHandle">libHandle</a></b>: TLibHandle;</code></td>
+</tr>
+</table>
+<h2 class="description">Description</h2>
+<h3 class="detail">Functions and Procedures</h3>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="Shape"></span><code>function <b>Shape</b>(mat: <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>): <a  href="DTCommon.html#TIntVector">TIntVector</a>;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="CreateVector"></span><code>function <b>CreateVector</b>(size: integer; x: double): <a  href="DTCommon.html#TFloatVector">TFloatVector</a>; overload;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="CreateVector"></span><code>function <b>CreateVector</b>(size: integer): <a  href="DTCommon.html#TFloatVector">TFloatVector</a>; overload;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="CreateMatrix"></span><code>function <b>CreateMatrix</b>(row, col: integer; x: double): <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>; overload;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="CreateMatrix"></span><code>function <b>CreateMatrix</b>(row, col: integer): <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>; overload;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="MatToStr"></span><code>function <b>MatToStr</b>(mat: <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>): string;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="VecToMat"></span><code>function <b>VecToMat</b>(v: <a  href="DTCommon.html#TFloatVector">TFloatVector</a>): <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="ones"></span><code>function <b>ones</b>(row, col: integer): <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="Transpose"></span><code>function <b>Transpose</b>(mat: <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>): <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="GetColumnVector"></span><code>function <b>GetColumnVector</b>(mat: <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>; idx: integer): <a  href="DTCommon.html#TFloatVector">TFloatVector</a>;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="GetColumn"></span><code>function <b>GetColumn</b>(mat: <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>; idx: integer): <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="GetRange"></span><code>function <b>GetRange</b>(mat: <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>; rowFrom, colFrom, Height, Width: integer): <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="Flatten"></span><code>function <b>Flatten</b>(mat: <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>): <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="InsertRowAt"></span><code>procedure <b>InsertRowAt</b>(var A: <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>; const Index: integer; const Value: <a  href="DTCommon.html#TFloatVector">TFloatVector</a>);</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="InsertColumnAt"></span><code>procedure <b>InsertColumnAt</b>(var mat: <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>; const index: integer; const Value: <a  href="DTCommon.html#TFloatVector">TFloatVector</a>);</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="FloatMatrixFromCSV"></span><code>function <b>FloatMatrixFromCSV</b>(s: string): <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="TDTMatrixFromCSV"></span><code>function <b>TDTMatrixFromCSV</b>(f: string): <a  href="DTCommon.TDTMatrix.html">TDTMatrix</a>;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="Exp"></span><code>function <b>Exp</b>(x: double): double;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="Log"></span><code>function <b>Log</b>(x: double): double;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="Pow"></span><code>function <b>Pow</b>(base, exponent: double): double;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="Round"></span><code>function <b>Round</b>(x: double): integer;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="ElementWise"></span><code>function <b>ElementWise</b>(func: <a  href="DTCommon.html#TCallbackFloat">TCallbackFloat</a>; mat: <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>): <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>; overload;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="ElementWise"></span><code>function <b>ElementWise</b>(func: <a  href="DTCommon.html#TCallbackFloat">TCallbackFloat</a>; vec: <a  href="DTCommon.html#TFloatVector">TFloatVector</a>): <a  href="DTCommon.html#TFloatVector">TFloatVector</a>; overload;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="ElementWise"></span><code>function <b>ElementWise</b>(func: <a  href="DTCommon.html#TCallbackInt">TCallbackInt</a>; vec: <a  href="DTCommon.html#TFloatVector">TFloatVector</a>): <a  href="DTCommon.html#TIntVector">TIntVector</a>; overload;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="ElementWise"></span><code>function <b>ElementWise</b>(func: <a  href="DTCommon.html#TCallbackFloat1param">TCallbackFloat1param</a>; param1: double; mat: <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>): <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>; overload;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="RowWise"></span><code>function <b>RowWise</b>(func: <a  href="DTCommon.html#TCallbackFloat">TCallbackFloat</a>; mat: <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>): <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="AppendVector"></span><code>procedure <b>AppendVector</b>(var v: <a  href="DTCommon.html#TFloatVector">TFloatVector</a>; x: double); overload;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="AppendVector"></span><code>procedure <b>AppendVector</b>(var v: <a  href="DTCommon.html#TIntVector">TIntVector</a>; x: integer); overload;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="PrintMatrix"></span><code>procedure <b>PrintMatrix</b>(Mat: <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>);</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="PrintVector"></span><code>procedure <b>PrintVector</b>(vec: <a  href="DTCommon.html#TFloatVector">TFloatVector</a>); overload;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="PrintVector"></span><code>procedure <b>PrintVector</b>(vec: <a  href="DTCommon.html#TIntVector">TIntVector</a>); overload;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<h3 class="detail">Types</h3>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="TFloatVector"></span><code><b>TFloatVector</b> = array of double;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="TFloatMatrix"></span><code><b>TFloatMatrix</b> = array of array of double;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="TIntVector"></span><code><b>TIntVector</b> = array of integer;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="TIntMatrix"></span><code><b>TIntMatrix</b> = array of array of integer;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="TCallbackFloat"></span><code><b>TCallbackFloat</b> = function(x: double): double;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="TCallbackInt"></span><code><b>TCallbackInt</b> = function(x: double): integer;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="TCallbackFloat1param"></span><code><b>TCallbackFloat1param</b> = function(x: double; param1: double): double;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="TCallbackFloatArray"></span><code><b>TCallbackFloatArray</b> = function(v: <a  href="DTCommon.html#TFloatVector">TFloatVector</a>): <a  href="DTCommon.html#TFloatVector">TFloatVector</a>;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="TCallbackString"></span><code><b>TCallbackString</b> = function: string;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="CBLAS_ORDER"></span><code><b>CBLAS_ORDER</b> = (...);</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;<h6 class="description_section">Values</h6>
+<ul>
+<li>
+<span id="CblasRowMajor">CblasRowMajor = 101</span></li>
+<li>
+<span id="CblasColMajor">CblasColMajor = 102</span></li>
+</ul>
+</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="CBLAS_TRANSPOSE"></span><code><b>CBLAS_TRANSPOSE</b> = (...);</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;<h6 class="description_section">Values</h6>
+<ul>
+<li>
+<span id="CblasNoTrans">CblasNoTrans = 111</span></li>
+<li>
+<span id="CblasTrans">CblasTrans = 112</span></li>
+<li>
+<span id="CblasConjTrans">CblasConjTrans = 113</span></li>
+</ul>
+</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="_sdot"></span><code><b>_sdot</b> = function(N: longint; X: PSingle; incX: longint; Y: PSingle; incY: longint): single; cdecl;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="_ddot"></span><code><b>_ddot</b> = function(N: longint; X: <a  href="DTCommon.html#TFloatVector">TFloatVector</a>; incX: longint; Y: <a  href="DTCommon.html#TFloatVector">TFloatVector</a>; incY: longint): double; cdecl;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="_dgemm"></span><code><b>_dgemm</b> = procedure(Order: <a  href="DTCommon.html#CBLAS_ORDER">CBLAS_ORDER</a>; TransA: <a  href="DTCommon.html#CBLAS_TRANSPOSE">CBLAS_TRANSPOSE</a>; TransB: <a  href="DTCommon.html#CBLAS_TRANSPOSE">CBLAS_TRANSPOSE</a>; M: longint; N: longint; K: longint; alpha: double; A: <a  href="DTCommon.html#TFloatVector">TFloatVector</a>; lda: longint; B: <a  href="DTCommon.html#TFloatVector">TFloatVector</a>; ldb: longint; beta: double; C: <a  href="DTCommon.html#TFloatVector">TFloatVector</a>; ldc: longint); cdecl;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="_sgemm"></span><code><b>_sgemm</b> = procedure(Order: <a  href="DTCommon.html#CBLAS_ORDER">CBLAS_ORDER</a>; TransA: <a  href="DTCommon.html#CBLAS_TRANSPOSE">CBLAS_TRANSPOSE</a>; TransB: <a  href="DTCommon.html#CBLAS_TRANSPOSE">CBLAS_TRANSPOSE</a>; M: longint; N: longint; K: longint; alpha: single; A: Psingle; lda: longint; B: Psingle; ldb: longint; beta: single; C: Psingle; ldc: longint); cdecl;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<h3 class="detail">Constants</h3>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="ERR_MSG_DIMENSION_MISMATCH"></span><code><b>ERR_MSG_DIMENSION_MISMATCH</b> = 'Dimension mismatch.';</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<h3 class="detail">Variables</h3>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="blas_sdot"></span><code><b>blas_sdot</b>: <a  href="DTCommon.html#_sdot">_sdot</a>;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="blas_ddot"></span><code><b>blas_ddot</b>: <a  href="DTCommon.html#_ddot">_ddot</a>;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="blas_dgemm"></span><code><b>blas_dgemm</b>: <a  href="DTCommon.html#_dgemm">_dgemm</a>;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="blas_sgemm"></span><code><b>blas_sgemm</b>: <a  href="DTCommon.html#_sgemm">_sgemm</a>;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="libHandle"></span><code><b>libHandle</b>: TLibHandle;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<hr><span class="appinfo"><em>Generated by <a  href="https://github.com/pasdoc/pasdoc/wiki">PasDoc 0.15.0</a>. </em>
+</span>
+</td></tr></table></body></html>

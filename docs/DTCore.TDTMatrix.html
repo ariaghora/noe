@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>darkteal: DTCore: Record TDTMatrix</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generator" content="PasDoc 0.15.0">
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<link rel="StyleSheet" type="text/css" href="pasdoc.css">
+</head>
+<body>
+<table class="container"><tr><td class="navigation">
+<h2>darkteal</h2><p><a href="AllUnits.html" class="navigation">Units</a></p><p><a href="ClassHierarchy.html" class="navigation">Class Hierarchy</a></p><p><a href="AllClasses.html" class="navigation">Classes, Interfaces, Objects and Records</a></p><p><a href="AllTypes.html" class="navigation">Types</a></p><p><a href="AllVariables.html" class="navigation">Variables</a></p><p><a href="AllConstants.html" class="navigation">Constants</a></p><p><a href="AllFunctions.html" class="navigation">Functions and Procedures</a></p><p><a href="AllIdentifiers.html" class="navigation">Identifiers</a></p></td><td class="content">
+<span id="TDTMatrix"></span><h1 class="cio">Record TDTMatrix</h1>
+<div class="sections">
+<div class="one_section"><a class="section" href="#PasDoc-Description">Description</a></div><div class="one_section">Hierarchy</div><div class="one_section"><a class="section" href="#PasDoc-Fields">Fields</a></div><div class="one_section"><a class="section" href="#PasDoc-Methods">Methods</a></div><div class="one_section">Properties</div></div>
+<span id="PasDoc-Description"></span><h2 class="unit">Unit</h2>
+<p class="unitlink">
+<a  href="DTCore.html">DTCore</a></p>
+<h2 class="declaration">Declaration</h2>
+<p class="declaration">
+<code>type TDTMatrix = record</code></p>
+<h2 class="description">Description</h2>
+<p>
+***** Darkteal-specific definitions *****</p>
+<h2 class="overview">Overview</h2>
+<span id="PasDoc-Fields"></span><h3 class="summary">Fields</h3>
+<table class="summary wide_list">
+<tr class="list">
+<td class="itemcode"><code><b><a  href="DTCore.TDTMatrix.html#val">val</a></b>: <a  href="DTCore.html#TFloatVector">TFloatVector</a>;</code></td>
+</tr>
+<tr class="list2">
+<td class="itemcode"><code><b><a  href="DTCore.TDTMatrix.html#Width">Width</a></b>: longint;</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code><b><a  href="DTCore.TDTMatrix.html#Height">Height</a></b>: longint;</code></td>
+</tr>
+</table>
+<span id="PasDoc-Methods"></span><h3 class="summary">Methods</h3>
+<table class="summary wide_list">
+<tr class="list">
+<td class="itemcode"><code>function <b><a  href="DTCore.TDTMatrix.html#Apply">Apply</a></b>(func: <a  href="DTCore.html#TCallbackDouble">TCallbackDouble</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
+</tr>
+<tr class="list2">
+<td class="itemcode"><code>function <b><a  href="DTCore.TDTMatrix.html#Dot">Dot</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code>function <b><a  href="DTCore.TDTMatrix.html#GetColumn">GetColumn</a></b>(idx: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
+</tr>
+<tr class="list2">
+<td class="itemcode"><code>function <b><a  href="DTCore.TDTMatrix.html#GetRange">GetRange</a></b>(row, col, Height, Width: longint): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code>function <b><a  href="DTCore.TDTMatrix.html#GetRow">GetRow</a></b>(idx: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
+</tr>
+<tr class="list2">
+<td class="itemcode"><code>function <b><a  href="DTCore.TDTMatrix.html#Sum">Sum</a></b>(axis: integer = -1): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code>function <b><a  href="DTCore.TDTMatrix.html#T">T</a></b>: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
+</tr>
+<tr class="list2">
+<td class="itemcode"><code>class operator <b><a  href="DTCore.TDTMatrix.html#Add">Add</a></b>(A, B: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code>class operator <b><a  href="DTCore.TDTMatrix.html#Divide">Divide</a></b>(A, B: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
+</tr>
+<tr class="list2">
+<td class="itemcode"><code>class operator <b><a  href="DTCore.TDTMatrix.html#Divide">Divide</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; x: double): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code>class operator <b><a  href="DTCore.TDTMatrix.html#Explicit">Explicit</a></b>(A: <a  href="DTCore.html#TFloatVector">TFloatVector</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
+</tr>
+<tr class="list2">
+<td class="itemcode"><code>class operator <b><a  href="DTCore.TDTMatrix.html#Implicit">Implicit</a></b>(A: <a  href="DTCore.html#TFloatVector">TFloatVector</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code>class operator <b><a  href="DTCore.TDTMatrix.html#Multiply">Multiply</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; x: double): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
+</tr>
+<tr class="list2">
+<td class="itemcode"><code>class operator <b><a  href="DTCore.TDTMatrix.html#Multiply">Multiply</a></b>(x: double; A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code>class operator <b><a  href="DTCore.TDTMatrix.html#Multiply">Multiply</a></b>(A, B: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
+</tr>
+<tr class="list2">
+<td class="itemcode"><code>class operator <b><a  href="DTCore.TDTMatrix.html#Subtract">Subtract</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; x: double): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code>class operator <b><a  href="DTCore.TDTMatrix.html#Subtract">Subtract</a></b>(A, B: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
+</tr>
+</table>
+<h2 class="description">Description</h2>
+<h3 class="detail">Fields</h3>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="val"></span><code><b>val</b>: <a  href="DTCore.html#TFloatVector">TFloatVector</a>;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="Width"></span><code><b>Width</b>: longint;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="Height"></span><code><b>Height</b>: longint;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<h3 class="detail">Methods</h3>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="Apply"></span><code>function <b>Apply</b>(func: <a  href="DTCore.html#TCallbackDouble">TCallbackDouble</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="Dot"></span><code>function <b>Dot</b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="GetColumn"></span><code>function <b>GetColumn</b>(idx: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="GetRange"></span><code>function <b>GetRange</b>(row, col, Height, Width: longint): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="GetRow"></span><code>function <b>GetRow</b>(idx: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="Sum"></span><code>function <b>Sum</b>(axis: integer = -1): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="T"></span><code>function <b>T</b>: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="Add"></span><code>class operator <b>Add</b>(A, B: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="Divide"></span><code>class operator <b>Divide</b>(A, B: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="Divide"></span><code>class operator <b>Divide</b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; x: double): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="Explicit"></span><code>class operator <b>Explicit</b>(A: <a  href="DTCore.html#TFloatVector">TFloatVector</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="Implicit"></span><code>class operator <b>Implicit</b>(A: <a  href="DTCore.html#TFloatVector">TFloatVector</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="Multiply"></span><code>class operator <b>Multiply</b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; x: double): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="Multiply"></span><code>class operator <b>Multiply</b>(x: double; A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="Multiply"></span><code>class operator <b>Multiply</b>(A, B: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="Subtract"></span><code>class operator <b>Subtract</b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; x: double): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="Subtract"></span><code>class operator <b>Subtract</b>(A, B: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<hr><span class="appinfo"><em>Generated by <a  href="https://github.com/pasdoc/pasdoc/wiki">PasDoc 0.15.0</a>. </em>
+</span>
+</td></tr></table></body></html>
