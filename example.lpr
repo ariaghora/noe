@@ -3,7 +3,7 @@ program example;
 uses
   wincrt,
   SysUtils,
-  DTCore;
+  DTCore; // core include
 
 var
   A, B, C: TDTMatrix;

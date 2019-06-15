@@ -1,238 +1,72 @@
-unit DTPreprocessing;
+unit DTPreprocessingExperimental;
 
-{$mode objfpc}{$H+}
+{$mode delphi}
+//{$M+}
 
 interface
 
-
 uses
-  Classes, SysUtils, GQueue, Math, DTLinAlg, DTCommon;
+  Classes, SysUtils, DTCore, DTUtils, fgl;
 
 type
-  TItemRadixSort = integer;
-  TItemRadixSortf = float;
+  TMap = TFPGMap<double, longint>;
 
-function MinMaxNormalize(mat: TFloatMatrix): TFloatMatrix;
-function OneHotEncode(y: TIntVector): TFloatMatrix;
-function OneHotEncode(y: TFloatVector): TFloatMatrix;
-function Getunique(y: TFloatVector): TFloatVector;
+  TOneHotEncoder = class
+    uniqueLabels: TFloatVector;
+    mapperEncode: TMap;
+  private
+    function CreateOneHotVector(idx: integer): TFloatVector;
+  public
+    function Fit(y: TDTMatrix): TOneHotEncoder;
+    function Transform(y: TDTMatrix): TDTMatrix;
+  end;
 
 implementation
 
-procedure RadixSort(var a: array of TItemRadixSort);
-const
-  BASE = 16;
-type
-  TQueueIRS = specialize TQueue< TItemRadixSort >;
+function TOneHotEncoder.CreateOneHotVector(idx: integer): TFloatVector;
 var
-  jono: array[0 .. BASE - 1] of TQueueIRS;
-  max: TItemRadixSort;
-  i, k: integer;
-
-  procedure pick;
-  var
-    i, j: integer;
-  begin
-    i := 0;
-    j := 0;
-    while i < high(a) do
-    begin
-      while not jono[j].IsEmpty do
-      begin
-        a[i] := jono[j].Front;
-        jono[j].Pop;
-        Inc(i);
-      end;
-      Inc(j);
-    end;
-  end;
-
+  res: TFloatVector;
 begin
-  max := high(a);
-  for i := 0 to BASE - 1 do
-    jono[i] := TQueueIRS.Create;
-  for i := low(a) to high(a) do
-  begin
-    if a[i] > max then
-      max := a[i];
-    jono[abs(a[i] mod BASE)].Push(a[i]);
-  end;
-  pick;
-  k := BASE;
-  while max > k do
-  begin
-    for i := low(a) to high(a) do
-      jono[abs(a[i] div k mod BASE)].Push(a[i]);
-    pick;
-    k := k * BASE;
-  end;
-  for i := 0 to BASE - 1 do
-    jono[i].Free;
-
-end;
-
-procedure RadixSortf(var a: array of TItemRadixSortf);
-const
-  BASE = 16;
-type
-  TQueueIRS = specialize TQueue< TItemRadixSortf >;
-var
-  jono: array[0 .. BASE - 1] of TQueueIRS;
-  max: TItemRadixSortf;
-  i, k: integer;
-
-  procedure pick;
-  var
-    i, j: integer;
-  begin
-    i := 0;
-    j := 0;
-    while i < high(a) do
-    begin
-      while not jono[j].IsEmpty do
-      begin
-        a[i] := jono[j].Front;
-        jono[j].Pop;
-        Inc(i);
-      end;
-      Inc(j);
-    end;
-  end;
-
-begin
-  max := high(a);
-  for i := 0 to BASE - 1 do
-    jono[i] := TQueueIRS.Create;
-  for i := low(a) to high(a) do
-  begin
-    if a[i] > max then
-      max := a[i];
-    jono[abs(round(a[i]) mod BASE)].Push(a[i]);
-  end;
-  pick;
-  k := BASE;
-  while max > k do
-  begin
-    for i := low(a) to high(a) do
-      jono[abs(round(a[i]) div k mod BASE)].Push(a[i]);
-    pick;
-    k := k * BASE;
-  end;
-  for i := 0 to BASE - 1 do
-    jono[i].Free;
-
-end;
-
-function MinMaxNormalize(mat: TFloatMatrix): TFloatMatrix;
-var
-  maxes, mins, range: TFloatVector;
-  i, m, n: integer;
-  res: TFloatMatrix;
-begin
-  m := Shape(mat)[0];
-  n := Shape(mat)[1];
-  SetLength(maxes, n);
-  SetLength(mins, n);
-
-  res := CreateMatrix(m, n);
-
-  for i := 0 to n - 1 do
-  begin
-    maxes[i] := Math.MaxValue(GetColumnVector(mat, i));
-    mins[i] := Math.MinValue(GetColumnVector(mat, i));
-  end;
-  range := Subtract(maxes, mins);
-
-  for i := 0 to m - 1 do
-    res[i] := Divide(Subtract(mat[i], mins), range);
+  res := CreateVector(Length(self.uniqueLabels), 0);
+  res[self.mapperEncode.Data[idx]] := 1;
   Result := res;
 end;
 
-
-function Getunique(y: TFloatVector): TFloatVector;
+function TOneHotEncoder.Fit(y: TDTMatrix): TOneHotEncoder;
 var
-  ySorted, unique: TFloatVector;
-  i, j, c, cntUnique: integer;
-  currFound: real;
+  i: longint;
 begin
-  {
-    perform sorting on the (copied) 'y' to reduce the time complexity to
-    O(log n) for finding unique class labels.
-  }
-  SetLength(ySorted, Length(y));
-  ySorted := copy(y, 0, MaxInt);
-  radixsortf(ySorted);
+  Assert(y.Width = 1, 'The shape of y must be 1 by n.');
+  self.uniqueLabels := Getunique(y.val);
 
-  cntUnique := 1;
-  SetLength(unique, cntUnique);
-  currFound := ySorted[0];
-  unique[0] := currFound;
-
-  for i := 0 to Length(y) - 1 do
+  self.mapperEncode := TMap.Create;
+  for i := 0 to Length(self.uniqueLabels) - 1 do
   begin
-    if (currFound <> ySorted[i]) then
-    begin
-      Inc(cntUnique);
-      currFound := ySorted[i];
-      SetLength(unique, cntUnique);
-      unique[cntUnique - 1] := currFound;
-    end;
+    self.mapperEncode.Add(round(self.uniqueLabels[i]), i);
   end;
-  Result := unique;
+
+  Result := self;
 end;
 
-{
-  OneHotEncode encodes categorical integer features as a one-hot numeric array.
-  It creates a binary column for each category and returns a sparse matrix.
-  The input should be a TIntVector.
-}
-function OneHotEncode(y: TIntVector): TFloatMatrix;
+function TOneHotEncoder.Transform(y: TDTMatrix): TDTMatrix;
 var
-  ySorted, unique: TIntVector;
-  res: TFloatMatrix;
-  i, j, c, currFound, cntUnique: integer;
+  i, j, idx: longint;
+  row: TFloatVector;
 begin
-  {
-    perform sorting on the (copied) 'y' to reduce the time complexity to
-    O(log n) for finding unique class labels.
-  }
-  SetLength(ySorted, Length(y));
-  ySorted := copy(y, 0, MaxInt);
-  radixsort(ySorted);
+  idx := 0;
+  Result.Width := length(self.uniqueLabels);
+  Result.Height := y.Height;
+  SetLength(Result.val, Result.Width * Result.Height);
 
-  cntUnique := 1;
-  SetLength(unique, cntUnique);
-  currFound := ySorted[0];
-  unique[0] := currFound;
-
-  for i := 0 to Length(y) - 1 do
+  for i := 0 to y.Height - 1 do
   begin
-    if (currFound <> ySorted[i]) then
+    row := CreateOneHotVector(self.mapperEncode.KeyData[round(y.val[i])]);
+    for j := 0 to Length(self.uniqueLabels) - 1 do
     begin
-      Inc(cntUnique);
-      currFound := ySorted[i];
-      SetLength(unique, cntUnique);
-      unique[cntUnique - 1] := currFound;
+      Result.val[idx] := row[j];
+      Inc(idx);
     end;
   end;
-
-  // actual OHES encoding
-  c := cntUnique;
-  SetLength(res, Length(y));
-  for i := 0 to Length(y) - 1 do
-  begin
-    SetLength(res[i], c);
-    for j := 0 to c - 1 do
-      res[i][j] := 0.0;
-    res[i][unique[y[i]]] := 1.0;
-  end;
-
-  Result := res;
-end;
-
-function OneHotEncode(y: TFloatVector): TFloatMatrix;
-begin
-  Result := OneHotEncode(ElementWise(@Round, y));
 end;
 
 end.
