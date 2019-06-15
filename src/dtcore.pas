@@ -91,6 +91,8 @@ function Multiply(A, B: TDTMatrix): TDTMatrix; overload;
 function Divide(A: TDTMatrix; x: double): TDTMatrix; overload;
 function Sum(A: TDTMatrix): TDTMatrix; overload;
 function Sum(A: TDTMatrix; axis: integer): TDTMatrix; overload;
+function Max(A: TDTMatrix): double; overload;
+function Max(A: TDTMatrix; axis: integer): TDTMatrix; overload;
 
 
 function TDTMatrixFromCSV(f: string): TDTMatrix;
@@ -390,6 +392,41 @@ begin
   begin
     Result := sum(A);
   end;
+end;
+
+function Max(A: TDTMatrix): double;
+var
+  i: integer;
+  CurMax: double;
+begin
+  CurMax := -1.0 / 0.0;
+  for i := 0 to Length(A.val) - 1 do
+    if A.val[i] > CurMax then
+      CurMax := A.val[i];
+  Result := CurMax;
+end;
+
+function Max(A: TDTMatrix; axis: integer): TDTMatrix;
+var
+  i: integer;
+begin
+  if axis = 0 then
+  begin
+    SetLength(Result.val, A.Width);
+    Result.Height := 1;
+    Result.Width := A.Width;
+    for i := 0 to A.Width - 1 do
+      Result.val[i] := DTCore.Max(GetColumn(A, i));
+  end
+  else
+  begin
+    SetLength(Result.val, A.Height);
+    Result.Height := A.Height;
+    Result.Width := 1;
+    for i := 0 to A.Height - 1 do
+      Result.val[i] := DTCore.Max(GetRow(A, i));
+  end
+
 end;
 
 function Add(A, B: TDTMatrix): TDTMatrix;
