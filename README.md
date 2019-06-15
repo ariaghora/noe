@@ -31,7 +31,7 @@ var
   A, B, C: TDTMatrix;
 
 begin
-  DarkTealInit;
+  DarkTealInit;                // Initialize darkteal (once)
 
   A := CreateMatrix(3, 4);     // 3x4 matrix with random values
   B := CreateMatrix(3, 4, 10); // 3x4 matrix filled with 10
