@@ -1,6 +1,8 @@
 # Darkteal
 
-<img src="logo.png" alt="logo" width="100"/>
+<p align="center">
+  <img src="logo.png" alt="logo" width="100"/>
+<p>
 
 Darkteal is a library to perform some basic scientific computing in (object) pascal. **Still under a heavy development**. It is built purely in pascal language, with OpenBLAS backend for heavy matrix operations.
 
