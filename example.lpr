@@ -3,14 +3,14 @@ program example;
 uses
   wincrt,
   SysUtils,
-  DTCommon,
-  DTLinAlg,
-  DTPreprocessing;
+  DTCore;
 
 var
-  A, B, C: TFloatMatrix;
+  A, B, C: TDTMatrix;
 
 begin
+  DarkTealInit;
+
   A := CreateMatrix(3, 4);     // 3x4 matrix with random values
   B := CreateMatrix(3, 4, 10); // 3x4 matrix filled with 10
 
@@ -22,15 +22,21 @@ begin
   PrintMatrix(B);
   WriteLn();
 
+  // Transpose
+  WriteLn('A transpose:');
+  C := A.T;
+  PrintMatrix(C);
+  writeln();
+
   // Addition
   WriteLn('A + B:');
-  C := Add(A, Transpose(B));
+  C := A + B;
   PrintMatrix(C);
   writeln();
 
   // Dot product
   WriteLn('<A, B>:');
-  C := DotProduct(A, Transpose(B));
+  C := A.Dot(B.T);
   PrintMatrix(C);
   writeln();
 
@@ -39,9 +45,6 @@ begin
   C := Multiply(A, B);
   PrintMatrix(C);
   writeln();
-
-  C := FloatMatrixFromCSV('iris.csv');
-  PrintMatrix(C);
 
   ReadLn();
 end.
