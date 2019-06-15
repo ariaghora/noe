@@ -42,7 +42,7 @@ begin
 end;
 ```
 
-It is also possible to create a matrix by loading from a CSV file by using ```FloatMatrixFromCSV``` function.
+It is also possible to create a matrix by loading from a CSV file by using ```TDTMatrixFromCSV``` function.
 ```pascal
   ...
   C := TDTMatrixFromCSV('yourfilename.csv');
@@ -50,7 +50,7 @@ It is also possible to create a matrix by loading from a CSV file by using ```Fl
   ...
 ```
 
-Following examples are the example of arithmetical operations using matrices and vectors.
+Followings are the example of matrix operations:
 ```pascal
   // Transpose
   WriteLn('A transpose:');
