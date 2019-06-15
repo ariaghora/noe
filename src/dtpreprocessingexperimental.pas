@@ -65,9 +65,7 @@ begin
     begin
       Result.val[idx] := row[j];
       Inc(idx);
-      //Write(row[j]: 3: 3, ' ');
     end;
-    //writeln;
   end;
 end;
 

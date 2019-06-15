@@ -19,11 +19,6 @@ function Getunique(y: TFloatVector): TFloatVector;
 
 implementation
 
-//function TOneHotEncoder.Fit(y: TDTMatrix): TOneHotEncoder;
-//begin
-//  Result := self;
-//end;
-
 procedure RadixSort(var a: array of TItemRadixSort);
 const
   BASE = 16;
