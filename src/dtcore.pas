@@ -29,11 +29,13 @@ type
     class operator Implicit(A: TFloatVector): TDTMatrix;
     class operator Explicit(A: TFloatVector): TDTMatrix;
     class operator Add(A, B: TDTMatrix): TDTMatrix;
-    class operator Subtract(A, B: TDTMatrix): TDTMatrix;
+    class operator Subtract(A, B: TDTMatrix): TDTMatrix; overload;
+    class operator Subtract(A: TDTMatrix; x: double): TDTMatrix; overload;
     class operator Multiply(A: TDTMatrix; x: double): TDTMatrix; overload;
     class operator Multiply(x: double; A: TDTMatrix): TDTMatrix; overload;
     class operator Multiply(A, B: TDTMatrix): TDTMatrix; overload;
     class operator Divide(A: TDTMatrix; x: double): TDTMatrix; overload;
+    class operator Divide(A, B: TDTMatrix): TDTMatrix; overload;
     function T: TDTMatrix;
     function GetRow(idx: integer): TDTMatrix;
     function GetColumn(idx: integer): TDTMatrix;
@@ -85,14 +87,20 @@ function GetRow(A: TDTMatrix; idx: integer): TDTMatrix;
 
 function Dot(A, B: TDTMatrix): TDTMatrix;
 function Add(A, B: TDTMatrix): TDTMatrix;
-function Subtract(A, B: TDTMatrix): TDTMatrix;
+function Subtract(A, B: TDTMatrix): TDTMatrix; overload;
+function Subtract(A: TDTMatrix; x: double): TDTMatrix; overload;
 function Multiply(A: TDTMatrix; x: double): TDTMatrix; overload;
 function Multiply(A, B: TDTMatrix): TDTMatrix; overload;
 function Divide(A: TDTMatrix; x: double): TDTMatrix; overload;
+function Divide(A, B: TDTMatrix): TDTMatrix; overload;
 function Sum(A: TDTMatrix): TDTMatrix; overload;
 function Sum(A: TDTMatrix; axis: integer): TDTMatrix; overload;
 function Max(A: TDTMatrix): double; overload;
 function Max(A: TDTMatrix; axis: integer): TDTMatrix; overload;
+function Min(A: TDTMatrix): double; overload;
+function Min(A: TDTMatrix; axis: integer): TDTMatrix; overload;
+
+function TileDown(A: TDTMatrix; size: integer): TDTMatrix; overload;
 
 
 function TDTMatrixFromCSV(f: string): TDTMatrix;
@@ -158,6 +166,11 @@ begin
   Result := DTCore.Subtract(A, B);
 end;
 
+class operator TDTMatrix.Subtract(A: TDTMatrix; x: double): TDTMatrix;
+begin
+  Result := DTCore.Subtract(A, x);
+end;
+
 class operator TDTMatrix.Multiply(A: TDTMatrix; x: double): TDTMatrix;
 begin
   Result := DTCore.Multiply(A, x);
@@ -176,6 +189,11 @@ end;
 class operator TDTMatrix.Divide(A: TDTMatrix; x: double): TDTMatrix;
 begin
   Result := DTCore.Divide(A, x);
+end;
+
+class operator TDTMatrix.Divide(A, B: TDTMatrix): TDTMatrix;
+begin
+  Result := DTCore.Divide(A, B);
 end;
 
 function TDTMatrix.T: TDTMatrix;
@@ -338,6 +356,17 @@ begin
   blas_dscal(A.Height * A.Width, 1 / x, Result.val, 1);
 end;
 
+function Divide(A, B: TDTMatrix): TDTMatrix;
+var
+  i: integer;
+begin
+  Result.Width := A.Width;
+  Result.Height := A.Height;
+  SetLength(Result.val, length(A.val));
+  for i := 0 to length(Result.val) - 1 do
+    Result.val[i] := A.val[i] / B.val[i];
+end;
+
 function GetColumn(A: TDTMatrix; idx: integer): TDTMatrix;
 var
   i: integer;
@@ -425,8 +454,56 @@ begin
     Result.Width := 1;
     for i := 0 to A.Height - 1 do
       Result.val[i] := DTCore.Max(GetRow(A, i));
-  end
+  end;
+end;
 
+function Min(A: TDTMatrix): double;
+var
+  i: integer;
+  CurMin: double;
+begin
+  CurMin := 1.0 / 0.0;
+  for i := 0 to Length(A.val) - 1 do
+    if A.val[i] < CurMin then
+      CurMin := A.val[i];
+  Result := CurMin;
+end;
+
+function Min(A: TDTMatrix; axis: integer): TDTMatrix;
+var
+  i: integer;
+begin
+  if axis = 0 then
+  begin
+    SetLength(Result.val, A.Width);
+    Result.Height := 1;
+    Result.Width := A.Width;
+    for i := 0 to A.Width - 1 do
+      Result.val[i] := DTCore.Min(GetColumn(A, i));
+  end
+  else
+  begin
+    SetLength(Result.val, A.Height);
+    Result.Height := A.Height;
+    Result.Width := 1;
+    for i := 0 to A.Height - 1 do
+      Result.val[i] := DTCore.Min(GetRow(A, i));
+  end;
+end;
+
+function TileDown(A: TDTMatrix; size: integer): TDTMatrix; overload;
+var
+  i, j: integer;
+begin
+  assert(A.Height = 1, 'Only matrix with height equals to 1 can be tiled down');
+  Result.Width := A.Width;
+  Result.Height := size;
+  SetLength(Result.val, A.Width * A.Height * size);
+  for i := 0 to size - 1 do
+  begin
+    for j := 0 to A.Width - 1 do
+      Result.val[i * Result.Width + j] := A.val[j];
+  end;
 end;
 
 function Add(A, B: TDTMatrix): TDTMatrix;
@@ -439,6 +516,11 @@ function Subtract(A, B: TDTMatrix): TDTMatrix;
 begin
   Result := CopyMatrix(A);
   blas_daxpy(Length(B.val), -1, B.val, 1, Result.val, 1);
+end;
+
+function Subtract(A: TDTMatrix; x: double): TDTMatrix;
+begin
+  Result := Subtract(A, CreateMatrix(A.Height, A.Width, x));
 end;
 
 function TDTMatrixFromCSV(f: string): TDTMatrix;
