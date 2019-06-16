@@ -89,6 +89,7 @@ function Abs(x: double): double; overload;
 function Abs(A: TDTMatrix): TDTMatrix; overload;
 function Add(A, B: TDTMatrix): TDTMatrix;
 function InsertRowsAt(A, B: TDTMatrix; pos: integer): TDTMatrix;
+function InsertColumnsAt(A, B: TDTMatrix; pos: integer): TDTMatrix;
 function Subtract(A, B: TDTMatrix): TDTMatrix; overload;
 function Subtract(A: TDTMatrix; x: double): TDTMatrix; overload;
 function Multiply(A: TDTMatrix; x: double): TDTMatrix; overload;
@@ -650,19 +651,23 @@ function InsertRowsAt(A, B: TDTMatrix; pos: integer): TDTMatrix;
 var
   i, w: integer;
 begin
-  Assert((A.Width = B.Width) and (B.Height = 1), 'Condition violated');
   Result := CopyMatrix(A);
   w := B.Width * B.Height;
   SetLength(Result.val, Length(Result.val) + w);
   { shift elements }
-  for i := High(Result.val) downto pos * A.Width do
+  for i := High(Result.val) downto High(Result.val) - w do
   begin
     Result.val[i] := Result.val[i - w];
   end;
   { fill the empty space with the new array }
   for i := pos * A.Width to pos * A.Width + w - 1 do
-    Result.val[i] := B.val[i - pos * A.Width];
+    Result.val[i] := 2;//B.val[i - pos * A.Width];
   Result.Height := Result.Height + B.Height;
+end;
+
+function InsertColumnsAt(A, B: TDTMatrix; pos: integer): TDTMatrix;
+begin
+  Result := InsertRowsAt(A.T, B.T, pos).T;
 end;
 
 function Subtract(A, B: TDTMatrix): TDTMatrix;
