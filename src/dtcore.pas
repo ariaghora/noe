@@ -86,6 +86,8 @@ function GetColumn(A: TDTMatrix; idx: integer): TDTMatrix;
 function GetRow(A: TDTMatrix; idx: integer): TDTMatrix;
 
 function Dot(A, B: TDTMatrix): TDTMatrix;
+function Abs(x: double): double; overload;
+function Abs(A: TDTMatrix): TDTMatrix; overload;
 function Add(A, B: TDTMatrix): TDTMatrix;
 function Subtract(A, B: TDTMatrix): TDTMatrix; overload;
 function Subtract(A: TDTMatrix; x: double): TDTMatrix; overload;
@@ -95,8 +97,12 @@ function Divide(A: TDTMatrix; x: double): TDTMatrix; overload;
 function Divide(A, B: TDTMatrix): TDTMatrix; overload;
 function Sum(A: TDTMatrix): TDTMatrix; overload;
 function Sum(A: TDTMatrix; axis: integer): TDTMatrix; overload;
+function IndexMax(A: TDTMatrix): double; overload;
+function IndexMax(A: TDTMatrix; axis: integer): TDTMatrix; overload;
 function Max(A: TDTMatrix): double; overload;
 function Max(A: TDTMatrix; axis: integer): TDTMatrix; overload;
+function Mean(A: TDTMatrix): double; overload;
+function Mean(A: TDTMatrix; axis: integer): TDTMatrix; overload;
 function Min(A: TDTMatrix): double; overload;
 function Min(A: TDTMatrix; axis: integer): TDTMatrix; overload;
 
@@ -122,6 +128,8 @@ var
   libHandle: TLibHandle;
 
 implementation
+
+uses Math;
 
 procedure DarkTealInit;
 begin
@@ -425,6 +433,44 @@ begin
   end;
 end;
 
+function IndexMax(A: TDTMatrix): double;
+var
+  i: integer;
+  CurMax, CurIdxMax: double;
+begin
+  CurMax := -1.0 / 0.0;
+  CurIdxMax := 0;
+  for i := 0 to Length(A.val) - 1 do
+    if A.val[i] > CurMax then
+    begin
+      CurMax := A.val[i];
+      CurIdxMax := i;
+    end;
+  Result := CurIdxMax;
+end;
+
+function IndexMax(A: TDTMatrix; axis: integer): TDTMatrix;
+var
+  i: integer;
+begin
+  if axis = 0 then
+  begin
+    SetLength(Result.val, A.Width);
+    Result.Height := 1;
+    Result.Width := A.Width;
+    for i := 0 to A.Width - 1 do
+      Result.val[i] := DTCore.IndexMax(GetColumn(A, i));
+  end
+  else
+  begin
+    SetLength(Result.val, A.Height);
+    Result.Height := A.Height;
+    Result.Width := 1;
+    for i := 0 to A.Height - 1 do
+      Result.val[i] := DTCore.IndexMax(GetRow(A, i));
+  end;
+end;
+
 function Max(A: TDTMatrix): double;
 var
   i: integer;
@@ -456,6 +502,39 @@ begin
     Result.Width := 1;
     for i := 0 to A.Height - 1 do
       Result.val[i] := DTCore.Max(GetRow(A, i));
+  end;
+end;
+
+function Mean(A: TDTMatrix): double;
+var
+  i: integer;
+  tot: double;
+begin
+  tot := 0;
+  for i := 0 to Length(A.val) - 1 do
+    tot := tot + A.val[i];
+  Result := tot / Length(A.val);
+end;
+
+function Mean(A: TDTMatrix; axis: integer): TDTMatrix;
+var
+  i: integer;
+begin
+  if axis = 0 then
+  begin
+    SetLength(Result.val, A.Width);
+    Result.Height := 1;
+    Result.Width := A.Width;
+    for i := 0 to A.Width - 1 do
+      Result.val[i] := DTCore.Mean(GetColumn(A, i));
+  end
+  else
+  begin
+    SetLength(Result.val, A.Height);
+    Result.Height := A.Height;
+    Result.Width := 1;
+    for i := 0 to A.Height - 1 do
+      Result.val[i] := DTCore.Mean(GetRow(A, i));
   end;
 end;
 
@@ -517,6 +596,19 @@ begin
     Result.val[i] := func(A.val[i]);
 end;
 
+function Abs(x: double): double;
+begin
+  if x < 0 then
+    Result := x * -1
+  else
+    Result := x;
+end;
+
+function Abs(A: TDTMatrix): TDTMatrix;
+begin
+  Result := Apply(@Abs, A);
+end;
+
 function Add(A, B: TDTMatrix): TDTMatrix;
 begin
   Result := CopyMatrix(B);
@@ -551,11 +643,6 @@ begin
     while not EOF(tfIn) do
     begin
       Readln(tfIn, row);
-      if not isRowSet then
-      begin
-        //cntCol := Length(row);
-        //isRowSet := True;
-      end;
 
       Inc(cntRow);
       cntCol := 0;
@@ -583,14 +670,13 @@ begin
       s := '';
     end;
     CloseFile(tfIn); // close file
-    //writeln(Result.val[0]);
+    setLength(Result.val, Length(Result.val) - 1); // idk, there is always trailing value :(
   except
     on E: EInOutError do
       writeln('File handling error occurred. Details: ', E.Message);
   end;
   Result.Width := cntCol;
   Result.Height := cntRow;
-  //Result := res;
 end;
 
 end.
