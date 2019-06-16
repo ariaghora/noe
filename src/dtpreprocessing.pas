@@ -95,7 +95,6 @@ function TMinMaxScaler.Transform(X: TDTMatrix): TDTMatrix;
 begin
   Result := (X - TileDown(self.Mins, X.Height)) /
     (TileDown(self.Maxs, X.Height) - TileDown(self.Mins, X.Height));
-  PrintMatrix(Result);
 end;
 
 end.
