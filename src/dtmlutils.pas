@@ -17,8 +17,13 @@ function Relu(x: double): double; overload;
 function Relu(A: TDTMatrix): TDTMatrix; overload;
 function ReluPrime(x: double): double; overload;
 function ReluPrime(A: TDTMatrix): TDTMatrix; overload;
-
 function AccuracyScore(yhat, y: TDTMatrix): double;
+
+procedure TrainTestSplit(X, y: TDTMatrix; var XTrain: TDTMatrix;
+  var XTest: TDTMatrix; var yTrain: TDTMatrix; var yTest: TDTMatrix;
+  stratified: boolean);
+
+
 
 implementation
 
@@ -73,6 +78,13 @@ begin
     if y.val[i] = yhat.val[i] then
       tot := tot + 1;
   Result := tot / Length(y.val);
+end;
+
+procedure TrainTestSplit(X, y: TDTMatrix; var XTrain: TDTMatrix;
+  var XTest: TDTMatrix; var yTrain: TDTMatrix; var yTest: TDTMatrix;
+  stratified: boolean);
+begin
+
 end;
 
 end.
