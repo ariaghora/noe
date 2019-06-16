@@ -88,6 +88,7 @@ function Dot(A, B: TDTMatrix): TDTMatrix;
 function Abs(x: double): double; overload;
 function Abs(A: TDTMatrix): TDTMatrix; overload;
 function Add(A, B: TDTMatrix): TDTMatrix;
+function InsertRowsAt(A, B: TDTMatrix; pos: integer): TDTMatrix;
 function Subtract(A, B: TDTMatrix): TDTMatrix; overload;
 function Subtract(A: TDTMatrix; x: double): TDTMatrix; overload;
 function Multiply(A: TDTMatrix; x: double): TDTMatrix; overload;
@@ -643,6 +644,25 @@ function Add(A, B: TDTMatrix): TDTMatrix;
 begin
   Result := CopyMatrix(B);
   blas_daxpy(Length(A.val), 1, A.val, 1, Result.val, 1);
+end;
+
+function InsertRowsAt(A, B: TDTMatrix; pos: integer): TDTMatrix;
+var
+  i, w: integer;
+begin
+  Assert((A.Width = B.Width) and (B.Height = 1), 'Condition violated');
+  Result := CopyMatrix(A);
+  w := B.Width * B.Height;
+  SetLength(Result.val, Length(Result.val) + w);
+  { shift elements }
+  for i := High(Result.val) downto pos * A.Width do
+  begin
+    Result.val[i] := Result.val[i - w];
+  end;
+  { fill the empty space with the new array }
+  for i := pos * A.Width to pos * A.Width + w - 1 do
+    Result.val[i] := B.val[i - pos * A.Width];
+  Result.Height := Result.Height + B.Height;
 end;
 
 function Subtract(A, B: TDTMatrix): TDTMatrix;
