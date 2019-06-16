@@ -81,10 +81,9 @@ function CreateMatrix(row, col: integer; x: double): TDTMatrix; overload;
 function CreateMatrix(row, col: integer): TDTMatrix; overload;
 function Ones(row, col: integer): TDTMatrix;
 function CopyMatrix(M: TDTMatrix): TDTMatrix;
-
+function DeleteElement(var A: TDTMatrix; pos: integer): TDTMatrix;
 function GetColumn(A: TDTMatrix; idx: integer): TDTMatrix;
 function GetRow(A: TDTMatrix; idx: integer): TDTMatrix;
-
 function Dot(A, B: TDTMatrix): TDTMatrix;
 function Abs(x: double): double; overload;
 function Abs(A: TDTMatrix): TDTMatrix; overload;
@@ -105,9 +104,8 @@ function Mean(A: TDTMatrix): double; overload;
 function Mean(A: TDTMatrix; axis: integer): TDTMatrix; overload;
 function Min(A: TDTMatrix): double; overload;
 function Min(A: TDTMatrix; axis: integer): TDTMatrix; overload;
-
+function PopRow(var A: TDTMatrix; pos: integer): TDTMatrix;
 function TileDown(A: TDTMatrix; size: integer): TDTMatrix; overload;
-
 function Apply(func: TCallbackDouble; A: TDTMatrix): TDTMatrix;
 
 
@@ -360,6 +358,25 @@ begin
     Length(A.val), 0, A.val, 1, Result.val, 1);
 end;
 
+{ Should NOT be used directly on a TDTMatrix }
+function DeleteElement(var A: TDTMatrix; pos: integer): TDTMatrix;
+var
+  l, j: integer;
+begin
+  l := length(A.val);
+  if pos > l - 1 then
+    exit
+  else if pos = l - 1 then
+  begin
+    Setlength(A.val, l - 1);
+    exit;
+  end;
+  for j := pos to l - 2 do
+    A.val[j] := A.val[j + 1];
+  SetLength(A.val, l - 1);
+end;
+
+
 function Divide(A: TDTMatrix; x: double): TDTMatrix;
 begin
   Result := DTCore.CopyMatrix(A);
@@ -572,6 +589,19 @@ begin
   end;
 end;
 
+{ Removing pos-th row of an array. Take the row as the returned value.
+  The implementation can be better. }
+function PopRow(var A: TDTMatrix; pos: integer): TDTMatrix;
+var
+  i: integer;
+begin
+  Result := A.GetRow(pos);
+  { this seems to be expensive :( }
+  for i := 0 to A.Width - 1 do
+    DeleteElement(A, i);
+  A.Height := A.Height - 1;
+end;
+
 function TileDown(A: TDTMatrix; size: integer): TDTMatrix; overload;
 var
   i, j: integer;
@@ -670,7 +700,8 @@ begin
       s := '';
     end;
     CloseFile(tfIn); // close file
-    setLength(Result.val, Length(Result.val) - 1); // idk, there is always trailing value :(
+    setLength(Result.val, Length(Result.val) - 1);
+    // idk, there is always trailing value :(
   except
     on E: EInOutError do
       writeln('File handling error occurred. Details: ', E.Message);
