@@ -1,68 +1,52 @@
 unit DTMLUtils;
 
+{ A unit containing machine-learning related classes anc functions }
+
 {$mode delphi}
 
 interface
 
 uses
-  Classes, SysUtils, Math, DTCommon, DTLinAlg;
+  Classes, SysUtils, Math, DTCore, DTLinAlg;
 
-function CategoricalCrossEntropy(ypred, y: TFloatVector): Double; overload;
-function CategoricalCrossEntropy(ypred, y: TFloatMatrix): Double; overload;
-function Sigmoid(x: Double): Double;
-function SigmoidPrime(x: Double): Double;
-function Relu(x: Double): Double;
-function ReluPrime(x: Double): Double;
+function Sigmoid(x: double): double; overload;
+function Sigmoid(A: TDTMatrix): TDTMatrix; overload;
+function SigmoidPrime(x: double): double; overload;
+function SigmoidPrime(A: TDTMatrix): TDTMatrix; overload;
+function Relu(x: double): double;
+function ReluPrime(x: double): double;
 
 implementation
 
-{
-  A collection of loss function. Note that the loss is performed row-wise.
-  At least for now.
-}
-function CategoricalCrossEntropy(ypred, y: TFloatVector): Double;
-var
-  i, m: integer;
-begin
-  m := Length(ypred);
-  Result := 0;
-  for i := 0 to m - 1 do
-    Result := Result + (y[i] * ln(ypred[i]));
-  //Result := -sum(Multiply(y, ElementWise(@DTCommon.Log, ypred)));
-  Result := Result;
-end;
-
-function CategoricalCrossEntropy(ypred, y: TFloatMatrix): Double;
-var
-  i, m: integer;
-begin
-  Result := 0;
-  m := Shape(ypred)[0];
-  for i := 0 to m - 1 do
-    Result := Result + CategoricalCrossEntropy(ypred[i], y[i]);
-  //Result;
-  Result := -Result;
-end;
-
-{
-  A collection of nonlinear activation functions
-}
-function Sigmoid(x: Double): Double;
+{ @abstract(Sigmoid activation function) }
+function Sigmoid(x: double): double;
 begin
   Result := 1 / (1 + exp(-x));
 end;
 
-function SigmoidPrime(x: Double): Double;
+function Sigmoid(A: TDTMatrix): TDTMatrix;
+var
+  i: integer;
+begin
+  Result := Apply(@Sigmoid, A);
+end;
+
+function SigmoidPrime(x: double): double;
 begin
   Result := Sigmoid(x) * (1 - Sigmoid(x));
 end;
 
-function Relu(x: Double): Double;
+function SigmoidPrime(A: TDTMatrix): TDTMatrix;
+begin
+  Result := Apply(@SigmoidPrime, A);
+end;
+
+function Relu(x: double): double;
 begin
   Result := x * integer(x > 0);
 end;
 
-function ReluPrime(x: Double): Double;
+function ReluPrime(x: double): double;
 begin
   Result := 1 * integer(x > 0);
 end;
