@@ -102,6 +102,8 @@ function Min(A: TDTMatrix; axis: integer): TDTMatrix; overload;
 
 function TileDown(A: TDTMatrix; size: integer): TDTMatrix; overload;
 
+function Apply(func: TCallbackDouble; A: TDTMatrix): TDTMatrix;
+
 
 function TDTMatrixFromCSV(f: string): TDTMatrix;
 
@@ -504,6 +506,15 @@ begin
     for j := 0 to A.Width - 1 do
       Result.val[i * Result.Width + j] := A.val[j];
   end;
+end;
+
+function Apply(func: TCallbackDouble; A: TDTMatrix): TDTMatrix;
+var
+  i: longint;
+begin
+  Result := DTCore.CopyMatrix(A);
+  for i := 0 to Length(Result.val) - 1 do
+    Result.val[i] := func(A.val[i]);
 end;
 
 function Add(A, B: TDTMatrix): TDTMatrix;
