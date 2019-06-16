@@ -13,8 +13,12 @@ function Sigmoid(x: double): double; overload;
 function Sigmoid(A: TDTMatrix): TDTMatrix; overload;
 function SigmoidPrime(x: double): double; overload;
 function SigmoidPrime(A: TDTMatrix): TDTMatrix; overload;
-function Relu(x: double): double;
-function ReluPrime(x: double): double;
+function Relu(x: double): double; overload;
+function Relu(A: TDTMatrix): TDTMatrix; overload;
+function ReluPrime(x: double): double; overload;
+function ReluPrime(A: TDTMatrix): TDTMatrix; overload;
+
+function AccuracyScore(yhat, y: TDTMatrix): double;
 
 implementation
 
@@ -43,14 +47,32 @@ end;
 
 function Relu(x: double): double;
 begin
-  Result := x * integer(x > 0);
+  Result := x * integer(x >= 0);
+end;
+
+function Relu(A: TDTMatrix): TDTMatrix;
+begin
+  Result := Apply(@Relu, A);
 end;
 
 function ReluPrime(x: double): double;
 begin
-  Result := 1 * integer(x > 0);
+  Result := 1 * integer(x >= 0);
 end;
 
+function ReluPrime(A: TDTMatrix): TDTMatrix;
+begin
+  Result := Apply(@ReluPrime, A);
+end;
+
+function AccuracyScore(yhat, y: TDTMatrix): double;
+var
+  i, tot: integer;
+begin
+  for i := 0 to Length(y.val) - 1 do
+    if y.val[i] = yhat.val[i] then
+      tot := tot + 1;
+  Result := tot / Length(y.val);
+end;
 
 end.
-
