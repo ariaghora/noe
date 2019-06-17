@@ -88,6 +88,7 @@ function Dot(A, B: TDTMatrix): TDTMatrix;
 function Abs(x: double): double; overload;
 function Abs(A: TDTMatrix): TDTMatrix; overload;
 function Add(A, B: TDTMatrix): TDTMatrix;
+function AppendRows(A, B: TDTMatrix): TDTMatrix;
 function InsertRowsAt(A, B: TDTMatrix; pos: integer): TDTMatrix;
 function InsertColumnsAt(A, B: TDTMatrix; pos: integer): TDTMatrix;
 function Subtract(A, B: TDTMatrix): TDTMatrix; overload;
@@ -599,8 +600,8 @@ var
 begin
   Result := A.GetRow(pos);
   { this seems to be expensive :( }
-  for i := 0 to A.Width - 1 do
-    DeleteElement(A, i);
+  for i := pos * A.Width to pos * A.Width + A.Width - 1 do
+    DeleteElement(A, i * A.Width);
   A.Height := A.Height - 1;
 end;
 
@@ -647,22 +648,32 @@ begin
   blas_daxpy(Length(A.val), 1, A.val, 1, Result.val, 1);
 end;
 
+function AppendRows(A, B: TDTMatrix): TDTMatrix;
+begin
+  Result := InsertRowsAt(A, B, A.Height - 1);
+end;
+
 function InsertRowsAt(A, B: TDTMatrix; pos: integer): TDTMatrix;
 var
   i, w: integer;
 begin
-  Result := CopyMatrix(A);
-  w := B.Width * B.Height;
-  SetLength(Result.val, Length(Result.val) + w);
-  { shift elements }
-  for i := High(Result.val) downto High(Result.val) - w do
+  if A.Height > 0 then
   begin
-    Result.val[i] := Result.val[i - w];
-  end;
-  { fill the empty space with the new array }
-  for i := pos * A.Width to pos * A.Width + w - 1 do
-    Result.val[i] := 2;//B.val[i - pos * A.Width];
-  Result.Height := Result.Height + B.Height;
+    Result := CopyMatrix(A);
+    w := B.Width * B.Height;
+    SetLength(Result.val, Length(Result.val) + w);
+    { shift elements }
+    for i := High(Result.val) downto pos + w do
+    begin
+      Result.val[i] := Result.val[i - w];
+    end;
+    { fill the empty space with the new array }
+    for i := pos * A.Width to pos * A.Width + w - 1 do
+      Result.val[i] := B.val[i - pos * A.Width];
+    Result.Height := Result.Height + B.Height;
+  end
+  else
+    Result := CopyMatrix(B);
 end;
 
 function InsertColumnsAt(A, B: TDTMatrix; pos: integer): TDTMatrix;
