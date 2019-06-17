@@ -81,8 +81,21 @@ function CreateMatrix(row, col: integer; x: double): TDTMatrix; overload;
 function CreateMatrix(row, col: integer): TDTMatrix; overload;
 function Ones(row, col: integer): TDTMatrix;
 function CopyMatrix(M: TDTMatrix): TDTMatrix;
+
+{ Delete element in A.val with position pos.
+  Should NOT be used directly on a TDTMatrix. }
 function DeleteElement(var A: TDTMatrix; pos: integer): TDTMatrix;
+
+{ Get column of A from index idx.
+  @param(A is a m by n TDTMatrix)
+  @param(idx is an integer indicating the designated column index)
+  @returns(m by 1 TDTMatrix)}
 function GetColumn(A: TDTMatrix; idx: integer): TDTMatrix;
+
+{ Get row of A from index idx.
+  @param(A is a m by n TDTMatrix)
+  @param(idx is an integer indicating the designated row index)
+  @returns(1 by n TDTMatrix)}
 function GetRow(A: TDTMatrix; idx: integer): TDTMatrix;
 function Dot(A, B: TDTMatrix): TDTMatrix;
 function Abs(x: double): double; overload;
