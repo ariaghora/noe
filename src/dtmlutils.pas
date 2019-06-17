@@ -19,7 +19,7 @@ function ReluPrime(x: double): double; overload;
 function ReluPrime(A: TDTMatrix): TDTMatrix; overload;
 function AccuracyScore(yhat, y: TDTMatrix): double;
 
-procedure TrainTestSplit(X, y: TDTMatrix; var XTrain: TDTMatrix;
+procedure TrainTestSplit(X, y: TDTMatrix; split: double; var XTrain: TDTMatrix;
   var XTest: TDTMatrix; var yTrain: TDTMatrix; var yTest: TDTMatrix;
   stratified: boolean);
 
@@ -80,11 +80,23 @@ begin
   Result := tot / Length(y.val);
 end;
 
-procedure TrainTestSplit(X, y: TDTMatrix; var XTrain: TDTMatrix;
+procedure TrainTestSplit(X, y: TDTMatrix; split: double; var XTrain: TDTMatrix;
   var XTest: TDTMatrix; var yTrain: TDTMatrix; var yTest: TDTMatrix;
   stratified: boolean);
+var
+  TrainSize, index: integer;
+  XCopy, XtrainTmp, row: TDTMatrix;
 begin
-
+  Xtrain := CreateMatrix(0, X.Width);
+  TrainSize := round(split * X.Height);
+  XCopy := CopyMatrix(X);
+  while Xtrain.Height < TrainSize do
+  begin
+    index := Random(XCopy.Height);
+    row := PopRow(XCopy, index);
+    Xtrain := AppendRows(Xtrain, row);
+  end;
+  XTest := XCopy;
 end;
 
 end.
