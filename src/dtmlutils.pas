@@ -111,7 +111,6 @@ var
   c, prob: double;
   i, row, cidx: integer;
 begin
-  //ProbabilityMap := TProbabilityMap.Create;
   preds := CreateMatrix(0, Length(self.uniqueLabels));
   for row := 0 to X.Height - 1 do
   begin
@@ -120,7 +119,6 @@ begin
     cidx := 0;
     for c in self.uniqueLabels do
     begin
-      //ProbabilityMap.Add(c, 1);
       prob := 1;
       means := TSummaryMap(ClassWiseDatasetSummary.KeyData[c]).KeyData['mean'];
       stdevs := TSummaryMap(ClassWiseDatasetSummary.KeyData[c]).KeyData['std'];
