@@ -7,7 +7,7 @@ unit DTMLUtils;
 interface
 
 uses
-  Classes, SysUtils, Math, DTCore, DTLinAlg;
+  Classes, SysUtils, fgl, Math, DTCore, DTUtils;
 
 function Sigmoid(x: double): double; overload;
 function Sigmoid(A: TDTMatrix): TDTMatrix; overload;
@@ -24,29 +24,120 @@ procedure TrainTestSplit(X, y: TDTMatrix; split: double; var XTrain: TDTMatrix;
   stratified: boolean);
 
 type
-  TBaseEstimator = class abstract(TObject)
+  TBaseClassifier = class abstract(TObject)
   public
-    function StartTraining(X, y: TDTMatrix): TBaseEstimator; virtual; abstract;
-    function MakePrediction(X: TDTMatrix): TBaseEstimator; virtual; abstract;
+    function StartTraining(X, y: TDTMatrix): TBaseClassifier; virtual; abstract;
+    function MakePrediction(X: TDTMatrix): TDTMatrix; virtual; abstract;
   end;
 
-  TNaiveBayes = class(TBaseEstimator)
+  { holding dataset statistic summaries, e.g., 'mean' and stdev }
+  TSummaryMap = TFPGMap<string, TDTMatrix>;
+
+  { holding dataset's class-wise statistic summaries, e.g., 'mean' and stdev }
+  TClassWiseSummaryMap = TFPGMap<double, TSummaryMap>;
+
+  TClassifierNaiveBayes = class(TBaseClassifier)
+    ddof: integer;
+    ClassWiseDatasetSummary: TClassWiseSummaryMap;
+    uniqueLabels: TFloatVector;
   public
-    function StartTraining(X, y: TDTMatrix): TNaiveBayes; override;
-    function MakePrediction(X: TDTMatrix): TNaiveBayes; override;
+    constructor Create; overload;
+    constructor Create(ddof: integer);
+    function StartTraining(X, y: TDTMatrix): TClassifierNaiveBayes; override;
+    function MakePrediction(X: TDTMatrix): TDTMatrix; override;
+  private
+    function CalculateGaussianPDF(x, _mean, _stdev: double): double;
   end;
 
 
 implementation
 
-function TNaiveBayes.StartTraining(X, y: TDTMatrix): TNaiveBayes;
+constructor TClassifierNaiveBayes.Create;
 begin
-
+  { set the default degree of freedom to 1 for unbiased estimator }
+  self.ddof := 1;
 end;
 
-function TNaiveBayes.MakePrediction(X: TDTMatrix): TNaiveBayes;
+function TClassifierNaiveBayes.CalculateGaussianPDF(x, _mean, _stdev: double): double;
+var
+  exponent: double;
 begin
+  exponent := exp(-(power(x - _mean, 2) / (2 * power(_stdev, 2))));
+  Result := (1 / (sqrt(2 * PI) * _stdev)) * exponent;
+end;
 
+constructor TClassifierNaiveBayes.Create(ddof: integer);
+begin
+  self.ddof := ddof;
+end;
+
+function TClassifierNaiveBayes.StartTraining(X, y: TDTMatrix): TClassifierNaiveBayes;
+var
+  DatasetSummary, CSummary: TSummaryMap;
+  ClassWiseData: TDTMatrix;
+  j: integer;
+  c: double;
+begin
+  { summarize overall dataset }
+  DatasetSummary := TSummaryMap.Create;
+  DatasetSummary.Add('mean', Mean(X, 0));
+  DatasetSummary.Add('std', Std(X, 0, self.ddof));
+
+  { summarize class-wise dataset }
+  ClassWiseDatasetSummary := TClassWiseSummaryMap.Create;
+  self.uniqueLabels := Getunique(y.val);
+  { for each class }
+  for c in self.uniqueLabels do
+  begin
+    ClassWiseData := CreateMatrix(0, X.Width);
+    for j := 0 to X.Height - 1 do
+    begin
+      if y.val[j] = c then
+        ClassWiseData := AppendRows(ClassWiseData, X.GetRow(j));
+    end;
+    CSummary := TSummaryMap.Create;
+    CSummary.Add('mean', Mean(ClassWiseData, 0));
+    CSummary.Add('std', Std(ClassWiseData, 0, self.ddof));
+    ClassWiseDatasetSummary.Add(c, CSummary);
+  end;
+
+  Result := Self;
+end;
+
+function TClassifierNaiveBayes.MakePrediction(X: TDTMatrix): TDTMatrix;
+var
+  ProbabilityMap: TProbabilityMap;
+  means, stdevs, instance, probs, preds: TDTMatrix;
+  c, prob: double;
+  i, row, cidx: integer;
+begin
+  //ProbabilityMap := TProbabilityMap.Create;
+  preds := CreateMatrix(0, Length(self.uniqueLabels));
+  for row := 0 to X.Height - 1 do
+  begin
+    instance := X.GetRow(row);
+    probs := CreateMatrix(1, Length(self.uniqueLabels));
+    cidx := 0;
+    for c in self.uniqueLabels do
+    begin
+      //ProbabilityMap.Add(c, 1);
+      prob := 1;
+      means := TSummaryMap(ClassWiseDatasetSummary.KeyData[c]).KeyData['mean'];
+      stdevs := TSummaryMap(ClassWiseDatasetSummary.KeyData[c]).KeyData['std'];
+      for i := 0 to X.Width - 1 do
+      begin
+        { calculate probability of each class of each instance }
+        prob := prob * CalculateGaussianPDF(instance.val[i], means.val[i],
+          stdevs.val[i]);
+      end;
+      probs.val[cidx] := prob;
+      Inc(cidx);
+    end;
+    preds := AppendRows(preds, probs);
+  end;
+
+  { the actual class label for each instance }
+  Result := IndexMax(preds, 1);
 end;
 
 { @abstract(Sigmoid activation function) }
@@ -56,8 +147,6 @@ begin
 end;
 
 function Sigmoid(A: TDTMatrix): TDTMatrix;
-var
-  i: integer;
 begin
   Result := Apply(@Sigmoid, A);
 end;
@@ -96,6 +185,7 @@ function AccuracyScore(yhat, y: TDTMatrix): double;
 var
   i, tot: integer;
 begin
+  tot := 0;
   for i := 0 to Length(y.val) - 1 do
     if y.val[i] = yhat.val[i] then
       tot := tot + 1;
@@ -107,7 +197,7 @@ procedure TrainTestSplit(X, y: TDTMatrix; split: double; var XTrain: TDTMatrix;
   stratified: boolean);
 var
   TrainSize, index: integer;
-  XCopy, yCopy, row: TDTMatrix;
+  XCopy, yCopy: TDTMatrix;
 begin
   XTrain := CreateMatrix(0, X.Width);
   yTrain := CreateMatrix(0, y.Width);
@@ -122,8 +212,6 @@ begin
   end;
   XTest := XCopy;
   yTest := yCopy;
-  //Xtrain := XtrainTmp;
-  //yTrain := yTrainTmp;
 end;
 
 end.

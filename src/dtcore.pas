@@ -112,7 +112,7 @@ function Multiply(A: TDTMatrix; x: double): TDTMatrix; overload;
 function Multiply(A, B: TDTMatrix): TDTMatrix; overload;
 function Divide(A: TDTMatrix; x: double): TDTMatrix; overload;
 function Divide(A, B: TDTMatrix): TDTMatrix; overload;
-function Sum(A: TDTMatrix): TDTMatrix; overload;
+function Sum(A: TDTMatrix): double; overload;
 function Sum(A: TDTMatrix; axis: integer): TDTMatrix; overload;
 function IndexMax(A: TDTMatrix): double; overload;
 function IndexMax(A: TDTMatrix; axis: integer): TDTMatrix; overload;
@@ -123,7 +123,28 @@ function Mean(A: TDTMatrix; axis: integer): TDTMatrix; overload;
 function Min(A: TDTMatrix): double; overload;
 function Min(A: TDTMatrix; axis: integer): TDTMatrix; overload;
 function PopRow(var A: TDTMatrix; pos: integer): TDTMatrix;
+function Power(A: TDTMatrix; exponent: double): TDTMatrix; overload;
+function Sqrt(x: double): double; overload;
+function Std(A: TDTMatrix; ddof: integer): double; overload;
+function Std(A: TDTMatrix; axis:integer; ddof: integer): TDTMatrix; overload;
 function TileDown(A: TDTMatrix; size: integer): TDTMatrix; overload;
+
+{ Get row of A from index idx.
+  @param(A is a m by n TDTMatrix)
+  @param(ddof is an integer indicating the degree of freedom.
+         Setting ddof=1 will give unbiased estimator.)
+  @returns(a double-valued scalar containing variance of A) }
+function Variance(A: TDTMatrix; ddof: integer): double; overload;
+
+{ Get row of A from index idx.
+  @param(A is a m by n TDTMatrix.)
+  @param(axis is the axis along which the variance is calculated.)
+  @param(ddof is an integer indicating the degree of freedom.
+         Setting ddof=1 will give unbiased estimator.)
+  @returns(a 1 by m TDTMatrix (if axis=0) or an n by 1 TDTMatrix (if axis=1)
+           containing list of variances with respect to colums (or rows.)) }
+function Variance(A: TDTMatrix; axis: integer; ddof: integer): TDTMatrix; overload;
+
 function Apply(func: TCallbackDouble; A: TDTMatrix): TDTMatrix;
 
 
@@ -444,12 +465,12 @@ begin
     Result.val[i] := A.val[idx * A.Width + i];
 end;
 
-function Sum(A: TDTMatrix): TDTMatrix;
+function Sum(A: TDTMatrix): double;
 begin
-  Result.Width := 1;
-  Result.Height := 1;
-  SetLength(Result.val, 1);
-  Result.val[0] := blas_dasum(A.Width * A.Height, A.val, 1);
+  //Result.Width := 1;
+  //Result.Height := 1;
+  //SetLength(Result.val, 1);
+  Result := blas_dasum(A.Width * A.Height, A.val, 1);
 end;
 
 function Sum(A: TDTMatrix; axis: integer): TDTMatrix;
@@ -462,7 +483,7 @@ begin
     Result.Height := 1;
     Result.Width := A.Width;
     for i := 0 to A.Width - 1 do
-      Result.val[i] := DTCore.Sum(GetColumn(A, i)).val[0];
+      Result.val[i] := DTCore.Sum(GetColumn(A, i));
   end
   else if axis = 1 then
   begin
@@ -470,12 +491,8 @@ begin
     Result.Height := A.Height;
     Result.Width := 1;
     for i := 0 to A.Height - 1 do
-      Result.val[i] := DTCore.Sum(GetRow(A, i)).val[0];
+      Result.val[i] := DTCore.Sum(GetRow(A, i));
   end
-  else
-  begin
-    Result := sum(A);
-  end;
 end;
 
 function IndexMax(A: TDTMatrix): double;
@@ -618,17 +635,38 @@ begin
 end;
 
 { Removing pos-th row of an array. Take the row as the returned value.
-  The implementation can be better. }
+  The implementation could be better. }
 function PopRow(var A: TDTMatrix; pos: integer): TDTMatrix;
 var
   i: integer;
 begin
   Result := A.GetRow(pos);
-  { this seems to be expensive :( }
-  //for i := 0 to A.Width - 1 do
-  //DeleteElement(A, i + pos * A.Width);
   DeleteElements(A, pos * A.Width, A.Width);
   A.Height := A.Height - 1;
+end;
+
+function Power(A: TDTMatrix; exponent: double): TDTMatrix;
+var
+  i: integer;
+begin
+  Result := CopyMatrix(A);
+  for i := 0 to High(A.val) do
+    Result.val[i] := Math.power(Result.val[i], exponent);
+end;
+
+function Sqrt(x: double): double;
+begin
+  Result:=system.sqrt(x);
+end;
+
+function Std(A: TDTMatrix; ddof: integer): double;
+begin
+  Result:=sqrt(Variance(A, ddof));
+end;
+
+function Std(A: TDTMatrix; axis:integer; ddof: integer): TDTMatrix;
+begin
+  Result:=Apply(@sqrt, variance(A, axis, ddof));
 end;
 
 function TileDown(A: TDTMatrix; size: integer): TDTMatrix; overload;
@@ -643,6 +681,33 @@ begin
   begin
     for j := 0 to A.Width - 1 do
       Result.val[i * Result.Width + j] := A.val[j];
+  end;
+end;
+
+function Variance(A: TDTMatrix; ddof: integer): double;
+begin
+  Result := Sum(Power(A - Mean(A), 2)) / (Length(A.val) - ddof);
+end;
+
+function Variance(A: TDTMatrix; axis: integer; ddof: integer): TDTMatrix;
+var
+  i: integer;
+begin
+  if axis = 0 then
+  begin
+    SetLength(Result.val, A.Width);
+    Result.Height := 1;
+    Result.Width := A.Width;
+    for i := 0 to A.Width - 1 do
+      Result.val[i] := DTCore.Variance(GetColumn(A, i), ddof);//Variance(GetColumn(A, i), ddof);
+  end
+  else
+  begin
+    SetLength(Result.val, A.Height);
+    Result.Height := A.Height;
+    Result.Width := 1;
+    for i := 0 to A.Height - 1 do
+      Result.val[i] := DTCore.Variance(GetRow(A, i), ddof);
   end;
 end;
 

@@ -56,85 +56,97 @@
 <td class="itemcode"><code>function <b><a  href="DTCore.html#DeleteElement">DeleteElement</a></b>(var A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; pos: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
 </tr>
 <tr class="list2">
+<td class="itemcode"><code>procedure <b><a  href="DTCore.html#DeleteElements">DeleteElements</a></b>(var A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; pos, amount: integer);</code></td>
+</tr>
+<tr class="list">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#GetColumn">GetColumn</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; idx: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
 </tr>
-<tr class="list">
+<tr class="list2">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#GetRow">GetRow</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; idx: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
 </tr>
-<tr class="list2">
+<tr class="list">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Dot">Dot</a></b>(A, B: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
 </tr>
-<tr class="list">
+<tr class="list2">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Abs">Abs</a></b>(x: double): double; overload;</code></td>
 </tr>
-<tr class="list2">
+<tr class="list">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Abs">Abs</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
-<tr class="list">
+<tr class="list2">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Add">Add</a></b>(A, B: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
 </tr>
-<tr class="list2">
+<tr class="list">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#AppendRows">AppendRows</a></b>(A, B: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
 </tr>
-<tr class="list">
+<tr class="list2">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#InsertRowsAt">InsertRowsAt</a></b>(A, B: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; pos: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
 </tr>
-<tr class="list2">
+<tr class="list">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#InsertColumnsAt">InsertColumnsAt</a></b>(A, B: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; pos: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
 </tr>
-<tr class="list">
+<tr class="list2">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Subtract">Subtract</a></b>(A, B: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
-<tr class="list2">
+<tr class="list">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Subtract">Subtract</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; x: double): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
-<tr class="list">
+<tr class="list2">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Multiply">Multiply</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; x: double): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
-<tr class="list2">
+<tr class="list">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Multiply">Multiply</a></b>(A, B: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
-<tr class="list">
+<tr class="list2">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Divide">Divide</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; x: double): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
-<tr class="list2">
+<tr class="list">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Divide">Divide</a></b>(A, B: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
-<tr class="list">
-<td class="itemcode"><code>function <b><a  href="DTCore.html#Sum">Sum</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
-</tr>
 <tr class="list2">
+<td class="itemcode"><code>function <b><a  href="DTCore.html#Sum">Sum</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): double; overload;</code></td>
+</tr>
+<tr class="list">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Sum">Sum</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; axis: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
-<tr class="list">
+<tr class="list2">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#IndexMax">IndexMax</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): double; overload;</code></td>
 </tr>
-<tr class="list2">
+<tr class="list">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#IndexMax">IndexMax</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; axis: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
-<tr class="list">
+<tr class="list2">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Max">Max</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): double; overload;</code></td>
 </tr>
-<tr class="list2">
+<tr class="list">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Max">Max</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; axis: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
-<tr class="list">
+<tr class="list2">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Mean">Mean</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): double; overload;</code></td>
 </tr>
-<tr class="list2">
+<tr class="list">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Mean">Mean</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; axis: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
-<tr class="list">
+<tr class="list2">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Min">Min</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): double; overload;</code></td>
 </tr>
-<tr class="list2">
+<tr class="list">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Min">Min</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; axis: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
-<tr class="list">
+<tr class="list2">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#PopRow">PopRow</a></b>(var A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; pos: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code>function <b><a  href="DTCore.html#Power">Power</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; exponent: double): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
 <tr class="list2">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#TileDown">TileDown</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; size: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code>function <b><a  href="DTCore.html#Variance">Variance</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; ddof: integer): double; overload;</code></td>
+</tr>
+<tr class="list2">
+<td class="itemcode"><code>function <b><a  href="DTCore.html#Variance">Variance</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; axis: integer; ddof: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
 <tr class="list">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Apply">Apply</a></b>(func: <a  href="DTCore.html#TCallbackDouble">TCallbackDouble</a>; A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
@@ -287,6 +299,13 @@ Delete element in A.val with position pos. Should NOT be used directly on a TDTM
 </table>
 <table class="detail wide_list">
 <tr class="list">
+<td class="itemcode"><span id="DeleteElements"></span><code>procedure <b>DeleteElements</b>(var A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; pos, amount: integer);</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
 <td class="itemcode"><span id="GetColumn"></span><code>function <b>GetColumn</b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; idx: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
 </tr>
 <tr><td colspan="1">
@@ -412,7 +431,7 @@ Get row of A from index idx.   </p>
 </table>
 <table class="detail wide_list">
 <tr class="list">
-<td class="itemcode"><span id="Sum"></span><code>function <b>Sum</b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
+<td class="itemcode"><span id="Sum"></span><code>function <b>Sum</b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): double; overload;</code></td>
 </tr>
 <tr><td colspan="1">
 &nbsp;</td></tr>
@@ -489,10 +508,53 @@ Get row of A from index idx.   </p>
 </table>
 <table class="detail wide_list">
 <tr class="list">
+<td class="itemcode"><span id="Power"></span><code>function <b>Power</b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; exponent: double): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
 <td class="itemcode"><span id="TileDown"></span><code>function <b>TileDown</b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; size: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
 <tr><td colspan="1">
 &nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="Variance"></span><code>function <b>Variance</b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; ddof: integer): double; overload;</code></td>
+</tr>
+<tr><td colspan="1">
+<p>
+Get row of A from index idx.   </p>
+<h6 class="description_section">Parameters</h6>
+<dl class="parameters">
+<dt>A</dt>
+<dd>is a m by n TDTMatrix</dd>
+<dt>ddof</dt>
+<dd>is an integer indicating the degree of freedom. Setting ddof=1 will give unbiased estimator.</dd>
+</dl>
+<h6 class="description_section">Returns</h6>
+<p class="return">a double-valued scalar containing variance of A</p></td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="Variance"></span><code>function <b>Variance</b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; axis: integer; ddof: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
+</tr>
+<tr><td colspan="1">
+<p>
+Get row of A from index idx.    </p>
+<h6 class="description_section">Parameters</h6>
+<dl class="parameters">
+<dt>A</dt>
+<dd>is a m by n TDTMatrix.</dd>
+<dt>axis</dt>
+<dd>is the axis along which the variance is calculated.</dd>
+<dt>ddof</dt>
+<dd>is an integer indicating the degree of freedom. Setting ddof=1 will give unbiased estimator.</dd>
+</dl>
+<h6 class="description_section">Returns</h6>
+<p class="return">a 1 by m TDTMatrix (if axis=0) or an n by 1 TDTMatrix (if axis=1) containing list of variances with respect to colums (or rows.)</p></td></tr>
 </table>
 <table class="detail wide_list">
 <tr class="list">
