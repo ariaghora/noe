@@ -86,6 +86,8 @@ function CopyMatrix(M: TDTMatrix): TDTMatrix;
   Should NOT be used directly on a TDTMatrix. }
 function DeleteElement(var A: TDTMatrix; pos: integer): TDTMatrix;
 
+procedure DeleteElements(var A: TDTMatrix; pos, amount: integer);
+
 { Get column of A from index idx.
   @param(A is a m by n TDTMatrix)
   @param(idx is an integer indicating the designated column index)
@@ -392,6 +394,16 @@ begin
   SetLength(A.val, l - 1);
 end;
 
+procedure DeleteElements(var A: TDTMatrix; pos, amount: integer);
+var
+  i: integer;
+begin
+  for i := pos + amount to High(A.val) do
+  begin
+    A.val[i - amount] := A.val[i];
+  end;
+  SetLength(A.val, Length(A.val) - amount);
+end;
 
 function Divide(A: TDTMatrix; x: double): TDTMatrix;
 begin
@@ -613,8 +625,9 @@ var
 begin
   Result := A.GetRow(pos);
   { this seems to be expensive :( }
-  for i := pos * A.Width to pos * A.Width + A.Width - 1 do
-    DeleteElement(A, i * A.Width);
+  //for i := 0 to A.Width - 1 do
+  //DeleteElement(A, i + pos * A.Width);
+  DeleteElements(A, pos * A.Width, A.Width);
   A.Height := A.Height - 1;
 end;
 
@@ -663,7 +676,7 @@ end;
 
 function AppendRows(A, B: TDTMatrix): TDTMatrix;
 begin
-  Result := InsertRowsAt(A, B, A.Height - 1);
+  Result := InsertRowsAt(A, B, A.Height);
 end;
 
 function InsertRowsAt(A, B: TDTMatrix; pos: integer): TDTMatrix;
@@ -676,17 +689,20 @@ begin
     w := B.Width * B.Height;
     SetLength(Result.val, Length(Result.val) + w);
     { shift elements }
-    for i := High(Result.val) downto pos + w do
+    for i := High(Result.val) downto High(Result.val) - w + 1 do
     begin
       Result.val[i] := Result.val[i - w];
     end;
     { fill the empty space with the new array }
-    for i := pos * A.Width to pos * A.Width + w - 1 do
-      Result.val[i] := B.val[i - pos * A.Width];
+    for i := 0 to Length(B.val) - 1 do
+      Result.val[i + pos * A.Width] := B.val[i];
     Result.Height := Result.Height + B.Height;
   end
   else
+  begin
     Result := CopyMatrix(B);
+    Result.Height := B.Height;
+  end;
 end;
 
 function InsertColumnsAt(A, B: TDTMatrix; pos: integer): TDTMatrix;
