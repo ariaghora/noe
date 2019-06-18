@@ -23,9 +23,31 @@ procedure TrainTestSplit(X, y: TDTMatrix; split: double; var XTrain: TDTMatrix;
   var XTest: TDTMatrix; var yTrain: TDTMatrix; var yTest: TDTMatrix;
   stratified: boolean);
 
+type
+  TBaseEstimator = class abstract(TObject)
+  public
+    function StartTraining(X, y: TDTMatrix): TBaseEstimator; virtual; abstract;
+    function MakePrediction(X: TDTMatrix): TBaseEstimator; virtual; abstract;
+  end;
+
+  TNaiveBayes = class(TBaseEstimator)
+  public
+    function StartTraining(X, y: TDTMatrix): TNaiveBayes; override;
+    function MakePrediction(X: TDTMatrix): TNaiveBayes; override;
+  end;
 
 
 implementation
+
+function TNaiveBayes.StartTraining(X, y: TDTMatrix): TNaiveBayes;
+begin
+
+end;
+
+function TNaiveBayes.MakePrediction(X: TDTMatrix): TNaiveBayes;
+begin
+
+end;
 
 { @abstract(Sigmoid activation function) }
 function Sigmoid(x: double): double;
@@ -85,7 +107,7 @@ procedure TrainTestSplit(X, y: TDTMatrix; split: double; var XTrain: TDTMatrix;
   stratified: boolean);
 var
   TrainSize, index: integer;
-  XCopy, yCopy, XtrainTmp, row: TDTMatrix;
+  XCopy, yCopy, row: TDTMatrix;
 begin
   XTrain := CreateMatrix(0, X.Width);
   yTrain := CreateMatrix(0, y.Width);
@@ -95,13 +117,13 @@ begin
   while Xtrain.Height < TrainSize do
   begin
     index := Random(XCopy.Height);
-    row := PopRow(XCopy, index);
-    Xtrain := AppendRows(Xtrain, row);
-    row := PopRow(yCopy, index);
-    ytrain := AppendRows(ytrain, row);
+    Xtrain := AppendRows(Xtrain, PopRow(XCopy, index));
+    ytrain := AppendRows(ytrain, PopRow(yCopy, index));
   end;
   XTest := XCopy;
   yTest := yCopy;
+  //Xtrain := XtrainTmp;
+  //yTrain := yTrainTmp;
 end;
 
 end.
