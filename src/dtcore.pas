@@ -124,6 +124,9 @@ function Min(A: TDTMatrix): double; overload;
 function Min(A: TDTMatrix; axis: integer): TDTMatrix; overload;
 function PopRow(var A: TDTMatrix; pos: integer): TDTMatrix;
 function Power(A: TDTMatrix; exponent: double): TDTMatrix; overload;
+function Sqrt(x: double): double; overload;
+function Std(A: TDTMatrix; ddof: integer): double; overload;
+function Std(A: TDTMatrix; axis:integer; ddof: integer): TDTMatrix; overload;
 function TileDown(A: TDTMatrix; size: integer): TDTMatrix; overload;
 
 { Get row of A from index idx.
@@ -649,6 +652,21 @@ begin
   Result := CopyMatrix(A);
   for i := 0 to High(A.val) do
     Result.val[i] := Math.power(Result.val[i], exponent);
+end;
+
+function Sqrt(x: double): double;
+begin
+  Result:=system.sqrt(x);
+end;
+
+function Std(A: TDTMatrix; ddof: integer): double;
+begin
+  Result:=sqrt(Variance(A, ddof));
+end;
+
+function Std(A: TDTMatrix; axis:integer; ddof: integer): TDTMatrix;
+begin
+  Result:=Apply(@sqrt, variance(A, axis, ddof));
 end;
 
 function TileDown(A: TDTMatrix; size: integer): TDTMatrix; overload;
