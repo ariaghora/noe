@@ -85,18 +85,23 @@ procedure TrainTestSplit(X, y: TDTMatrix; split: double; var XTrain: TDTMatrix;
   stratified: boolean);
 var
   TrainSize, index: integer;
-  XCopy, XtrainTmp, row: TDTMatrix;
+  XCopy, yCopy, XtrainTmp, row: TDTMatrix;
 begin
-  Xtrain := CreateMatrix(0, X.Width);
+  XTrain := CreateMatrix(0, X.Width);
+  yTrain := CreateMatrix(0, y.Width);
   TrainSize := round(split * X.Height);
   XCopy := CopyMatrix(X);
+  yCopy := CopyMatrix(y);
   while Xtrain.Height < TrainSize do
   begin
     index := Random(XCopy.Height);
     row := PopRow(XCopy, index);
     Xtrain := AppendRows(Xtrain, row);
+    row := PopRow(yCopy, index);
+    ytrain := AppendRows(ytrain, row);
   end;
   XTest := XCopy;
+  yTest := yCopy;
 end;
 
 end.
