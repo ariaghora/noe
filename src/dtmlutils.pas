@@ -1,6 +1,6 @@
 unit DTMLUtils;
 
-{ A unit containing machine-learning related classes anc functions }
+{ A unit containing machine-learning related classes and functions }
 
 {$mode delphi}
 
