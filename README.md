@@ -46,8 +46,8 @@ begin
 end;
 ```
 
-It is also possible to create a matrix by loading from a CSV file by using ```TDTMatrixFromCSV``` function.
-```pascal
+It is also possible to create a matrix by loading from a CSV file by using ```TDTMatrixFromCSV``` function. Keep in mind that this CSV loader is not a general purpose CSV loader, i.e., it is designed to load numerical data **only** for the sake of loading speed, at least for now. All numerical values will be converted into floating-point numbers.
+```pascalWriteLn(Xtrain.Height);
   ...
   C := TDTMatrixFromCSV('yourfilename.csv');
   PrintMatrix(C);
