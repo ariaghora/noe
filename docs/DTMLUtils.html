@@ -14,70 +14,108 @@
 <div class="sections">
 <div class="one_section"><a class="section" href="#PasDoc-Description">Description</a></div><div class="one_section">Uses</div><div class="one_section">Classes, Interfaces, Objects and Records</div><div class="one_section"><a class="section" href="#PasDoc-FuncsProcs">Functions and Procedures</a></div><div class="one_section">Types</div><div class="one_section">Constants</div><div class="one_section">Variables</div></div>
 <span id="PasDoc-Description"></span><h2 class="description">Description</h2>
-<p>
-A unit containing machine-learning related classes anc functions</p>
-<span id="PasDoc-Uses"></span><h2 class="overview">Overview</h2>
+&nbsp;<span id="PasDoc-Uses"></span><h2 class="overview">Overview</h2>
 <span id="PasDoc-FuncsProcs"></span><h3 class="summary">Functions and Procedures</h3>
 <table class="summary wide_list">
 <tr class="list">
-<td class="itemcode"><code>function <b><a  href="DTMLUtils.html#CategoricalCrossEntropy">CategoricalCrossEntropy</a></b>(ypred, y: <a  href="DTCommon.html#TFloatVector">TFloatVector</a>): Double; overload;</code></td>
+<td class="itemcode"><code>function <b><a  href="DTMLUtils.html#Sigmoid">Sigmoid</a></b>(x: double): double; overload;</code></td>
 </tr>
 <tr class="list2">
-<td class="itemcode"><code>function <b><a  href="DTMLUtils.html#CategoricalCrossEntropy">CategoricalCrossEntropy</a></b>(ypred, y: <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>): Double; overload;</code></td>
+<td class="itemcode"><code>function <b><a  href="DTMLUtils.html#Sigmoid">Sigmoid</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
 <tr class="list">
-<td class="itemcode"><code>function <b><a  href="DTMLUtils.html#Sigmoid">Sigmoid</a></b>(x: Double): Double;</code></td>
+<td class="itemcode"><code>function <b><a  href="DTMLUtils.html#SigmoidPrime">SigmoidPrime</a></b>(x: double): double; overload;</code></td>
 </tr>
 <tr class="list2">
-<td class="itemcode"><code>function <b><a  href="DTMLUtils.html#SigmoidPrime">SigmoidPrime</a></b>(x: Double): Double;</code></td>
+<td class="itemcode"><code>function <b><a  href="DTMLUtils.html#SigmoidPrime">SigmoidPrime</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
 <tr class="list">
-<td class="itemcode"><code>function <b><a  href="DTMLUtils.html#Relu">Relu</a></b>(x: Double): Double;</code></td>
+<td class="itemcode"><code>function <b><a  href="DTMLUtils.html#Relu">Relu</a></b>(x: double): double; overload;</code></td>
 </tr>
 <tr class="list2">
-<td class="itemcode"><code>function <b><a  href="DTMLUtils.html#ReluPrime">ReluPrime</a></b>(x: Double): Double;</code></td>
+<td class="itemcode"><code>function <b><a  href="DTMLUtils.html#Relu">Relu</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code>function <b><a  href="DTMLUtils.html#ReluPrime">ReluPrime</a></b>(x: double): double; overload;</code></td>
+</tr>
+<tr class="list2">
+<td class="itemcode"><code>function <b><a  href="DTMLUtils.html#ReluPrime">ReluPrime</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
+</tr>
+<tr class="list">
+<td class="itemcode"><code>function <b><a  href="DTMLUtils.html#AccuracyScore">AccuracyScore</a></b>(yhat, y: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): double;</code></td>
+</tr>
+<tr class="list2">
+<td class="itemcode"><code>procedure <b><a  href="DTMLUtils.html#TrainTestSplit">TrainTestSplit</a></b>(X, y: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; split: double; var XTrain: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; var XTest: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; var yTrain: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; var yTest: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; stratified: boolean);</code></td>
 </tr>
 </table>
 <h2 class="description">Description</h2>
 <h3 class="detail">Functions and Procedures</h3>
 <table class="detail wide_list">
 <tr class="list">
-<td class="itemcode"><span id="CategoricalCrossEntropy"></span><code>function <b>CategoricalCrossEntropy</b>(ypred, y: <a  href="DTCommon.html#TFloatVector">TFloatVector</a>): Double; overload;</code></td>
+<td class="itemcode"><span id="Sigmoid"></span><code>function <b>Sigmoid</b>(x: double): double; overload;</code></td>
 </tr>
 <tr><td colspan="1">
 &nbsp;</td></tr>
 </table>
 <table class="detail wide_list">
 <tr class="list">
-<td class="itemcode"><span id="CategoricalCrossEntropy"></span><code>function <b>CategoricalCrossEntropy</b>(ypred, y: <a  href="DTCommon.html#TFloatMatrix">TFloatMatrix</a>): Double; overload;</code></td>
+<td class="itemcode"><span id="Sigmoid"></span><code>function <b>Sigmoid</b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
 <tr><td colspan="1">
 &nbsp;</td></tr>
 </table>
 <table class="detail wide_list">
 <tr class="list">
-<td class="itemcode"><span id="Sigmoid"></span><code>function <b>Sigmoid</b>(x: Double): Double;</code></td>
+<td class="itemcode"><span id="SigmoidPrime"></span><code>function <b>SigmoidPrime</b>(x: double): double; overload;</code></td>
 </tr>
 <tr><td colspan="1">
 &nbsp;</td></tr>
 </table>
 <table class="detail wide_list">
 <tr class="list">
-<td class="itemcode"><span id="SigmoidPrime"></span><code>function <b>SigmoidPrime</b>(x: Double): Double;</code></td>
+<td class="itemcode"><span id="SigmoidPrime"></span><code>function <b>SigmoidPrime</b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
 <tr><td colspan="1">
 &nbsp;</td></tr>
 </table>
 <table class="detail wide_list">
 <tr class="list">
-<td class="itemcode"><span id="Relu"></span><code>function <b>Relu</b>(x: Double): Double;</code></td>
+<td class="itemcode"><span id="Relu"></span><code>function <b>Relu</b>(x: double): double; overload;</code></td>
 </tr>
 <tr><td colspan="1">
 &nbsp;</td></tr>
 </table>
 <table class="detail wide_list">
 <tr class="list">
-<td class="itemcode"><span id="ReluPrime"></span><code>function <b>ReluPrime</b>(x: Double): Double;</code></td>
+<td class="itemcode"><span id="Relu"></span><code>function <b>Relu</b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="ReluPrime"></span><code>function <b>ReluPrime</b>(x: double): double; overload;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="ReluPrime"></span><code>function <b>ReluPrime</b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="AccuracyScore"></span><code>function <b>AccuracyScore</b>(yhat, y: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): double;</code></td>
+</tr>
+<tr><td colspan="1">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="itemcode"><span id="TrainTestSplit"></span><code>procedure <b>TrainTestSplit</b>(X, y: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; split: double; var XTrain: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; var XTest: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; var yTrain: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; var yTest: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; stratified: boolean);</code></td>
 </tr>
 <tr><td colspan="1">
 &nbsp;</td></tr>

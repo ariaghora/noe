@@ -17,8 +17,13 @@ function Relu(x: double): double; overload;
 function Relu(A: TDTMatrix): TDTMatrix; overload;
 function ReluPrime(x: double): double; overload;
 function ReluPrime(A: TDTMatrix): TDTMatrix; overload;
-
 function AccuracyScore(yhat, y: TDTMatrix): double;
+
+procedure TrainTestSplit(X, y: TDTMatrix; split: double; var XTrain: TDTMatrix;
+  var XTest: TDTMatrix; var yTrain: TDTMatrix; var yTest: TDTMatrix;
+  stratified: boolean);
+
+
 
 implementation
 
@@ -73,6 +78,30 @@ begin
     if y.val[i] = yhat.val[i] then
       tot := tot + 1;
   Result := tot / Length(y.val);
+end;
+
+procedure TrainTestSplit(X, y: TDTMatrix; split: double; var XTrain: TDTMatrix;
+  var XTest: TDTMatrix; var yTrain: TDTMatrix; var yTest: TDTMatrix;
+  stratified: boolean);
+var
+  TrainSize, index: integer;
+  XCopy, yCopy, XtrainTmp, row: TDTMatrix;
+begin
+  XTrain := CreateMatrix(0, X.Width);
+  yTrain := CreateMatrix(0, y.Width);
+  TrainSize := round(split * X.Height);
+  XCopy := CopyMatrix(X);
+  yCopy := CopyMatrix(y);
+  while Xtrain.Height < TrainSize do
+  begin
+    index := Random(XCopy.Height);
+    row := PopRow(XCopy, index);
+    Xtrain := AppendRows(Xtrain, row);
+    row := PopRow(yCopy, index);
+    ytrain := AppendRows(ytrain, row);
+  end;
+  XTest := XCopy;
+  yTest := yCopy;
 end;
 
 end.
