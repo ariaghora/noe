@@ -1,0 +1,72 @@
+object Form1: TForm1
+  Left = 383
+  Height = 485
+  Top = 250
+  Width = 756
+  Caption = 'Classification Test'
+  ClientHeight = 485
+  ClientWidth = 756
+  DesignTimePPI = 168
+  OnClose = FormClose
+  OnCreate = FormCreate
+  LCLVersion = '2.0.0.3'
+  object BtnLogisticRegression: TButton
+    Left = 4
+    Height = 44
+    Top = 38
+    Width = 748
+    Align = alTop
+    BorderSpacing.Around = 4
+    Caption = 'Run Logistic Regression classifier'
+    OnClick = BtnLogisticRegressionClick
+    TabOrder = 0
+  end
+  object ButtonNaiveBayes: TButton
+    Left = 4
+    Height = 44
+    Top = 86
+    Width = 748
+    Align = alTop
+    BorderSpacing.Around = 4
+    Caption = 'Run Naive Bayes classifier'
+    OnClick = ButtonNaiveBayesClick
+    TabOrder = 1
+  end
+  object LabelFilename: TLabel
+    Left = 4
+    Height = 30
+    Top = 4
+    Width = 748
+    Align = alTop
+    BorderSpacing.Around = 4
+    Caption = 'Dataset: -'
+    ParentColor = False
+  end
+  object MemoOutput: TMemo
+    Left = 4
+    Height = 299
+    Top = 182
+    Width = 748
+    Align = alClient
+    BorderSpacing.Around = 4
+    Font.CharSet = ANSI_CHARSET
+    Font.Color = clBlack
+    Font.Height = -21
+    Font.Name = 'Courier New'
+    Font.Pitch = fpFixed
+    Font.Quality = fqDraft
+    ParentFont = False
+    TabOrder = 2
+  end
+  object Button3: TButton
+    Left = 4
+    Height = 44
+    Top = 134
+    Width = 748
+    Align = alTop
+    BorderSpacing.Around = 4
+    Caption = 'Run Neural Network Classifier'
+    Enabled = False
+    TabOrder = 3
+  end
+end
