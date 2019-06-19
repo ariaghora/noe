@@ -25,6 +25,7 @@ procedure TrainTestSplit(X, y: TDTMatrix; split: double; var XTrain: TDTMatrix;
   stratified: boolean);
 
 type
+  { @exclude }
   TBaseClassifier = class abstract(TObject)
   public
     function StartTraining(X, y: TDTMatrix): TBaseClassifier; virtual; abstract;

@@ -1,3 +1,4 @@
+{ A unit providing some linear algebra functionalities }
 unit DTLinAlg;
 
 {$mode delphi}

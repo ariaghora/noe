@@ -18,7 +18,7 @@
 <a  href="DTMLUtils.html">DTMLUtils</a></p>
 <h2 class="declaration">Declaration</h2>
 <p class="declaration">
-<code>type TClassifierLogisticRegression = class(<a class="normal" href="DTMLUtils.TBaseClassifier.html">TBaseClassifier</a>)</code></p>
+<code>type TClassifierLogisticRegression = class(TBaseClassifier)</code></p>
 <h2 class="description">Description</h2>
 <p>
 Logistic regression classifier</p>
@@ -27,8 +27,7 @@ Logistic regression classifier</p>
 
 <p>The current implementation of <code>TClassifierLogisticRegression</code> is based-on multinomial logistic regression with gradient descent solver.</p>
 <span id="PasDoc-Hierarchy"></span><h2 class="hierarchy">Hierarchy</h2>
-<ul class="hierarchy"><li class="ancestor">TObject</li>
-<li class="ancestor"><a class="normal" href="DTMLUtils.TBaseClassifier.html">TBaseClassifier</a></li>
+<ul class="hierarchy"><li class="ancestor">TBaseClassifier</li>
 <li class="thisitem">TClassifierLogisticRegression</li></ul><h2 class="overview">Overview</h2>
 <span id="PasDoc-Fields"></span><h3 class="summary">Fields</h3>
 <table class="summary wide_list">
@@ -53,7 +52,7 @@ Logistic regression classifier</p>
 </tr>
 <tr class="list">
 <td class="visibility"><a  href="legend.html"><img  src="public.gif" alt="Public" title="Public"></a></td>
-<td class="itemcode"><code>function <b><a  href="DTMLUtils.TClassifierLogisticRegression.html#StartTraining">StartTraining</a></b>(X, y: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTMLUtils.TBaseClassifier.html">TBaseClassifier</a>; override;</code></td>
+<td class="itemcode"><code>function <b><a  href="DTMLUtils.TClassifierLogisticRegression.html#StartTraining">StartTraining</a></b>(X, y: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): TBaseClassifier; override;</code></td>
 </tr>
 </table>
 <h2 class="description">Description</h2>
@@ -94,7 +93,7 @@ Logistic regression classifier</p>
 <table class="detail wide_list">
 <tr class="list">
 <td class="visibility"><a  href="legend.html"><img  src="public.gif" alt="Public" title="Public"></a></td>
-<td class="itemcode"><span id="StartTraining"></span><code>function <b>StartTraining</b>(X, y: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTMLUtils.TBaseClassifier.html">TBaseClassifier</a>; override;</code></td>
+<td class="itemcode"><span id="StartTraining"></span><code>function <b>StartTraining</b>(X, y: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): TBaseClassifier; override;</code></td>
 </tr>
 <tr><td colspan="2">
 <p>

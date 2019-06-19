@@ -1,3 +1,4 @@
+{ @exclude }
 unit DTCommon;
 
 {$mode delphi}
