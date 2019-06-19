@@ -1,6 +1,5 @@
-unit DTMLUtils;
-
 { A unit containing machine-learning related classes and functions }
+unit DTMLUtils;
 
 {$mode delphi}
 
@@ -26,6 +25,7 @@ procedure TrainTestSplit(X, y: TDTMatrix; split: double; var XTrain: TDTMatrix;
   stratified: boolean);
 
 type
+  { @exclude }
   TBaseClassifier = class abstract(TObject)
   public
     function StartTraining(X, y: TDTMatrix): TBaseClassifier; virtual; abstract;

@@ -1,3 +1,4 @@
+{ A unit providing some useful helper functions }
 unit DTUtils;
 
 {$mode objfpc}{$H+}

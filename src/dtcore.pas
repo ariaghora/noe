@@ -1,3 +1,4 @@
+{ The mandatory include unit for darkteal }
 unit DTCore;
 
 {$mode delphi}{$H+}
