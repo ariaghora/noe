@@ -109,7 +109,7 @@ begin
 
   { summarize class-wise dataset }
   ClassWiseDatasetSummary := TClassWiseSummaryMap.Create;
-  self.uniqueLabels := Getunique(y.val);
+  self.uniqueLabels := GetUnique(y.val);
   { for each class }
   for c in self.uniqueLabels do
   begin

@@ -9,9 +9,11 @@ uses
   Classes, SysUtils, GQueue, DTCore;
 
 type
+  { @exclude }
   TItemRadixSortf = double;
 
-function Getunique(y: TFloatVector): TFloatVector;
+{ Get a list of unique values in a TFloatVector. }
+function GetUnique(y: TFloatVector): TFloatVector;
 
 implementation
 
@@ -67,7 +69,7 @@ begin
 
 end;
 
-function Getunique(y: TFloatVector): TFloatVector;
+function GetUnique(y: TFloatVector): TFloatVector;
 var
   ySorted, unique: TFloatVector;
   i, j, c, cntUnique: integer;
