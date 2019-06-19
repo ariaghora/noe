@@ -10,19 +10,21 @@ uses
 
 const
   {$IFDEF MSWINDOWS}
+  { @exclude }
   BLAS_FILENAME = 'libopenblas.dll';
   {$ELSE}
+  { @exclude }
   BLAS_FILENAME = 'libopenblas.so'; // not implemented yet
   {$ENDIF}
 
 type
-  {***** Primitive type wrapper *****}
+  { Primitive type wrapper }
   TFloatVector = array of double;
 
-  {***** Callback function type wrapper *****}
+  { Callback function type wrapper }
   TCallbackDouble = function(x: double): double;
 
-  {***** Darkteal-specific definitions *****}
+  { @abstract(Darkteal matrix representation) }
   TDTMatrix = record
     val: TFloatVector;
     Width: longint;
@@ -47,46 +49,71 @@ type
   end;
 
 
-  {***** CBLAS-specific definition *****}
+  { @exclude }
   CBLAS_ORDER = (CblasRowMajor = 101, CblasColMajor = 102);
+  { @exclude }
   CBLAS_TRANSPOSE = (CblasNoTrans = 111, CblasTrans = 112, CblasConjTrans = 113);
+  { @exclude }
   CBLAS_UPLO = (CblasUpper = 121, CblasLower = 122);
+  { @exclude }
   CBLAS_DIAG = (CblasNonUnit = 131, CblasUnit = 132);
 
+  { @exclude }
   _dcopy = procedure(N: longint; X: TFloatVector; incX: longint;
     Y: TFloatVector; incY: longint); cdecl;
+  { @exclude }
   _daxpy = procedure(N: longint; alpha: double; X: TFloatVector;
     incX: longint; Y: TFloatVector; incY: longint); cdecl;
+  { @exclude }
   _dscal = procedure(N: longint; alpha: double; X: TFloatVector;
     incX: longint); cdecl;
+  { @exclude }
   _dgemm = procedure(Order: CBLAS_ORDER; TransA: CBLAS_TRANSPOSE;
     TransB: CBLAS_TRANSPOSE; M: longint; N: longint; K: longint;
     alpha: double; A: TFloatVector; lda: longint; B: TFloatVector;
     ldb: longint; beta: double; C: TFloatVector; ldc: longint); cdecl;
+  { @exclude }
   _dtbmv = procedure(order: CBLAS_ORDER; Uplo: CBLAS_UPLO;
     TransA: CBLAS_TRANSPOSE; Diag: CBLAS_DIAG; N: longint; K: longint;
     A: TFloatVector; lda: longint; X: TFloatVector; incX: longint); cdecl;
+  { @exclude }
   _ddot = function(N: longint; X: TFloatVector; incX: longint;
     Y: TFloatVector; incY: longint): double; cdecl;
+  { @exclude }
   _dasum = function(N: longint; X: TFloatVector; incX: longint): double; cdecl;
 
-
-
-
+{ initialize the engine }
 procedure DarkTealInit;
+
+{ free the engine }
 procedure DarkTealRelease;
 
+{ helper function to print a matrix using stdout }
 procedure PrintMatrix(M: TDTMatrix);
+
+{ @exclude}
 function CreateVector(size: integer; x: double): TFloatVector;
+
+{ create a matrix filled with x
+
+  @param(x A double value to fill the matrix) }
 function CreateMatrix(row, col: integer; x: double): TDTMatrix; overload;
+
+{ create a matrix with random values }
 function CreateMatrix(row, col: integer): TDTMatrix; overload;
+
+{ create a matrix filled with one }
 function Ones(row, col: integer): TDTMatrix;
+
+{ copying a matrix }
 function CopyMatrix(M: TDTMatrix): TDTMatrix;
 
 { Delete element in A.val with position pos.
-  Should NOT be used directly on a TDTMatrix. }
+  Should @bold(NOT) be used directly on a TDTMatrix. }
 function DeleteElement(var A: TDTMatrix; pos: integer): TDTMatrix;
 
+{ Delete several elements in A.val with position pos.
+  Should @bold(NOT) be used directly on a TDTMatrix. }
 procedure DeleteElements(var A: TDTMatrix; pos, amount: integer);
 
 { Get column of A from index idx.
@@ -152,9 +179,13 @@ function Variance(A: TDTMatrix; ddof: integer): double; overload;
            containing list of variances with respect to colums (or rows.)) }
 function Variance(A: TDTMatrix; axis: integer; ddof: integer): TDTMatrix; overload;
 
+{ Transform each element in @code(A) using a real-valued function @code(func) }
 function Apply(func: TCallbackDouble; A: TDTMatrix): TDTMatrix;
 
+{ Create a matrix from a CSV file.
 
+  Please note that @name can only load a CSV containing numeric values only.
+  The values are stored as floating point numbers. }
 function TDTMatrixFromCSV(f: string): TDTMatrix;
 
 {$IFDEF FPC}
@@ -162,13 +193,21 @@ function TDTMatrixFromCSV(f: string): TDTMatrix;
 {$ENDIF}
 
 var
+  { @exclude }
   blas_dcopy: _dcopy;
+  { @exclude }
   blas_daxpy: _daxpy;
+  { @exclude }
   blas_ddot: _ddot;
+  { @exclude }
   blas_dscal: _dscal;
+  { @exclude }
   blas_dgemm: _dgemm;
+  { @exclude }
   blas_dtbmv: _dtbmv;
+  { @exclude }
   blas_dasum: _dasum;
+  { @exclude }
   libHandle: TLibHandle;
 
 implementation

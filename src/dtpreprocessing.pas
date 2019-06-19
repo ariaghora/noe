@@ -50,7 +50,7 @@ var
   i: longint;
 begin
   Assert(y.Width = 1, 'The shape of y must be 1 by n.');
-  self.uniqueLabels := Getunique(y.val);
+  self.uniqueLabels := GetUnique(y.val);
 
   self.mapperEncode := TMap.Create;
   for i := 0 to Length(self.uniqueLabels) - 1 do

@@ -12,7 +12,7 @@
 <h2>darkteal</h2><p><a href="AllUnits.html" class="navigation">Units</a></p><p><a href="ClassHierarchy.html" class="navigation">Class Hierarchy</a></p><p><a href="AllClasses.html" class="navigation">Classes, Interfaces, Objects and Records</a></p><p><a href="AllTypes.html" class="navigation">Types</a></p><p><a href="AllVariables.html" class="navigation">Variables</a></p><p><a href="AllConstants.html" class="navigation">Constants</a></p><p><a href="AllFunctions.html" class="navigation">Functions and Procedures</a></p><p><a href="AllIdentifiers.html" class="navigation">Identifiers</a></p></td><td class="content">
 <h1 class="unit">Unit DTCore</h1>
 <div class="sections">
-<div class="one_section"><a class="section" href="#PasDoc-Description">Description</a></div><div class="one_section">Uses</div><div class="one_section"><a class="section" href="#PasDoc-Classes">Classes, Interfaces, Objects and Records</a></div><div class="one_section"><a class="section" href="#PasDoc-FuncsProcs">Functions and Procedures</a></div><div class="one_section"><a class="section" href="#PasDoc-Types">Types</a></div><div class="one_section"><a class="section" href="#PasDoc-Constants">Constants</a></div><div class="one_section"><a class="section" href="#PasDoc-Variables">Variables</a></div></div>
+<div class="one_section"><a class="section" href="#PasDoc-Description">Description</a></div><div class="one_section">Uses</div><div class="one_section"><a class="section" href="#PasDoc-Classes">Classes, Interfaces, Objects and Records</a></div><div class="one_section"><a class="section" href="#PasDoc-FuncsProcs">Functions and Procedures</a></div><div class="one_section"><a class="section" href="#PasDoc-Types">Types</a></div><div class="one_section">Constants</div><div class="one_section">Variables</div></div>
 <span id="PasDoc-Description"></span><h2 class="description">Description</h2>
 <p>
 The mandatory include unit for darkteal</p>
@@ -25,7 +25,7 @@ The mandatory include unit for darkteal</p>
 </tr>
 <tr class="list">
 <td class="itemname">Record&nbsp;<a class="bold" href="DTCore.TDTMatrix.html"><code>TDTMatrix</code></a></td>
-<td class="itemdesc">&nbsp;</td>
+<td class="itemdesc">Darkteal matrix representation</td>
 </tr>
 </table>
 <span id="PasDoc-FuncsProcs"></span><h3 class="summary">Functions and Procedures</h3>
@@ -40,135 +40,132 @@ The mandatory include unit for darkteal</p>
 <td class="itemcode"><code>procedure <b><a  href="DTCore.html#PrintMatrix">PrintMatrix</a></b>(M: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>);</code></td>
 </tr>
 <tr class="list2">
-<td class="itemcode"><code>function <b><a  href="DTCore.html#CreateVector">CreateVector</a></b>(size: integer; x: double): <a  href="DTCore.html#TFloatVector">TFloatVector</a>;</code></td>
-</tr>
-<tr class="list">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#CreateMatrix">CreateMatrix</a></b>(row, col: integer; x: double): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
-<tr class="list2">
+<tr class="list">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#CreateMatrix">CreateMatrix</a></b>(row, col: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
-<tr class="list">
+<tr class="list2">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Ones">Ones</a></b>(row, col: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
 </tr>
-<tr class="list2">
+<tr class="list">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#CopyMatrix">CopyMatrix</a></b>(M: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
 </tr>
-<tr class="list">
+<tr class="list2">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#DeleteElement">DeleteElement</a></b>(var A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; pos: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
 </tr>
-<tr class="list2">
+<tr class="list">
 <td class="itemcode"><code>procedure <b><a  href="DTCore.html#DeleteElements">DeleteElements</a></b>(var A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; pos, amount: integer);</code></td>
 </tr>
-<tr class="list">
+<tr class="list2">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#GetColumn">GetColumn</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; idx: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
 </tr>
-<tr class="list2">
+<tr class="list">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#GetRow">GetRow</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; idx: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
 </tr>
-<tr class="list">
+<tr class="list2">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Dot">Dot</a></b>(A, B: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
 </tr>
-<tr class="list2">
+<tr class="list">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Abs">Abs</a></b>(x: double): double; overload;</code></td>
 </tr>
-<tr class="list">
+<tr class="list2">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Abs">Abs</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
-<tr class="list2">
+<tr class="list">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Add">Add</a></b>(A, B: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
 </tr>
-<tr class="list">
+<tr class="list2">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#AppendColumns">AppendColumns</a></b>(A, B: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
 </tr>
-<tr class="list2">
+<tr class="list">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#AppendRows">AppendRows</a></b>(A, B: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
 </tr>
-<tr class="list">
+<tr class="list2">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#InsertRowsAt">InsertRowsAt</a></b>(A, B: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; pos: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
 </tr>
-<tr class="list2">
+<tr class="list">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#InsertColumnsAt">InsertColumnsAt</a></b>(A, B: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; pos: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
 </tr>
-<tr class="list">
+<tr class="list2">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Subtract">Subtract</a></b>(A, B: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
-<tr class="list2">
+<tr class="list">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Subtract">Subtract</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; x: double): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
-<tr class="list">
+<tr class="list2">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Multiply">Multiply</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; x: double): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
-<tr class="list2">
+<tr class="list">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Multiply">Multiply</a></b>(A, B: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
-<tr class="list">
+<tr class="list2">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Divide">Divide</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; x: double): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
-<tr class="list2">
+<tr class="list">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Divide">Divide</a></b>(A, B: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
-<tr class="list">
+<tr class="list2">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Sum">Sum</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): double; overload;</code></td>
 </tr>
-<tr class="list2">
+<tr class="list">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Sum">Sum</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; axis: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
-<tr class="list">
+<tr class="list2">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#IndexMax">IndexMax</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): double; overload;</code></td>
 </tr>
-<tr class="list2">
+<tr class="list">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#IndexMax">IndexMax</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; axis: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
-<tr class="list">
+<tr class="list2">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Max">Max</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): double; overload;</code></td>
 </tr>
-<tr class="list2">
+<tr class="list">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Max">Max</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; axis: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
-<tr class="list">
+<tr class="list2">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Mean">Mean</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): double; overload;</code></td>
 </tr>
-<tr class="list2">
+<tr class="list">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Mean">Mean</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; axis: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
-<tr class="list">
+<tr class="list2">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Min">Min</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): double; overload;</code></td>
 </tr>
-<tr class="list2">
+<tr class="list">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Min">Min</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; axis: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
-<tr class="list">
+<tr class="list2">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#PopRow">PopRow</a></b>(var A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; pos: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
 </tr>
-<tr class="list2">
+<tr class="list">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Power">Power</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; exponent: double): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
-<tr class="list">
+<tr class="list2">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Sqrt">Sqrt</a></b>(x: double): double; overload;</code></td>
 </tr>
-<tr class="list2">
+<tr class="list">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Exp">Exp</a></b>(x: double): double; overload;</code></td>
 </tr>
-<tr class="list">
+<tr class="list2">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Std">Std</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; ddof: integer): double; overload;</code></td>
 </tr>
-<tr class="list2">
+<tr class="list">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Std">Std</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; axis: integer; ddof: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
-<tr class="list">
+<tr class="list2">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#TileDown">TileDown</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; size: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
-<tr class="list2">
+<tr class="list">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Variance">Variance</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; ddof: integer): double; overload;</code></td>
 </tr>
-<tr class="list">
+<tr class="list2">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Variance">Variance</a></b>(A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; axis: integer; ddof: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
-<tr class="list2">
+<tr class="list">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#Apply">Apply</a></b>(func: <a  href="DTCore.html#TCallbackDouble">TCallbackDouble</a>; A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
 </tr>
-<tr class="list">
+<tr class="list2">
 <td class="itemcode"><code>function <b><a  href="DTCore.html#TDTMatrixFromCSV">TDTMatrixFromCSV</a></b>(f: string): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
 </tr>
 </table>
@@ -180,72 +177,6 @@ The mandatory include unit for darkteal</p>
 <tr class="list2">
 <td class="itemcode"><code><b><a  href="DTCore.html#TCallbackDouble">TCallbackDouble</a></b> = function(x: double): double;</code></td>
 </tr>
-<tr class="list">
-<td class="itemcode"><code><b><a  href="DTCore.html#CBLAS_ORDER">CBLAS_ORDER</a></b> = (...);</code></td>
-</tr>
-<tr class="list2">
-<td class="itemcode"><code><b><a  href="DTCore.html#CBLAS_TRANSPOSE">CBLAS_TRANSPOSE</a></b> = (...);</code></td>
-</tr>
-<tr class="list">
-<td class="itemcode"><code><b><a  href="DTCore.html#CBLAS_UPLO">CBLAS_UPLO</a></b> = (...);</code></td>
-</tr>
-<tr class="list2">
-<td class="itemcode"><code><b><a  href="DTCore.html#CBLAS_DIAG">CBLAS_DIAG</a></b> = (...);</code></td>
-</tr>
-<tr class="list">
-<td class="itemcode"><code><b><a  href="DTCore.html#_dcopy">_dcopy</a></b> = procedure(N: longint; X: <a  href="DTCore.html#TFloatVector">TFloatVector</a>; incX: longint; Y: <a  href="DTCore.html#TFloatVector">TFloatVector</a>; incY: longint); cdecl;</code></td>
-</tr>
-<tr class="list2">
-<td class="itemcode"><code><b><a  href="DTCore.html#_daxpy">_daxpy</a></b> = procedure(N: longint; alpha: double; X: <a  href="DTCore.html#TFloatVector">TFloatVector</a>; incX: longint; Y: <a  href="DTCore.html#TFloatVector">TFloatVector</a>; incY: longint); cdecl;</code></td>
-</tr>
-<tr class="list">
-<td class="itemcode"><code><b><a  href="DTCore.html#_dscal">_dscal</a></b> = procedure(N: longint; alpha: double; X: <a  href="DTCore.html#TFloatVector">TFloatVector</a>; incX: longint); cdecl;</code></td>
-</tr>
-<tr class="list2">
-<td class="itemcode"><code><b><a  href="DTCore.html#_dgemm">_dgemm</a></b> = procedure(Order: <a  href="DTCore.html#CBLAS_ORDER">CBLAS_ORDER</a>; TransA: <a  href="DTCore.html#CBLAS_TRANSPOSE">CBLAS_TRANSPOSE</a>; TransB: <a  href="DTCore.html#CBLAS_TRANSPOSE">CBLAS_TRANSPOSE</a>; M: longint; N: longint; K: longint; alpha: double; A: <a  href="DTCore.html#TFloatVector">TFloatVector</a>; lda: longint; B: <a  href="DTCore.html#TFloatVector">TFloatVector</a>; ldb: longint; beta: double; C: <a  href="DTCore.html#TFloatVector">TFloatVector</a>; ldc: longint); cdecl;</code></td>
-</tr>
-<tr class="list">
-<td class="itemcode"><code><b><a  href="DTCore.html#_dtbmv">_dtbmv</a></b> = procedure(order: <a  href="DTCore.html#CBLAS_ORDER">CBLAS_ORDER</a>; Uplo: <a  href="DTCore.html#CBLAS_UPLO">CBLAS_UPLO</a>; TransA: <a  href="DTCore.html#CBLAS_TRANSPOSE">CBLAS_TRANSPOSE</a>; Diag: <a  href="DTCore.html#CBLAS_DIAG">CBLAS_DIAG</a>; N: longint; K: longint; A: <a  href="DTCore.html#TFloatVector">TFloatVector</a>; lda: longint; X: <a  href="DTCore.html#TFloatVector">TFloatVector</a>; incX: longint); cdecl;</code></td>
-</tr>
-<tr class="list2">
-<td class="itemcode"><code><b><a  href="DTCore.html#_ddot">_ddot</a></b> = function(N: longint; X: <a  href="DTCore.html#TFloatVector">TFloatVector</a>; incX: longint; Y: <a  href="DTCore.html#TFloatVector">TFloatVector</a>; incY: longint): double; cdecl;</code></td>
-</tr>
-<tr class="list">
-<td class="itemcode"><code><b><a  href="DTCore.html#_dasum">_dasum</a></b> = function(N: longint; X: <a  href="DTCore.html#TFloatVector">TFloatVector</a>; incX: longint): double; cdecl;</code></td>
-</tr>
-</table>
-<span id="PasDoc-Constants"></span><h3 class="summary">Constants</h3>
-<table class="summary wide_list">
-<tr class="list">
-<td class="itemcode"><code><b><a  href="DTCore.html#BLAS_FILENAME">BLAS_FILENAME</a></b> = 'libopenblas.dll';</code></td>
-</tr>
-</table>
-<span id="PasDoc-Variables"></span><h3 class="summary">Variables</h3>
-<table class="summary wide_list">
-<tr class="list">
-<td class="itemcode"><code><b><a  href="DTCore.html#blas_dcopy">blas_dcopy</a></b>: <a  href="DTCore.html#_dcopy">_dcopy</a>;</code></td>
-</tr>
-<tr class="list2">
-<td class="itemcode"><code><b><a  href="DTCore.html#blas_daxpy">blas_daxpy</a></b>: <a  href="DTCore.html#_daxpy">_daxpy</a>;</code></td>
-</tr>
-<tr class="list">
-<td class="itemcode"><code><b><a  href="DTCore.html#blas_ddot">blas_ddot</a></b>: <a  href="DTCore.html#_ddot">_ddot</a>;</code></td>
-</tr>
-<tr class="list2">
-<td class="itemcode"><code><b><a  href="DTCore.html#blas_dscal">blas_dscal</a></b>: <a  href="DTCore.html#_dscal">_dscal</a>;</code></td>
-</tr>
-<tr class="list">
-<td class="itemcode"><code><b><a  href="DTCore.html#blas_dgemm">blas_dgemm</a></b>: <a  href="DTCore.html#_dgemm">_dgemm</a>;</code></td>
-</tr>
-<tr class="list2">
-<td class="itemcode"><code><b><a  href="DTCore.html#blas_dtbmv">blas_dtbmv</a></b>: <a  href="DTCore.html#_dtbmv">_dtbmv</a>;</code></td>
-</tr>
-<tr class="list">
-<td class="itemcode"><code><b><a  href="DTCore.html#blas_dasum">blas_dasum</a></b>: <a  href="DTCore.html#_dasum">_dasum</a>;</code></td>
-</tr>
-<tr class="list2">
-<td class="itemcode"><code><b><a  href="DTCore.html#libHandle">libHandle</a></b>: TLibHandle;</code></td>
-</tr>
 </table>
 <h2 class="description">Description</h2>
 <h3 class="detail">Functions and Procedures</h3>
@@ -254,56 +185,70 @@ The mandatory include unit for darkteal</p>
 <td class="itemcode"><span id="DarkTealInit"></span><code>procedure <b>DarkTealInit</b>;</code></td>
 </tr>
 <tr><td colspan="1">
-&nbsp;</td></tr>
+<p>
+initialize the engine</p>
+</td></tr>
 </table>
 <table class="detail wide_list">
 <tr class="list">
 <td class="itemcode"><span id="DarkTealRelease"></span><code>procedure <b>DarkTealRelease</b>;</code></td>
 </tr>
 <tr><td colspan="1">
-&nbsp;</td></tr>
+<p>
+free the engine</p>
+</td></tr>
 </table>
 <table class="detail wide_list">
 <tr class="list">
 <td class="itemcode"><span id="PrintMatrix"></span><code>procedure <b>PrintMatrix</b>(M: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>);</code></td>
 </tr>
 <tr><td colspan="1">
-&nbsp;</td></tr>
-</table>
-<table class="detail wide_list">
-<tr class="list">
-<td class="itemcode"><span id="CreateVector"></span><code>function <b>CreateVector</b>(size: integer; x: double): <a  href="DTCore.html#TFloatVector">TFloatVector</a>;</code></td>
-</tr>
-<tr><td colspan="1">
-&nbsp;</td></tr>
+<p>
+helper function to print a matrix using stdout</p>
+</td></tr>
 </table>
 <table class="detail wide_list">
 <tr class="list">
 <td class="itemcode"><span id="CreateMatrix"></span><code>function <b>CreateMatrix</b>(row, col: integer; x: double): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
 <tr><td colspan="1">
-&nbsp;</td></tr>
+<p>
+create a matrix filled with x
+
+<p></p>
+<h6 class="description_section">Parameters</h6>
+<dl class="parameters">
+<dt>x</dt>
+<dd>A double value to fill the matrix</dd>
+</dl>
+</td></tr>
 </table>
 <table class="detail wide_list">
 <tr class="list">
 <td class="itemcode"><span id="CreateMatrix"></span><code>function <b>CreateMatrix</b>(row, col: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; overload;</code></td>
 </tr>
 <tr><td colspan="1">
-&nbsp;</td></tr>
+<p>
+create a matrix with random values</p>
+</td></tr>
 </table>
 <table class="detail wide_list">
 <tr class="list">
 <td class="itemcode"><span id="Ones"></span><code>function <b>Ones</b>(row, col: integer): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
 </tr>
 <tr><td colspan="1">
-&nbsp;</td></tr>
+<p>
+create a matrix filled with one</p>
+</td></tr>
 </table>
 <table class="detail wide_list">
 <tr class="list">
 <td class="itemcode"><span id="CopyMatrix"></span><code>function <b>CopyMatrix</b>(M: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
 </tr>
 <tr><td colspan="1">
-&nbsp;</td></tr>
+<p>
+copying a matrix</p>
+</td></tr>
 </table>
 <table class="detail wide_list">
 <tr class="list">
@@ -311,7 +256,7 @@ The mandatory include unit for darkteal</p>
 </tr>
 <tr><td colspan="1">
 <p>
-Delete element in A.val with position pos. Should NOT be used directly on a TDTMatrix.</p>
+Delete element in A.val with position pos. Should <b>NOT</b> be used directly on a TDTMatrix.</p>
 </td></tr>
 </table>
 <table class="detail wide_list">
@@ -319,7 +264,9 @@ Delete element in A.val with position pos. Should NOT be used directly on a TDTM
 <td class="itemcode"><span id="DeleteElements"></span><code>procedure <b>DeleteElements</b>(var A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>; pos, amount: integer);</code></td>
 </tr>
 <tr><td colspan="1">
-&nbsp;</td></tr>
+<p>
+Delete several elements in A.val with position pos. Should <b>NOT</b> be used directly on a TDTMatrix.</p>
+</td></tr>
 </table>
 <table class="detail wide_list">
 <tr class="list">
@@ -615,14 +562,20 @@ Get row of A from index idx.    </p>
 <td class="itemcode"><span id="Apply"></span><code>function <b>Apply</b>(func: <a  href="DTCore.html#TCallbackDouble">TCallbackDouble</a>; A: <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
 </tr>
 <tr><td colspan="1">
-&nbsp;</td></tr>
+<p>
+Transform each element in <code>A</code> using a real-valued function <code>func</code></p>
+</td></tr>
 </table>
 <table class="detail wide_list">
 <tr class="list">
 <td class="itemcode"><span id="TDTMatrixFromCSV"></span><code>function <b>TDTMatrixFromCSV</b>(f: string): <a  href="DTCore.TDTMatrix.html">TDTMatrix</a>;</code></td>
 </tr>
 <tr><td colspan="1">
-&nbsp;</td></tr>
+<p>
+Create a matrix from a CSV file.
+
+<p>Please note that <code>TDTMatrixFromCSV</code> can only load a CSV containing numeric values only. The values are stored as floating point numbers.</p>
+</td></tr>
 </table>
 <h3 class="detail">Types</h3>
 <table class="detail wide_list">
@@ -631,7 +584,7 @@ Get row of A from index idx.    </p>
 </tr>
 <tr><td colspan="1">
 <p>
-***** Primitive type wrapper *****</p>
+Primitive type wrapper</p>
 </td></tr>
 </table>
 <table class="detail wide_list">
@@ -640,182 +593,8 @@ Get row of A from index idx.    </p>
 </tr>
 <tr><td colspan="1">
 <p>
-***** Callback function type wrapper *****</p>
+Callback function type wrapper</p>
 </td></tr>
-</table>
-<table class="detail wide_list">
-<tr class="list">
-<td class="itemcode"><span id="CBLAS_ORDER"></span><code><b>CBLAS_ORDER</b> = (...);</code></td>
-</tr>
-<tr><td colspan="1">
-<p>
-***** CBLAS-specific definition *****</p>
-<h6 class="description_section">Values</h6>
-<ul>
-<li>
-<span id="CblasRowMajor">CblasRowMajor = 101</span></li>
-<li>
-<span id="CblasColMajor">CblasColMajor = 102</span></li>
-</ul>
-</td></tr>
-</table>
-<table class="detail wide_list">
-<tr class="list">
-<td class="itemcode"><span id="CBLAS_TRANSPOSE"></span><code><b>CBLAS_TRANSPOSE</b> = (...);</code></td>
-</tr>
-<tr><td colspan="1">
-&nbsp;<h6 class="description_section">Values</h6>
-<ul>
-<li>
-<span id="CblasNoTrans">CblasNoTrans = 111</span></li>
-<li>
-<span id="CblasTrans">CblasTrans = 112</span></li>
-<li>
-<span id="CblasConjTrans">CblasConjTrans = 113</span></li>
-</ul>
-</td></tr>
-</table>
-<table class="detail wide_list">
-<tr class="list">
-<td class="itemcode"><span id="CBLAS_UPLO"></span><code><b>CBLAS_UPLO</b> = (...);</code></td>
-</tr>
-<tr><td colspan="1">
-&nbsp;<h6 class="description_section">Values</h6>
-<ul>
-<li>
-<span id="CblasUpper">CblasUpper = 121</span></li>
-<li>
-<span id="CblasLower">CblasLower = 122</span></li>
-</ul>
-</td></tr>
-</table>
-<table class="detail wide_list">
-<tr class="list">
-<td class="itemcode"><span id="CBLAS_DIAG"></span><code><b>CBLAS_DIAG</b> = (...);</code></td>
-</tr>
-<tr><td colspan="1">
-&nbsp;<h6 class="description_section">Values</h6>
-<ul>
-<li>
-<span id="CblasNonUnit">CblasNonUnit = 131</span></li>
-<li>
-<span id="CblasUnit">CblasUnit = 132</span></li>
-</ul>
-</td></tr>
-</table>
-<table class="detail wide_list">
-<tr class="list">
-<td class="itemcode"><span id="_dcopy"></span><code><b>_dcopy</b> = procedure(N: longint; X: <a  href="DTCore.html#TFloatVector">TFloatVector</a>; incX: longint; Y: <a  href="DTCore.html#TFloatVector">TFloatVector</a>; incY: longint); cdecl;</code></td>
-</tr>
-<tr><td colspan="1">
-&nbsp;</td></tr>
-</table>
-<table class="detail wide_list">
-<tr class="list">
-<td class="itemcode"><span id="_daxpy"></span><code><b>_daxpy</b> = procedure(N: longint; alpha: double; X: <a  href="DTCore.html#TFloatVector">TFloatVector</a>; incX: longint; Y: <a  href="DTCore.html#TFloatVector">TFloatVector</a>; incY: longint); cdecl;</code></td>
-</tr>
-<tr><td colspan="1">
-&nbsp;</td></tr>
-</table>
-<table class="detail wide_list">
-<tr class="list">
-<td class="itemcode"><span id="_dscal"></span><code><b>_dscal</b> = procedure(N: longint; alpha: double; X: <a  href="DTCore.html#TFloatVector">TFloatVector</a>; incX: longint); cdecl;</code></td>
-</tr>
-<tr><td colspan="1">
-&nbsp;</td></tr>
-</table>
-<table class="detail wide_list">
-<tr class="list">
-<td class="itemcode"><span id="_dgemm"></span><code><b>_dgemm</b> = procedure(Order: <a  href="DTCore.html#CBLAS_ORDER">CBLAS_ORDER</a>; TransA: <a  href="DTCore.html#CBLAS_TRANSPOSE">CBLAS_TRANSPOSE</a>; TransB: <a  href="DTCore.html#CBLAS_TRANSPOSE">CBLAS_TRANSPOSE</a>; M: longint; N: longint; K: longint; alpha: double; A: <a  href="DTCore.html#TFloatVector">TFloatVector</a>; lda: longint; B: <a  href="DTCore.html#TFloatVector">TFloatVector</a>; ldb: longint; beta: double; C: <a  href="DTCore.html#TFloatVector">TFloatVector</a>; ldc: longint); cdecl;</code></td>
-</tr>
-<tr><td colspan="1">
-&nbsp;</td></tr>
-</table>
-<table class="detail wide_list">
-<tr class="list">
-<td class="itemcode"><span id="_dtbmv"></span><code><b>_dtbmv</b> = procedure(order: <a  href="DTCore.html#CBLAS_ORDER">CBLAS_ORDER</a>; Uplo: <a  href="DTCore.html#CBLAS_UPLO">CBLAS_UPLO</a>; TransA: <a  href="DTCore.html#CBLAS_TRANSPOSE">CBLAS_TRANSPOSE</a>; Diag: <a  href="DTCore.html#CBLAS_DIAG">CBLAS_DIAG</a>; N: longint; K: longint; A: <a  href="DTCore.html#TFloatVector">TFloatVector</a>; lda: longint; X: <a  href="DTCore.html#TFloatVector">TFloatVector</a>; incX: longint); cdecl;</code></td>
-</tr>
-<tr><td colspan="1">
-&nbsp;</td></tr>
-</table>
-<table class="detail wide_list">
-<tr class="list">
-<td class="itemcode"><span id="_ddot"></span><code><b>_ddot</b> = function(N: longint; X: <a  href="DTCore.html#TFloatVector">TFloatVector</a>; incX: longint; Y: <a  href="DTCore.html#TFloatVector">TFloatVector</a>; incY: longint): double; cdecl;</code></td>
-</tr>
-<tr><td colspan="1">
-&nbsp;</td></tr>
-</table>
-<table class="detail wide_list">
-<tr class="list">
-<td class="itemcode"><span id="_dasum"></span><code><b>_dasum</b> = function(N: longint; X: <a  href="DTCore.html#TFloatVector">TFloatVector</a>; incX: longint): double; cdecl;</code></td>
-</tr>
-<tr><td colspan="1">
-&nbsp;</td></tr>
-</table>
-<h3 class="detail">Constants</h3>
-<table class="detail wide_list">
-<tr class="list">
-<td class="itemcode"><span id="BLAS_FILENAME"></span><code><b>BLAS_FILENAME</b> = 'libopenblas.dll';</code></td>
-</tr>
-<tr><td colspan="1">
-&nbsp;</td></tr>
-</table>
-<h3 class="detail">Variables</h3>
-<table class="detail wide_list">
-<tr class="list">
-<td class="itemcode"><span id="blas_dcopy"></span><code><b>blas_dcopy</b>: <a  href="DTCore.html#_dcopy">_dcopy</a>;</code></td>
-</tr>
-<tr><td colspan="1">
-&nbsp;</td></tr>
-</table>
-<table class="detail wide_list">
-<tr class="list">
-<td class="itemcode"><span id="blas_daxpy"></span><code><b>blas_daxpy</b>: <a  href="DTCore.html#_daxpy">_daxpy</a>;</code></td>
-</tr>
-<tr><td colspan="1">
-&nbsp;</td></tr>
-</table>
-<table class="detail wide_list">
-<tr class="list">
-<td class="itemcode"><span id="blas_ddot"></span><code><b>blas_ddot</b>: <a  href="DTCore.html#_ddot">_ddot</a>;</code></td>
-</tr>
-<tr><td colspan="1">
-&nbsp;</td></tr>
-</table>
-<table class="detail wide_list">
-<tr class="list">
-<td class="itemcode"><span id="blas_dscal"></span><code><b>blas_dscal</b>: <a  href="DTCore.html#_dscal">_dscal</a>;</code></td>
-</tr>
-<tr><td colspan="1">
-&nbsp;</td></tr>
-</table>
-<table class="detail wide_list">
-<tr class="list">
-<td class="itemcode"><span id="blas_dgemm"></span><code><b>blas_dgemm</b>: <a  href="DTCore.html#_dgemm">_dgemm</a>;</code></td>
-</tr>
-<tr><td colspan="1">
-&nbsp;</td></tr>
-</table>
-<table class="detail wide_list">
-<tr class="list">
-<td class="itemcode"><span id="blas_dtbmv"></span><code><b>blas_dtbmv</b>: <a  href="DTCore.html#_dtbmv">_dtbmv</a>;</code></td>
-</tr>
-<tr><td colspan="1">
-&nbsp;</td></tr>
-</table>
-<table class="detail wide_list">
-<tr class="list">
-<td class="itemcode"><span id="blas_dasum"></span><code><b>blas_dasum</b>: <a  href="DTCore.html#_dasum">_dasum</a>;</code></td>
-</tr>
-<tr><td colspan="1">
-&nbsp;</td></tr>
-</table>
-<table class="detail wide_list">
-<tr class="list">
-<td class="itemcode"><span id="libHandle"></span><code><b>libHandle</b>: TLibHandle;</code></td>
-</tr>
-<tr><td colspan="1">
-&nbsp;</td></tr>
 </table>
 <hr><span class="appinfo"><em>Generated by <a  href="https://github.com/pasdoc/pasdoc/wiki">PasDoc 0.15.0</a>. </em>
 </span>
