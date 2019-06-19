@@ -52,6 +52,17 @@ type
     function CalculateGaussianPDF(x, _mean, _stdev: double): double;
   end;
 
+  { TClassifierLogisticRegression }
+
+  TClassifierLogisticRegression = class(TBaseClassifier)
+  public
+    { @param(X An m by n feature matrix)
+      @param(y An m by 1 matrix containing ground truth label) }
+    function StartTraining(X, y: TDTMatrix): TBaseClassifier; override;
+    function MakePrediction(X: TDTMatrix): TDTMatrix; override;
+  private
+  end;
+
 
 implementation
 
@@ -109,7 +120,6 @@ end;
 
 function TClassifierNaiveBayes.MakePrediction(X: TDTMatrix): TDTMatrix;
 var
-  ProbabilityMap: TProbabilityMap;
   means, stdevs, instance, probs, preds: TDTMatrix;
   c, prob: double;
   i, row, cidx: integer;
@@ -140,6 +150,18 @@ begin
   { the actual class label for each instance }
   Result := IndexMax(preds, 1);
 end;
+
+function TClassifierLogisticRegression.StartTraining(X, y: TDTMatrix
+  ): TBaseClassifier;
+begin
+
+end;
+
+function TClassifierLogisticRegression.MakePrediction(X: TDTMatrix): TDTMatrix;
+begin
+
+end;
+
 
 { @abstract(Sigmoid activation function) }
 function Sigmoid(x: double): double;
