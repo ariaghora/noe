@@ -21,7 +21,11 @@
 <code>type TClassifierLogisticRegression = class(<a class="normal" href="DTMLUtils.TBaseClassifier.html">TBaseClassifier</a>)</code></p>
 <h2 class="description">Description</h2>
 <p>
-TClassifierLogisticRegression</p>
+Logistic regression classifier</p>
+<p>
+
+
+<p>The current implementation of <code>TClassifierLogisticRegression</code> is based-on multinomial logistic regression with gradient descent solver.</p>
 <span id="PasDoc-Hierarchy"></span><h2 class="hierarchy">Hierarchy</h2>
 <ul class="hierarchy"><li class="ancestor">TObject</li>
 <li class="ancestor"><a class="normal" href="DTMLUtils.TBaseClassifier.html">TBaseClassifier</a></li>
@@ -30,7 +34,11 @@ TClassifierLogisticRegression</p>
 <table class="summary wide_list">
 <tr class="list">
 <td class="visibility"><a  href="legend.html"><img  src="public.gif" alt="Public" title="Public"></a></td>
-<td class="itemcode"><code><b><a  href="DTMLUtils.TClassifierLogisticRegression.html#UsingItercept">UsingItercept</a></b>: boolean;</code></td>
+<td class="itemcode"><code><b><a  href="DTMLUtils.TClassifierLogisticRegression.html#NIter">NIter</a></b>: integer;</code></td>
+</tr>
+<tr class="list2">
+<td class="visibility"><a  href="legend.html"><img  src="public.gif" alt="Public" title="Public"></a></td>
+<td class="itemcode"><code><b><a  href="DTMLUtils.TClassifierLogisticRegression.html#LearningRate">LearningRate</a></b>: double;</code></td>
 </tr>
 </table>
 <span id="PasDoc-Methods"></span><h3 class="summary">Methods</h3>
@@ -53,7 +61,15 @@ TClassifierLogisticRegression</p>
 <table class="detail wide_list">
 <tr class="list">
 <td class="visibility"><a  href="legend.html"><img  src="public.gif" alt="Public" title="Public"></a></td>
-<td class="itemcode"><span id="UsingItercept"></span><code><b>UsingItercept</b>: boolean;</code></td>
+<td class="itemcode"><span id="NIter"></span><code><b>NIter</b>: integer;</code></td>
+</tr>
+<tr><td colspan="2">
+&nbsp;</td></tr>
+</table>
+<table class="detail wide_list">
+<tr class="list">
+<td class="visibility"><a  href="legend.html"><img  src="public.gif" alt="Public" title="Public"></a></td>
+<td class="itemcode"><span id="LearningRate"></span><code><b>LearningRate</b>: double;</code></td>
 </tr>
 <tr><td colspan="2">
 &nbsp;</td></tr>
