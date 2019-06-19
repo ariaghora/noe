@@ -9,9 +9,9 @@ uses
 
 const
   {$IFDEF MSWINDOWS}
-  BLAS_FILENAME = 'openblas.dll';
+  BLAS_FILENAME = 'libopenblas.dll';
   {$ELSE}
-  BLAS_FILENAME = 'openblas.so'; // not implemented yet
+  BLAS_FILENAME = 'libopenblas.so'; // not implemented yet
   {$ENDIF}
 
 type
