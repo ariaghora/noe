@@ -70,7 +70,6 @@ type
     function MakePrediction(X: TDTMatrix): TDTMatrix; override;
   private
     W, b: TDTMatrix;
-    WeightMap: TWeightMap;
     Binarizer: TOneHotEncoder;
   end;
 

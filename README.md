@@ -81,7 +81,7 @@ Followings are the example of matrix operations:
 
   ReadLn();  
 ```
-For now please explore the source code by yourself to see the complete functionality. Don't worry, the code base is not that large yet. You can also explore darkteal's possibility in varying use-case examples in "playground" folder.
+Check out the documentation [here](https://ariaghora.github.io/darkteal/docs/)
 
 ### Some known issues
 - **Some operations are painfully slow:** darkteal is still in a very early development. What you can do for now is making optimization on the compiler side, e.g., using "-O3" if you are using freepascal compiler.
