@@ -37,7 +37,6 @@ begin
   A := CreateMatrix(3, 4);     // 3x4 matrix with random values
   B := CreateMatrix(3, 4, 10); // 3x4 matrix filled with 10
 
-
   WriteLn('Matrix A: ');
   PrintMatrix(A);
   WriteLn();
@@ -65,7 +64,7 @@ Followings are the example of matrix operations:
 
   // Addition
   WriteLn('A + B:');
-  C := A + B;
+  C := Add(A, B); // or C := A + B;
   PrintMatrix(C);
   writeln();
 
@@ -77,7 +76,7 @@ Followings are the example of matrix operations:
 
   // Hadamard (element-wise) product
   WriteLn('A .* B:');
-  C := Multiply(A, B);
+  C := Multiply(A, B); // or C := A * B
   PrintMatrix(C);
 
   ReadLn();  
