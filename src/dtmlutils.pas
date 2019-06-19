@@ -7,12 +7,14 @@ unit DTMLUtils;
 interface
 
 uses
-  Classes, SysUtils, fgl, Math, DTCore, DTUtils;
+  Classes, SysUtils, fgl, Math, DTCore, DTUtils, DTPreprocessing;
 
 function Sigmoid(x: double): double; overload;
 function Sigmoid(A: TDTMatrix): TDTMatrix; overload;
 function SigmoidPrime(x: double): double; overload;
 function SigmoidPrime(A: TDTMatrix): TDTMatrix; overload;
+function SoftMax(A: TDTMatrix): TDTMatrix; overload;
+function SoftMax(A: TDTMatrix; axis: integer): TDTMatrix; overload;
 function Relu(x: double): double; overload;
 function Relu(A: TDTMatrix): TDTMatrix; overload;
 function ReluPrime(x: double): double; overload;
@@ -52,15 +54,24 @@ type
     function CalculateGaussianPDF(x, _mean, _stdev: double): double;
   end;
 
-  { TClassifierLogisticRegression }
+  { @abstract(Logistic regression classifier)
 
+    The current implementation of @classname is based-on multinomial logistic
+    regression with gradient descent solver. }
   TClassifierLogisticRegression = class(TBaseClassifier)
+    NIter: integer;
+    LearningRate: double;
   public
+    constructor Create; overload;
+
     { @param(X An m by n feature matrix)
       @param(y An m by 1 matrix containing ground truth label) }
     function StartTraining(X, y: TDTMatrix): TBaseClassifier; override;
     function MakePrediction(X: TDTMatrix): TDTMatrix; override;
   private
+    W, b: TDTMatrix;
+    WeightMap: TWeightMap;
+    Binarizer: TOneHotEncoder;
   end;
 
 
@@ -151,15 +162,41 @@ begin
   Result := IndexMax(preds, 1);
 end;
 
-function TClassifierLogisticRegression.StartTraining(X, y: TDTMatrix
-  ): TBaseClassifier;
+constructor TClassifierLogisticRegression.Create;
 begin
+  NIter := 200;
+  LearningRate := 0.01;
+end;
 
+function TClassifierLogisticRegression.StartTraining(X, y: TDTMatrix): TBaseClassifier;
+var
+  Output, Errors, yBin, dY: TDTMatrix;
+  i, j, m: integer;
+  c: double;
+begin
+  { one-hot encode labels }
+  Binarizer := TOneHotEncoder.Create.Fit(y);
+  yBin := Binarizer.Transform(y);
+
+  m := X.Height;
+
+  W := CreateMatrix(X.Width, yBin.Width);
+  b := CreateMatrix(1, yBin.Width, 1 / X.Width);
+
+  for i := 1 to NIter do
+  begin
+    Output := Sigmoid(X.dot(W) + self.b);
+    dY := yBin - Output;
+    W := W + LearningRate * X.T.Dot(dY);
+    b := b + LearningRate * Mean(dY, 0);
+  end;
+
+  Result := self;
 end;
 
 function TClassifierLogisticRegression.MakePrediction(X: TDTMatrix): TDTMatrix;
 begin
-
+  Result := IndexMax(X.Dot(W + b), 1);
 end;
 
 
@@ -182,6 +219,31 @@ end;
 function SigmoidPrime(A: TDTMatrix): TDTMatrix;
 begin
   Result := Apply(@SigmoidPrime, A);
+end;
+
+function SoftMax(A: TDTMatrix): TDTMatrix;
+var
+  i: integer;
+begin
+  Result := Apply(@Exp, A) / sum(Apply(@Exp, A));
+end;
+
+function SoftMax(A: TDTMatrix; axis: integer): TDTMatrix;
+var
+  i: integer;
+begin
+  if axis = 1 then
+  begin
+    Result := CreateMatrix(0, A.Width);
+    for i := 0 to A.Height - 1 do
+      Result := AppendRows(Result, SoftMax(A.GetRow(i)));
+  end
+  else
+  begin
+    Result := CreateMatrix(A.Height, 0);
+    for i := 0 to A.Width - 1 do
+      Result := AppendColumns(Result, SoftMax(A.GetColumn(i)));
+  end;
 end;
 
 function Relu(x: double): double;
