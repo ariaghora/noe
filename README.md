@@ -15,7 +15,8 @@ In the near future, darkteal is aimed to be a foundation to make the development
 ## Quick Start
 
 ### Usage
-Include darkteal's "src" folder into your search path.
+- Include darkteal's "src" folder into your project search path.
+- Put libopenblas shared library (libopenblas.dll) in your project folder. Refer to OpenBLAS [installation guide](https://github.com/xianyi/OpenBLAS/wiki/Installation-Guide).
 
 ### Initializing matrices
 Darkteal revolves around the usage of TDTMatrix. The TDTMatrix is essentially a wrapper of pascal's 2D dynamic array with OpenBLAS as the backend for some matrix operations. Darkteal provides helper functions to initialize matrices in various ways:

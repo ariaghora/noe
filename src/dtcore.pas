@@ -9,9 +9,9 @@ uses
 
 const
   {$IFDEF MSWINDOWS}
-  BLAS_FILENAME = 'openblas.dll';
+  BLAS_FILENAME = 'libopenblas.dll';
   {$ELSE}
-  BLAS_FILENAME = 'openblas.so'; // not implemented yet
+  BLAS_FILENAME = 'libopenblas.so'; // not implemented yet
   {$ENDIF}
 
 type
@@ -103,9 +103,14 @@ function Dot(A, B: TDTMatrix): TDTMatrix;
 function Abs(x: double): double; overload;
 function Abs(A: TDTMatrix): TDTMatrix; overload;
 function Add(A, B: TDTMatrix): TDTMatrix;
+function AppendColumns(A, B: TDTMatrix): TDTMatrix;
 function AppendRows(A, B: TDTMatrix): TDTMatrix;
 function InsertRowsAt(A, B: TDTMatrix; pos: integer): TDTMatrix;
+
+{ Insert @code(B) into @code(A) at column index @code(pos).
+  A and B must have the same height. }
 function InsertColumnsAt(A, B: TDTMatrix; pos: integer): TDTMatrix;
+
 function Subtract(A, B: TDTMatrix): TDTMatrix; overload;
 function Subtract(A: TDTMatrix; x: double): TDTMatrix; overload;
 function Multiply(A: TDTMatrix; x: double): TDTMatrix; overload;
@@ -125,8 +130,9 @@ function Min(A: TDTMatrix; axis: integer): TDTMatrix; overload;
 function PopRow(var A: TDTMatrix; pos: integer): TDTMatrix;
 function Power(A: TDTMatrix; exponent: double): TDTMatrix; overload;
 function Sqrt(x: double): double; overload;
+function Exp(x: double): double; overload;
 function Std(A: TDTMatrix; ddof: integer): double; overload;
-function Std(A: TDTMatrix; axis:integer; ddof: integer): TDTMatrix; overload;
+function Std(A: TDTMatrix; axis: integer; ddof: integer): TDTMatrix; overload;
 function TileDown(A: TDTMatrix; size: integer): TDTMatrix; overload;
 
 { Get row of A from index idx.
@@ -492,7 +498,7 @@ begin
     Result.Width := 1;
     for i := 0 to A.Height - 1 do
       Result.val[i] := DTCore.Sum(GetRow(A, i));
-  end
+  end;
 end;
 
 function IndexMax(A: TDTMatrix): double;
@@ -654,19 +660,24 @@ begin
     Result.val[i] := Math.power(Result.val[i], exponent);
 end;
 
+function Exp(x: double): double;
+begin
+  Result := system.exp(x);
+end;
+
 function Sqrt(x: double): double;
 begin
-  Result:=system.sqrt(x);
+  Result := system.sqrt(x);
 end;
 
 function Std(A: TDTMatrix; ddof: integer): double;
 begin
-  Result:=sqrt(Variance(A, ddof));
+  Result := sqrt(Variance(A, ddof));
 end;
 
-function Std(A: TDTMatrix; axis:integer; ddof: integer): TDTMatrix;
+function Std(A: TDTMatrix; axis: integer; ddof: integer): TDTMatrix;
 begin
-  Result:=Apply(@sqrt, variance(A, axis, ddof));
+  Result := Apply(@sqrt, variance(A, axis, ddof));
 end;
 
 function TileDown(A: TDTMatrix; size: integer): TDTMatrix; overload;
@@ -699,7 +710,8 @@ begin
     Result.Height := 1;
     Result.Width := A.Width;
     for i := 0 to A.Width - 1 do
-      Result.val[i] := DTCore.Variance(GetColumn(A, i), ddof);//Variance(GetColumn(A, i), ddof);
+      Result.val[i] := DTCore.Variance(GetColumn(A, i), ddof);
+    //Variance(GetColumn(A, i), ddof);
   end
   else
   begin
@@ -736,7 +748,15 @@ end;
 function Add(A, B: TDTMatrix): TDTMatrix;
 begin
   Result := CopyMatrix(B);
+  // handle broadcasting better next time :(
+  if B.Height = 1 then
+    Result := TileDown(B, A.Height);
   blas_daxpy(Length(A.val), 1, A.val, 1, Result.val, 1);
+end;
+
+function AppendColumns(A, B: TDTMatrix): TDTMatrix;
+begin
+  Result := InsertColumnsAt(A, B, A.Width);
 end;
 
 function AppendRows(A, B: TDTMatrix): TDTMatrix;
