@@ -36,6 +36,7 @@ type
   { holding dataset's class-wise statistic summaries, e.g., 'mean' and stdev }
   TClassWiseSummaryMap = TFPGMap<double, TSummaryMap>;
 
+  { @abstract(Gaussian Naive Bayes classifier) }
   TClassifierNaiveBayes = class(TBaseClassifier)
     ddof: integer;
     ClassWiseDatasetSummary: TClassWiseSummaryMap;
@@ -43,6 +44,8 @@ type
   public
     constructor Create; overload;
     constructor Create(ddof: integer);
+    { @param(X An m by n feature matrix)
+      @param(y An m by 1 matrix containing ground truth label) }
     function StartTraining(X, y: TDTMatrix): TClassifierNaiveBayes; override;
     function MakePrediction(X: TDTMatrix): TDTMatrix; override;
   private
