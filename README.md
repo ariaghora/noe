@@ -122,7 +122,7 @@ begin
   WriteLn('Test accuracy: ', TestAccuracy);
 end.
 ```
-Please check (this link)[https://ariaghora.github.io/darkteal/docs/DTMLUtils.html] for a more complete classifier list and some other machine learning-related functionalities. Contributions are welcome.
+Please check [this link](https://ariaghora.github.io/darkteal/docs/DTMLUtils.html) for a more complete classifier list and some other machine learning-related functionalities. Contributions are welcome.
 
 ### Some known issues
 - **Some operations are painfully slow:** darkteal is still in a very early development. What you can do for now is making optimization on the compiler side, e.g., using "-O3" if you are using freepascal compiler.
