@@ -32,8 +32,6 @@ var
   A, B, C: TDTMatrix;
 
 begin
-  DarkTealInit;                // Initialize darkteal (once)
-
   A := CreateMatrix(3, 4);     // 3x4 matrix with random values
   B := CreateMatrix(3, 4, 10); // 3x4 matrix filled with 10
 
@@ -96,9 +94,6 @@ var
   Predictions: TDTMatrix;
   TrainAccuracy, TestAccuracy: double;
 begin
-  { Intialize darkteal }
-  DarkTealInit;
-
   { Load dataset }
   Dataset := TDTMatrixFromCSV('iris_dataset.csv');
   X := Dataset.GetRange(0, 0, Dataset.Height, Dataset.Width - 1); // features
