@@ -83,6 +83,47 @@ Followings are the example of matrix operations:
 ```
 Check out the documentation [here](https://ariaghora.github.io/darkteal/docs/)
 
+### Machine learning (classification) example
+There are few machine learning functionalities included. For now, logistic regression and naive bayes classifier are implemented. I do hope more are implemented near future. Following is an example of the usage of naive bayes classifier on fisher iris dataset:
+```
+uses
+  ..., 
+  DTCore,               // core unit
+  DTMLUtils,            // machine learning utilities
+  DTPreprocessing;      // data preprocessing utilities
+var
+  Dataset, X, y, XTrain, Xtest, yTrain, yTest: TDTMatrix;
+  Predictions: TDTMatrix;
+  TrainAccuracy, TestAccuracy: double;
+begin
+  { Intialize darkteal }
+  DarkTealInit;
+
+  { Load dataset }
+  Dataset := TDTMatrixFromCSV('iris_dataset.csv');
+  X := Dataset.GetRange(0, 0, Dataset.Height, Dataset.Width - 1); // features
+  y := Dataset.GetColumn(Dataset.Width - 1);                      // label
+
+  { Split the dataset into training set and testing set }
+  TrainTestSplit(X, y, 0.7, XTrain, Xtest, yTrain, yTest, False);
+
+  { Scale the dataset }
+  Scaler := TMinMaxScaler.Create;
+  Scaler.Fit(XTrain);
+  XTrain := Scaler.Transform(XTrain);
+  XTest := Scaler.Transform(Xtest);
+
+  { Initialize and training the classifier }
+  NaiveBayes := TClassifierNaiveBayes.Create;
+  NaiveBayes.StartTraining(XTrain, yTrain);
+  Predictions := NaiveBayes.MakePrediction(Xtest);
+  TestAccuracy := AccuracyScore(Predictions, yTest); 
+
+  WriteLn('Test accuracy: ', TestAccuracy);
+end.
+```
+Please check (this link)[https://ariaghora.github.io/darkteal/docs/DTMLUtils.html] for a more complete classifier list and some other machine learning-related functionalities. Contributions are welcome.
+
 ### Some known issues
 - **Some operations are painfully slow:** darkteal is still in a very early development. What you can do for now is making optimization on the compiler side, e.g., using "-O3" if you are using freepascal compiler.
 - **Successful matrix operation despite of being under dimension mismatch:** Set the compiler to check assertion.
