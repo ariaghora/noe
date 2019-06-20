@@ -85,7 +85,7 @@ Check out the documentation [here](https://ariaghora.github.io/darkteal/docs/)
 
 ### Machine learning (classification) example
 There are few machine learning functionalities included. For now, logistic regression and naive bayes classifier are implemented. I do hope more are implemented near future. Following is an example of the usage of naive bayes classifier on fisher iris dataset:
-```
+```pascal
 uses
   ..., 
   DTCore,               // core unit
