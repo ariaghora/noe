@@ -57,6 +57,8 @@ type
   CBLAS_UPLO = (CblasUpper = 121, CblasLower = 122);
   { @exclude }
   CBLAS_DIAG = (CblasNonUnit = 131, CblasUnit = 132);
+  { @exclude }
+  LAPACK_ORDER = (LAPACKRowMajor = 101, LAPACKColMajor = 102);
 
   { @exclude }
   _dcopy = procedure(N: longint; X: TFloatVector; incX: longint;
@@ -81,6 +83,12 @@ type
     Y: TFloatVector; incY: longint): double; cdecl;
   { @exclude }
   _dasum = function(N: longint; X: TFloatVector; incX: longint): double; cdecl;
+
+  { @exclude }
+  _dgesvd = function(layout: CBLAS_ORDER; jobu: char; jobvt: char;
+    m: longint; n: longint; A: TFloatVector; lda: longint; S: TFloatVector;
+    U: TFloatVector; ldu: longint; VT: TFloatVector; ldvt: longint;
+    superb: TFloatVector): longint; cdecl;
 
 { initialize the engine }
 procedure DarkTealInit;
@@ -143,6 +151,7 @@ function Subtract(A, B: TDTMatrix): TDTMatrix; overload;
 function Subtract(A: TDTMatrix; x: double): TDTMatrix; overload;
 function Multiply(A: TDTMatrix; x: double): TDTMatrix; overload;
 function Multiply(A, B: TDTMatrix): TDTMatrix; overload;
+function Diag(A: TDTMatrix): TDTMatrix; overload;
 function Divide(A: TDTMatrix; x: double): TDTMatrix; overload;
 function Divide(A, B: TDTMatrix): TDTMatrix; overload;
 function Sum(A: TDTMatrix): double; overload;
@@ -208,6 +217,8 @@ var
   { @exclude }
   blas_dasum: _dasum;
   { @exclude }
+  LAPACKE_dgesvd: _dgesvd;
+  { @exclude }
   libHandle: TLibHandle;
 
 implementation
@@ -225,6 +236,7 @@ begin
   Pointer(@blas_dgemm) := GetProcedureAddress(libHandle, 'cblas_dgemm');
   Pointer(@blas_dtbmv) := GetProcedureAddress(libHandle, 'cblas_dtbmv');
   Pointer(@blas_dasum) := GetProcedureAddress(libHandle, 'cblas_dasum');
+  Pointer(@LAPACKE_dgesvd) := GetProcedureAddress(libHandle, 'LAPACKE_dgesvd');
 end;
 
 procedure DarkTealRelease;
@@ -237,6 +249,7 @@ begin
   blas_dgemm := nil;
   blas_dtbmv := nil;
   blas_dasum := nil;
+  LAPACKE_dgesvd := nil;
 end;
 
 class operator TDTMatrix.Explicit(A: TFloatVector): TDTMatrix;
@@ -441,6 +454,17 @@ begin
   Result := CopyMatrix(B);
   blas_dtbmv(CblasColMajor, CblasUpper, CblasNoTrans, CblasNonUnit,
     Length(A.val), 0, A.val, 1, Result.val, 1);
+end;
+
+function Diag(A: TDTMatrix): TDTMatrix;
+var
+  i, j: integer;
+  c: integer;
+begin
+  Result := CreateMatrix(Length(A.val), Length(A.val), 0);
+  c := 0;
+  for i := 0 to Result.Height - 1 do
+    Result.val[i * Result.Width + i] := A.val[i];
 end;
 
 { Should NOT be used directly on a TDTMatrix }
