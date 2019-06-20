@@ -900,4 +900,10 @@ begin
   Result.Height := cntRow;
 end;
 
+initialization
+  DarkTealInit;
+
+finalization
+  DarkTealRelease;
+
 end.

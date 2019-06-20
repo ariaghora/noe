@@ -49,9 +49,6 @@ begin
   filename := 'iris_dataset.csv';
   LabelFilename.Caption := 'Dataset: ' + filename;
 
-  { Intialize darkteal }
-  DarkTealInit;
-
   { Load dataset }
   Dataset := TDTMatrixFromCSV(filename);
   X := Dataset.GetRange(0, 0, Dataset.Height, Dataset.Width - 1); // features
@@ -114,8 +111,7 @@ end;
 
 procedure TForm1.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
-  { Cleanup darkteal }
-  DarkTealRelease;
+
 end;
 
 end.
