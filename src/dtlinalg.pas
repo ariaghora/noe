@@ -8,6 +8,16 @@ interface
 uses
   Classes, SysUtils, Math, DTCore;
 
+type
+
+  { @abstract(A class to compute principal component analysis) }
+
+  TPCA = class
+    k: integer;
+  public
+    function Fit(X: TDTMatrix): TPCA;
+  end;
+
 { @abstract(Calculate SVD of X)
 
   Store the result in U, Sigma, and VT respectively. }
@@ -31,8 +41,23 @@ begin
   VT.Width := X.Width;
   VT.Height := X.Width;
 
-  LAPACKE_dgesvd(CblasRowMajor, 'A', 'A', X.Height, X.Width, CopyMatrix(X).val,
+  LAPACKE_dgesvd(LAPACKRowMajor, 'A', 'A', X.Height, X.Width, CopyMatrix(X).val,
     X.Width, Sigma.val, U.val, X.Height, VT.val, X.Width, Superb);
+end;
+
+{ TPCA }
+
+function TPCA.Fit(X: TDTMatrix): TPCA;
+var
+  U, Sigma, S, VT, V, Xc: TDTMatrix;
+begin
+  SVD(X, U, Sigma, VT);
+
+  PrintMatrix(U);
+  PrintMatrix(Sigma);
+  PrintMatrix(VT);
+  PrintMatrix(X.Dot(VT));
+
 end;
 
 end.
