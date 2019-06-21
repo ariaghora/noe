@@ -84,11 +84,18 @@ type
   { @exclude }
   _dasum = function(N: longint; X: TFloatVector; incX: longint): double; cdecl;
 
+  // LAPACK interface
+
   { @exclude }
-  _dgesvd = function(layout: CBLAS_ORDER; jobu: char; jobvt: char;
+  _dgesvd = function(layout: LAPACK_ORDER; jobu: char; jobvt: char;
     m: longint; n: longint; A: TFloatVector; lda: longint; S: TFloatVector;
     U: TFloatVector; ldu: longint; VT: TFloatVector; ldvt: longint;
     superb: TFloatVector): longint; cdecl;
+  { @exclude }
+  _dgeev = function(layout: LAPACK_ORDER; jobvl: char; jobvr: char;
+    n: longint; A: TFloatVector; lda: longint; wr: TFloatVector;
+    wi: TFloatVector; vl: TFloatVector; ldvl: longint; vr: TFloatVector;
+    ldvr: longint): longint; cdecl;
 
 { initialize the engine }
 procedure DarkTealInit;
@@ -219,6 +226,8 @@ var
   { @exclude }
   LAPACKE_dgesvd: _dgesvd;
   { @exclude }
+  LAPACKE_dgeev: _dgeev;
+  { @exclude }
   libHandle: TLibHandle;
 
 implementation
@@ -237,6 +246,7 @@ begin
   Pointer(@blas_dtbmv) := GetProcedureAddress(libHandle, 'cblas_dtbmv');
   Pointer(@blas_dasum) := GetProcedureAddress(libHandle, 'cblas_dasum');
   Pointer(@LAPACKE_dgesvd) := GetProcedureAddress(libHandle, 'LAPACKE_dgesvd');
+  Pointer(@LAPACKE_dgeev) := GetProcedureAddress(libHandle, 'LAPACKE_dgeev');
 end;
 
 procedure DarkTealRelease;
