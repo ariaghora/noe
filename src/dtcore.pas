@@ -57,6 +57,8 @@ type
   CBLAS_UPLO = (CblasUpper = 121, CblasLower = 122);
   { @exclude }
   CBLAS_DIAG = (CblasNonUnit = 131, CblasUnit = 132);
+  { @exclude }
+  LAPACK_ORDER = (LAPACKRowMajor = 101, LAPACKColMajor = 102);
 
   { @exclude }
   _dcopy = procedure(N: longint; X: TFloatVector; incX: longint;
@@ -81,6 +83,19 @@ type
     Y: TFloatVector; incY: longint): double; cdecl;
   { @exclude }
   _dasum = function(N: longint; X: TFloatVector; incX: longint): double; cdecl;
+
+  // LAPACK interface
+
+  { @exclude }
+  _dgesvd = function(layout: LAPACK_ORDER; jobu: char; jobvt: char;
+    m: longint; n: longint; A: TFloatVector; lda: longint; S: TFloatVector;
+    U: TFloatVector; ldu: longint; VT: TFloatVector; ldvt: longint;
+    superb: TFloatVector): longint; cdecl;
+  { @exclude }
+  _dgeev = function(layout: LAPACK_ORDER; jobvl: char; jobvr: char;
+    n: longint; A: TFloatVector; lda: longint; wr: TFloatVector;
+    wi: TFloatVector; vl: TFloatVector; ldvl: longint; vr: TFloatVector;
+    ldvr: longint): longint; cdecl;
 
 { initialize the engine }
 procedure DarkTealInit;
@@ -108,13 +123,12 @@ function Ones(row, col: integer): TDTMatrix;
 { copying a matrix }
 function CopyMatrix(M: TDTMatrix): TDTMatrix;
 
+{ compute covariance matrix }
+function Cov(X, Y: TDTMatrix): TDTMatrix;
+
 { Delete element in A.val with position pos.
   Should @bold(NOT) be used directly on a TDTMatrix. }
 function DeleteElement(var A: TDTMatrix; pos: integer): TDTMatrix;
-
-{ Delete several elements in A.val with position pos.
-  Should @bold(NOT) be used directly on a TDTMatrix. }
-procedure DeleteElements(var A: TDTMatrix; pos, amount: integer);
 
 { Get column of A from index idx.
   @param(A is a m by n TDTMatrix)
@@ -143,6 +157,7 @@ function Subtract(A, B: TDTMatrix): TDTMatrix; overload;
 function Subtract(A: TDTMatrix; x: double): TDTMatrix; overload;
 function Multiply(A: TDTMatrix; x: double): TDTMatrix; overload;
 function Multiply(A, B: TDTMatrix): TDTMatrix; overload;
+function Diag(A: TDTMatrix): TDTMatrix; overload;
 function Divide(A: TDTMatrix; x: double): TDTMatrix; overload;
 function Divide(A, B: TDTMatrix): TDTMatrix; overload;
 function Sum(A: TDTMatrix): double; overload;
@@ -162,6 +177,7 @@ function Exp(x: double): double; overload;
 function Std(A: TDTMatrix; ddof: integer): double; overload;
 function Std(A: TDTMatrix; axis: integer; ddof: integer): TDTMatrix; overload;
 function TileDown(A: TDTMatrix; size: integer): TDTMatrix; overload;
+function TileRight(A: TDTMatrix; size: integer): TDTMatrix; overload;
 
 { Get row of A from index idx.
   @param(A is a m by n TDTMatrix)
@@ -188,6 +204,16 @@ function Apply(func: TCallbackDouble; A: TDTMatrix): TDTMatrix;
   The values are stored as floating point numbers. }
 function TDTMatrixFromCSV(f: string): TDTMatrix;
 
+{ Delete several elements in A.val with position pos.
+  Should @bold(NOT) be used directly on a TDTMatrix. }
+procedure DeleteElements(var A: TDTMatrix; pos, amount: integer);
+
+{ Set the values in TDTMatrix A at column idx with the values of B }
+procedure SetColumn(var A: TDTMatrix; B: TDTMatrix; idx: integer);
+
+{ Swap values in column idx1 with the values in column idx2 }
+procedure SwapColumns(var A: TDTMatrix; idx1, idx2: integer);
+
 {$IFDEF FPC}
 {$PACKRECORDS C}
 {$ENDIF}
@@ -208,6 +234,10 @@ var
   { @exclude }
   blas_dasum: _dasum;
   { @exclude }
+  LAPACKE_dgesvd: _dgesvd;
+  { @exclude }
+  LAPACKE_dgeev: _dgeev;
+  { @exclude }
   libHandle: TLibHandle;
 
 implementation
@@ -225,6 +255,8 @@ begin
   Pointer(@blas_dgemm) := GetProcedureAddress(libHandle, 'cblas_dgemm');
   Pointer(@blas_dtbmv) := GetProcedureAddress(libHandle, 'cblas_dtbmv');
   Pointer(@blas_dasum) := GetProcedureAddress(libHandle, 'cblas_dasum');
+  Pointer(@LAPACKE_dgesvd) := GetProcedureAddress(libHandle, 'LAPACKE_dgesvd');
+  Pointer(@LAPACKE_dgeev) := GetProcedureAddress(libHandle, 'LAPACKE_dgeev');
 end;
 
 procedure DarkTealRelease;
@@ -237,6 +269,7 @@ begin
   blas_dgemm := nil;
   blas_dtbmv := nil;
   blas_dasum := nil;
+  LAPACKE_dgesvd := nil;
 end;
 
 class operator TDTMatrix.Explicit(A: TFloatVector): TDTMatrix;
@@ -407,6 +440,15 @@ begin
   Result := createMatrix(row, col, 1);
 end;
 
+function Cov(X, Y: TDTMatrix): TDTMatrix;
+var
+  X_, Xc, Yc, C: TDTMatrix;
+begin
+  X_ := CopyMatrix(X);
+  Xc := X_ - Mean(X_, 1);
+  Result := Xc.Dot(Xc.T) / (X.Width - 1);
+end;
+
 function CopyMatrix(M: TDTMatrix): TDTMatrix;
 begin
   SetLength(Result.val, M.Width * M.Height);
@@ -417,9 +459,8 @@ end;
 
 function Dot(A, B: TDTMatrix): TDTMatrix;
 begin
+  Result := nil;
   SetLength(Result.val, A.Height * B.Width);
-  Result.Height := A.Height;
-  Result.Width := B.Width;
   blas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
     A.Height, B.Width, B.Height, // m, n, k
     1, // alpha
@@ -428,6 +469,8 @@ begin
     1, // beta
     Result.val, B.Width
     );
+  Result.Height := A.Height;
+  Result.Width := B.Width;
 end;
 
 function Multiply(A: TDTMatrix; x: double): TDTMatrix;
@@ -441,6 +484,17 @@ begin
   Result := CopyMatrix(B);
   blas_dtbmv(CblasColMajor, CblasUpper, CblasNoTrans, CblasNonUnit,
     Length(A.val), 0, A.val, 1, Result.val, 1);
+end;
+
+function Diag(A: TDTMatrix): TDTMatrix;
+var
+  i, j: integer;
+  c: integer;
+begin
+  Result := CreateMatrix(Length(A.val), Length(A.val), 0);
+  c := 0;
+  for i := 0 to Result.Height - 1 do
+    Result.val[i * Result.Width + i] := A.val[i];
 end;
 
 { Should NOT be used directly on a TDTMatrix }
@@ -705,6 +759,23 @@ begin
   Result := system.exp(x);
 end;
 
+procedure SetColumn(var A: TDTMatrix; B: TDTMatrix; idx: integer);
+var
+  i: integer;
+begin
+  for i := 0 to B.Height - 1 do
+    A.val[i * A.Width + idx] := B.val[i];
+end;
+
+procedure SwapColumns(var A: TDTMatrix; idx1, idx2: integer);
+var
+  tmp: TDTMatrix;
+begin
+  tmp := A.GetColumn(idx1);
+  SetColumn(A, A.GetColumn(idx2), idx1);
+  SetColumn(A, tmp, idx2);
+end;
+
 function Sqrt(x: double): double;
 begin
   Result := system.sqrt(x);
@@ -733,6 +804,12 @@ begin
     for j := 0 to A.Width - 1 do
       Result.val[i * Result.Width + j] := A.val[j];
   end;
+end;
+
+function TileRight(A: TDTMatrix; size: integer): TDTMatrix; overload;
+begin
+  assert(A.Width = 1, 'Only matrix with width equals to 1 can be tiled down');
+  Result := TileDown(A.T, size).T;
 end;
 
 function Variance(A: TDTMatrix; ddof: integer): double;
@@ -791,6 +868,8 @@ begin
   // handle broadcasting better next time :(
   if B.Height = 1 then
     Result := TileDown(B, A.Height);
+  if B.Width = 1 then
+    Result := TileRight(B, A.Width);
   blas_daxpy(Length(A.val), 1, A.val, 1, Result.val, 1);
 end;
 
@@ -836,9 +915,17 @@ begin
 end;
 
 function Subtract(A, B: TDTMatrix): TDTMatrix;
+var
+  i: longint;
+  B_: TDTMatrix;
 begin
   Result := CopyMatrix(A);
-  blas_daxpy(Length(B.val), -1, B.val, 1, Result.val, 1);
+  if B.Height = 1 then
+    B_ := TileDown(B, A.Height);
+  if B.Width = 1 then
+    B_ := TileRight(B, A.Width);
+  for i := 0 to Length(Result.val) - 1 do
+    Result.val[i] := A.val[i] - B_.val[i];
 end;
 
 function Subtract(A: TDTMatrix; x: double): TDTMatrix;
@@ -899,5 +986,11 @@ begin
   Result.Width := cntCol;
   Result.Height := cntRow;
 end;
+
+initialization
+  DarkTealInit;
+
+finalization
+  DarkTealRelease;
 
 end.

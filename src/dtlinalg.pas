@@ -6,371 +6,111 @@ unit DTLinAlg;
 interface
 
 uses
-  Classes, SysUtils, Math, DTCommon;
+  Classes, SysUtils, Math, DTCore;
 
-function Add(mat1, mat2: TFloatMatrix): TFloatMatrix; overload;
-function Add(v1, v2: TFloatVector): TFloatVector; overload;
-function Subtract(v1, v2: TFloatVector): TFloatVector; overload;
-function Subtract(mat: TFloatMatrix; v: TFloatVector): TFloatMatrix; overload;
-function Subtract(mat1, mat2: TFloatMatrix): TFloatMatrix; overload;
-function DotProduct(v1: TFloatVector; v2: TFloatVector): real; overload;
-function DotProduct(m1: TFloatMatrix; m2: TFloatMatrix): TFloatMatrix; overload;
-// same kinds
-function Multiply(v1, v2: TFloatVector): TFloatVector; overload;
-function Multiply(m1, m2: TFloatMatrix): TFloatMatrix; overload;
-function Multiply(x: real; mat: TFloatMatrix): TFloatMatrix; overload;
-// vector-matrix --> broadcasting
-function Multiply(v: TFloatVector; mat: TFloatMatrix): TFloatMatrix; overload;
+type
 
-function Divide(v1, v2: TFloatVector): TFloatVector; overload;
-function Divide(v: TFloatVector; x: real): TFloatVector; overload;
-function Divide(x: real; v: TFloatVector): TFloatVector; overload;
-function Divide(m1: TFloatMatrix; x: real): TFloatMatrix; overload;
-function Divide(m1, m2: TFloatMatrix): TFloatMatrix; overload;
-function Sum(v: TFloatVector): real; overload;
-function Sum(mat: TFloatMatrix): real; overload;
-function Sum(mat: TFloatMatrix; dims: integer): TFloatMatrix; overload;
+  { @abstract(A class to compute principal component analysis) }
+  TPCA = class
+    { The number of principal components }
+    NComponents: integer;
+    { Computed principal components }
+    Components: TDTMatrix;
+  public
+    constructor Create(NComponents: integer);
+    { Start computing principal components. The current implementation is
+      based on eigendecomposition of the covariance (mean-centered) matrix. }
+    function Fit(X: TDTMatrix): TPCA;
+    { Transform X into NComponents principal components }
+    function Transform(X: TDTMatrix): TDTMatrix;
+  end;
+
+{ @abstract(Calculate SVD of X)
+
+  Store the result in U, Sigma, and VT respectively. }
+procedure SVD(X: TDTMatrix; var U: TDTMatrix; var Sigma: TDTMatrix; var VT: TDTMatrix);
 
 implementation
 
-
-{
-  A collection of functions to perform varoius linear algebra operations.
-}
-
-// Vector-Vector addition
-function Add(v1, v2: TFloatVector): TFloatVector;
+procedure SVD(X: TDTMatrix; var U: TDTMatrix; var Sigma: TDTMatrix; var VT: TDTMatrix);
 var
-  i, m: integer;
-  res: TFloatVector;
+  Superb: TFloatVector;
 begin
-  m := Length(v1);
-  SetLength(res, m);
-  for i := 0 to m - 1 do
-    res[i] := v1[i] + v2[i];
-  Result := res;
+  SetLength(Superb, Min(X.Width, X.Height) - 1);
+  SetLength(Sigma.val, X.Width);
+  SetLength(U.val, X.Height * X.Height);
+  SetLength(VT.val, X.Width * X.Width);
+
+  Sigma.Width := X.Width;
+  Sigma.Height := 1;
+  U.Width := X.Height;
+  U.Height := X.Height;
+  VT.Width := X.Width;
+  VT.Height := X.Width;
+
+  LAPACKE_dgesvd(LAPACKRowMajor, 'A', 'A', X.Height, X.Width, CopyMatrix(X).val,
+    X.Width, Sigma.val, U.val, X.Height, VT.val, X.Width, Superb);
 end;
 
-// Matrix-matrix addition
-function Add(mat1, mat2: TFloatMatrix): TFloatMatrix;
-var
-  i, j, m, n: integer;
-  res: TFloatMatrix;
+
+constructor TPCA.Create(NComponents: integer);
 begin
-  m := Shape(mat1)[0];
-  n := Shape(mat1)[1];
-  SetLength(res, m);
-  for i := 0 to m - 1 do
-  begin
-    SetLength(res[i], n);
-    for j := 0 to n - 1 do
-      res[i][j] := mat1[i][j] + mat2[i][j];
-  end;
-  Result := res;
+  self.NComponents := NComponents;
 end;
 
-// vector-vector subtraction
-function Subtract(v1, v2: TFloatVector): TFloatVector;
+function TPCA.Fit(X: TDTMatrix): TPCA;
 var
-  i, m: integer;
-  res: TFloatVector;
-begin
-  m := Length(v1);
-  SetLength(res, m);
-  for i := 0 to m - 1 do
-  begin
-    res[i] := v1[i] - v2[i];
-  end;
-  Result := res;
-end;
-
-// Matrix-vector subtraction
-function Subtract(mat: TFloatMatrix; v: TFloatVector): TFloatMatrix;
-var
-  i, m: integer;
-  res: TFloatMatrix;
-begin
-  m := Shape(mat)[0];
-  SetLength(res, m);
-  for i := 0 to m - 1 do
-    res[i] := Subtract(mat[i], v);
-  Result := res;
-end;
-
-// Matrix-matrix subtraction
-function Subtract(mat1, mat2: TFloatMatrix): TFloatMatrix;
-var
-  i, j, m1, n1, m2, n2: integer;
-  res: TFloatMatrix;
-begin
-  m1 := Shape(mat1)[0];
-  n1 := Shape(mat1)[1];
-  m2 := Shape(mat2)[0];
-  n2 := Shape(mat2)[1];
-  if (m1 > 1) and (m2 = 1) then
-    Result := Subtract(mat1, mat2[0])
-  else
-  begin
-    SetLength(res, m1);
-    for i := 0 to m1 - 1 do
-    begin
-      SetLength(res[i], n1);
-      for j := 0 to n1 - 1 do
-        res[i][j] := mat1[i][j] - mat2[i][j];
-    end;
-    Result := res;
-  end;
-end;
-
-// Vector dot product
-function DotProduct(v1: TFloatVector; v2: TFloatVector): real;
-var
-  i: integer;
-  res: real = 0;
-begin
-  //Assert(Length(v1) = Length(v2), ERR_MSG_DIMENSION_MISMATCH);
-  for i := 0 to Length(v1) - 1 do
-    res := res + v1[i] * v2[i];
-  Result := res;
-end;
-
-// Matrix dot product
-function DotProduct(m1: TFloatMatrix; m2: TFloatMatrix): TFloatMatrix;
-var
+  Xc, C, VL, VR, WR: TDTMatrix;
+  wi: TFloatVector;
+  EigTmp: double;
   i, j: integer;
-  m, n: integer;
-  res: TFloatMatrix;
-  m2trans: TFloatMatrix;
 begin
-  m := Shape(m1)[0];
-  n := Shape(m2)[1];
-  m2trans := Transpose(m2);
-  SetLength(res, m);
-  for i := 0 to m - 1 do
-  begin
-    SetLength(res[i], n);
-    for j := 0 to n - 1 do
-      res[i][j] := DotProduct(m1[i], m2trans[j]);
-  end;
-  Result := res;
-end;
+  { Mean-center the input matrix }
+  Xc := X - Mean(X, 0);
 
-// vector-vector hadamard product
-function Multiply(v1, v2: TFloatVector): TFloatVector;
-var
-  i, m, n: integer;
-  res: TFloatVector;
-begin
-  m := Length(v1);
-  n := Length(v2);
-  Assert(m = n, ERR_MSG_DIMENSION_MISMATCH);
-  SetLength(res, m);
-  for i := 0 to m - 1 do
-    res[i] := v1[i] * v2[i];
-  Result := res;
-end;
+  { Compute the covariance }
+  C := Xc.T.Dot(Xc) / (Xc.Width);
 
-// vector-matrix multiplication
-function Multiply(v: TFloatVector; mat: TFloatMatrix): TFloatMatrix;
-var
-  i, m, n: integer;
-  res: TFloatMatrix;
-begin
-  m := Shape(mat)[0];
-  n := Shape(mat)[1];
-  res := CreateMatrix(m, n, 0);
-  for i := 0 to m - 1 do
-    res[i] := Multiply(v, mat[i]);
-  Result := res;
-end;
+  { Run eigendecomposition }
+  SetLength(WR.val, C.Height);
+  SetLength(wi, C.Height);
+  SetLength(VL.val, C.Height * C.Height);
+  SetLength(VR.val, C.Height * C.Height);
+  VL.Width := C.Height;
+  VL.Height := C.Height;
+  VR.Width := C.Height;
+  VR.Height := C.Height;
+  WR.Height := 1;
+  WR.Width := C.Height;
 
-// matrix-matrix hadamard product
-function Multiply(m1, m2: TFloatMatrix): TFloatMatrix;
-var
-  i, m, n: integer;
-  res: TFloatMatrix;
-begin
-  // if either one has row=1, then use the broadcast instead
-  if (Length(m1) = 1) and (Length(m2) > 1) then
-    Result := Multiply(m1[0], m2)
-  else if (Length(m1) > 1) and (Length(m2) = 1) then
-    Result := Multiply(m2[0], m1)
-  else
-  begin
-    // otherwise, perform usual hadamard
-    m := Length(m1);
-    n := Length(m2);
-    //Assert(m = n, ERR_MSG_DIMENSION_MISMATCH);
-    SetLength(res, m);
-    for i := 0 to m - 1 do
-      res[i] := multiply(m1[i], m2[i]);
-    Result := res;
-  end;
-end;
+  LAPACKE_dgeev(LAPACKRowMajor, 'V', 'V', C.Height, CopyMatrix(C).val,
+    C.Height, WR.val, wi,
+    VL.val, C.Height, VR.val, C.Height);
 
-// scalar-matrix multiplication
-function Multiply(x: real; mat: TFloatMatrix): TFloatMatrix;
-var
-  i, j, m, n: integer;
-  res: TFloatMatrix;
-begin
-  m := Shape(mat)[0];
-  n := Shape(mat)[1];
-  res := CreateMatrix(m, n);
-  for i := 0 to m - 1 do
-    for j := 0 to n - 1 do
-      res[i][j] := x * mat[i][j];
-  Result := res;
-end;
-
-
-// vector-vector division
-function Divide(v1, v2: TFloatVector): TFloatVector;
-var
-  i, m, n: integer;
-  res: TFloatVector;
-begin
-  m := Length(v1);
-  n := Length(v2);
-  Assert(m = n, ERR_MSG_DIMENSION_MISMATCH);
-  SetLength(res, m);
-  for i := 0 to m - 1 do
-    res[i] := v1[i] / v2[i];
-  Result := res;
-end;
-
-function Divide(m1: TFloatMatrix; x: real): TFloatMatrix;
-var
-  i, m: integer;
-begin
-  m := Shape(m1)[0];
-  SetLength(Result, m);
-  for i := 0 to m - 1 do
-    Result[i] := Divide(m1[i], x);
-end;
-
-// matrix-vector division
-function Divide(mat: TFloatMatrix; v: TFloatVector): TFloatMatrix;
-var
-  i, m, n: integer;
-  res: TFloatMatrix;
-begin
-  m := Shape(mat)[0];
-  n := Shape(mat)[1];
-  res := CreateMatrix(m, n, 0);
-  for i := 0 to m - 1 do
-    res[i] := Divide(mat[i], v);
-  Result := res;
-end;
-
-// matrix-matrix division
-function Divide(m1, m2: TFloatMatrix): TFloatMatrix;
-var
-  i, m, n: integer;
-  res: TFloatMatrix;
-begin
-  //if either one has row=1, then use the broadcast instead
-  if (Length(m1) > 1) and (Length(m2) = 1) then
-    Result := Divide(m1, m2[0])
-  else
-  begin
-    // otherwise, perform usual hadamard
-    m := Length(m1);
-    n := Length(m2);
-    //Assert(m = n, ERR_MSG_DIMENSION_MISMATCH);
-    SetLength(res, m);
-    for i := 0 to m - 1 do
+  { Sort the eigenvalues in nondecreasing order }
+  for i := 0 to High(WR.val) do
+    for j := 0 to High(WR.val) do
     begin
-      SetLength(res[i], n);
-      res[i] := Divide(m1[i], m2[i]);
+      if WR.val[j] < WR.val[i] then
+      begin
+        EigTmp := WR.val[j];
+        WR.val[j] := WR.val[i];
+        WR.val[i] := EigTmp;
+        SwapColumns(VR, i, j);
+      end;
     end;
-    Result := res;
-  end;
+  VR := VR.GetRange(0, 0, VR.Height, NComponents);
+  Components := VR.T;
+  //X_pca := VR.T.Dot(Xc.T).T;
+  Result := self;
 end;
 
-// vector-scalar division
-function Divide(v: TFloatVector; x: real): TFloatVector;
+function TPCA.Transform(X: TDTMatrix): TDTMatrix;
 var
-  i, m: integer;
-  res: TFloatVector;
+  Xc: TDTMatrix;
 begin
-  m := Length(v);
-  SetLength(res, m);
-  for i := 0 to m - 1 do
-    res[i] := v[i] / x;
-  Result := res;
-end;
-
-// scalar-vector division
-function Divide(x: real; v: TFloatVector): TFloatVector;
-var
-  i, m: integer;
-  res: TFloatVector;
-begin
-  m := Length(v);
-  SetLength(res, m);
-  for i := 0 to m - 1 do
-    res[i] := x / v[i];
-  Result := res;
-end;
-
-
-// sum of vector
-function Sum(v: TFloatVector): real;
-begin
-  Result := Math.sum(v);
-end;
-
-// sum of matrix
-function Sum(mat: TFloatMatrix): real;
-var
-  i: integer;
-  res: real;
-begin
-  res := 0;
-  for i := 0 to Length(mat) - 1 do
-    res := res + Math.sum(mat[i]);
-  Result := res;
-end;
-
-// sum of matrix by dimension
-function Sum(mat: TFloatMatrix; dims: integer): TFloatMatrix;
-var
-  i, m, n: integer;
-  res: TFloatVector;
-  tmp: TFloatMatrix;
-begin
-  if dims = 0 then
-  begin
-    m := length(mat);
-    n := shape(mat)[1];
-    res := CreateVector(n, 0);
-    for i := 0 to m - 1 do
-    begin
-      res := Add(res, mat[i]);
-    end;
-    Result := VecToMat(res);
-  end
-  else
-  begin
-    tmp := Transpose(mat);
-    m := length(tmp);
-    n := shape(tmp)[1];
-
-    res := CreateVector(n, 0);
-    for i := 0 to m - 1 do
-    begin
-      res := Add(res, tmp[i]);
-    end;
-    Result := Transpose(VecToMat(res));
-  end;
-
-
-  //res := 0;
-  //for i := 0 to Length(mat) - 1 do
-  //  res := res + Math.sum(mat[i]);
-  //Result := res;
+  Xc := X - Mean(X, 0);
+  Result := Components.Dot(Xc.T).T;
 end;
 
 end.
-
