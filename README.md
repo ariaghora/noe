@@ -10,7 +10,8 @@ In the near future, darkteal is aimed to be a foundation to make the development
 
 **Important note:** This library is:
 - In a very early development, thus, many missing functionality
-- Not for production purpose, since it is not built for performance-critical applications
+- Not for production (yet) purpose, since it is not built for performance-critical applications
+- Heavily tested on windows only
 
 ## Quick Start
 
