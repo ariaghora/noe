@@ -130,10 +130,6 @@ function Cov(X, Y: TDTMatrix): TDTMatrix;
   Should @bold(NOT) be used directly on a TDTMatrix. }
 function DeleteElement(var A: TDTMatrix; pos: integer): TDTMatrix;
 
-{ Delete several elements in A.val with position pos.
-  Should @bold(NOT) be used directly on a TDTMatrix. }
-procedure DeleteElements(var A: TDTMatrix; pos, amount: integer);
-
 { Get column of A from index idx.
   @param(A is a m by n TDTMatrix)
   @param(idx is an integer indicating the designated column index)
@@ -207,6 +203,16 @@ function Apply(func: TCallbackDouble; A: TDTMatrix): TDTMatrix;
   Please note that @name can only load a CSV containing numeric values only.
   The values are stored as floating point numbers. }
 function TDTMatrixFromCSV(f: string): TDTMatrix;
+
+{ Delete several elements in A.val with position pos.
+  Should @bold(NOT) be used directly on a TDTMatrix. }
+procedure DeleteElements(var A: TDTMatrix; pos, amount: integer);
+
+{ Set the values in TDTMatrix A at column idx with the values of B }
+procedure SetColumn(var A: TDTMatrix; B: TDTMatrix; idx: integer);
+
+{ Swap values in column idx1 with the values in column idx2 }
+procedure SwapColumns(var A: TDTMatrix; idx1, idx2: integer);
 
 {$IFDEF FPC}
 {$PACKRECORDS C}
@@ -453,7 +459,7 @@ end;
 
 function Dot(A, B: TDTMatrix): TDTMatrix;
 begin
-  Result:=nil;
+  Result := nil;
   SetLength(Result.val, A.Height * B.Width);
   blas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
     A.Height, B.Width, B.Height, // m, n, k
@@ -751,6 +757,23 @@ end;
 function Exp(x: double): double;
 begin
   Result := system.exp(x);
+end;
+
+procedure SetColumn(var A: TDTMatrix; B: TDTMatrix; idx: integer);
+var
+  i: integer;
+begin
+  for i := 0 to B.Height - 1 do
+    A.val[i * A.Width + idx] := B.val[i];
+end;
+
+procedure SwapColumns(var A: TDTMatrix; idx1, idx2: integer);
+var
+  tmp: TDTMatrix;
+begin
+  tmp := A.GetColumn(idx1);
+  SetColumn(A, A.GetColumn(idx2), idx1);
+  SetColumn(A, tmp, idx2);
 end;
 
 function Sqrt(x: double): double;
