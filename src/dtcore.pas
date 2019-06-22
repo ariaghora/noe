@@ -920,6 +920,7 @@ var
   B_: TDTMatrix;
 begin
   Result := CopyMatrix(A);
+  B_ := CopyMatrix(B);
   if B.Height = 1 then
     B_ := TileDown(B, A.Height);
   if B.Width = 1 then
