@@ -63,7 +63,7 @@ begin
     W0 := W0 + Layer0.T.Dot(Layer1Delta) * LearningRate;
 
     if iter mod 10 = 0 then
-      WriteLn('Mean squared error at iteration ', iter, ' = ',
+      WriteLn('Error at iteration ', iter, ' = ',
         Mean(Power(Layer2Error, 2)));
   end;
   WriteLn('Training finished!');
