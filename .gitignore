@@ -5,7 +5,9 @@
 *.ppu
 *.o
 *.exe
+*.dylib
 *.dll
+*.so
 *.lps
 *.dbg
 *.res
