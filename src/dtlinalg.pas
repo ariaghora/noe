@@ -12,12 +12,14 @@ type
 
   { @abstract(A class to compute principal component analysis) }
   TPCA = class
-    k: integer;
     { The number of principal components }
     NComponents: integer;
+    { Computed principal components }
     Components: TDTMatrix;
   public
     constructor Create(NComponents: integer);
+    { Start computing principal components. The current implementation is
+      based on eigendecomposition of the covariance (mean-centered) matrix. }
     function Fit(X: TDTMatrix): TPCA;
     { Transform X into NComponents principal components }
     function Transform(X: TDTMatrix): TDTMatrix;
