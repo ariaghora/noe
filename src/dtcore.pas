@@ -14,7 +14,7 @@ const
   BLAS_FILENAME = 'libopenblas.dll';
   {$ELSE}
   { @exclude }
-  BLAS_FILENAME = 'libopenblas.so'; // not implemented yet
+  BLAS_FILENAME = 'libopenblas.so';
   {$ENDIF}
 
 type
