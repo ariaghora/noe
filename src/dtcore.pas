@@ -116,6 +116,9 @@ function Ones(row, col: integer): TDTMatrix;
 { copying a matrix }
 function CopyMatrix(M: TDTMatrix): TDTMatrix;
 
+{ compute covariance matrix }
+function Cov(X, Y: TDTMatrix): TDTMatrix;
+
 { Delete element in A.val with position pos.
   Should @bold(NOT) be used directly on a TDTMatrix. }
 function DeleteElement(var A: TDTMatrix; pos: integer): TDTMatrix;
@@ -171,6 +174,7 @@ function Exp(x: double): double; overload;
 function Std(A: TDTMatrix; ddof: integer): double; overload;
 function Std(A: TDTMatrix; axis: integer; ddof: integer): TDTMatrix; overload;
 function TileDown(A: TDTMatrix; size: integer): TDTMatrix; overload;
+function TileRight(A: TDTMatrix; size: integer): TDTMatrix; overload;
 
 { Get row of A from index idx.
   @param(A is a m by n TDTMatrix)
@@ -420,6 +424,15 @@ begin
   Result := createMatrix(row, col, 1);
 end;
 
+function Cov(X, Y: TDTMatrix): TDTMatrix;
+var
+  X_, Xc, Yc, C: TDTMatrix;
+begin
+  X_ := CopyMatrix(X);
+  Xc := X_ - Mean(X_, 1);
+  Result := Xc.Dot(Xc.T) / (X.Width - 1);
+end;
+
 function CopyMatrix(M: TDTMatrix): TDTMatrix;
 begin
   SetLength(Result.val, M.Width * M.Height);
@@ -430,9 +443,8 @@ end;
 
 function Dot(A, B: TDTMatrix): TDTMatrix;
 begin
+  Result:=nil;
   SetLength(Result.val, A.Height * B.Width);
-  Result.Height := A.Height;
-  Result.Width := B.Width;
   blas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
     A.Height, B.Width, B.Height, // m, n, k
     1, // alpha
@@ -441,6 +453,8 @@ begin
     1, // beta
     Result.val, B.Width
     );
+  Result.Height := A.Height;
+  Result.Width := B.Width;
 end;
 
 function Multiply(A: TDTMatrix; x: double): TDTMatrix;
@@ -759,6 +773,12 @@ begin
   end;
 end;
 
+function TileRight(A: TDTMatrix; size: integer): TDTMatrix; overload;
+begin
+  assert(A.Width = 1, 'Only matrix with width equals to 1 can be tiled down');
+  Result := TileDown(A.T, size).T;
+end;
+
 function Variance(A: TDTMatrix; ddof: integer): double;
 begin
   Result := Sum(Power(A - Mean(A), 2)) / (Length(A.val) - ddof);
@@ -815,6 +835,8 @@ begin
   // handle broadcasting better next time :(
   if B.Height = 1 then
     Result := TileDown(B, A.Height);
+  if B.Width = 1 then
+    Result := TileRight(B, A.Width);
   blas_daxpy(Length(A.val), 1, A.val, 1, Result.val, 1);
 end;
 
@@ -860,9 +882,17 @@ begin
 end;
 
 function Subtract(A, B: TDTMatrix): TDTMatrix;
+var
+  i: longint;
+  B_: TDTMatrix;
 begin
   Result := CopyMatrix(A);
-  blas_daxpy(Length(B.val), -1, B.val, 1, Result.val, 1);
+  if B.Height = 1 then
+    B_ := TileDown(B, A.Height);
+  if B.Width = 1 then
+    B_ := TileRight(B, A.Width);
+  for i := 0 to Length(Result.val) - 1 do
+    Result.val[i] := A.val[i] - B_.val[i];
 end;
 
 function Subtract(A: TDTMatrix; x: double): TDTMatrix;
