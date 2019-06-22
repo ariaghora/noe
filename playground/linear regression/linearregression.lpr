@@ -1,47 +1,40 @@
-program linearregression;
-
 {
   This program demonstrates the usage of darkteal library to perform linear
   regression based on gradient descent algorithm for optimization.
 }
 
+program linearregression;
+
 uses
-  wincrt,
-  DTCommon,
-  DTLinAlg,
-  DTMLUtils;
+  DTCore;
 
 var
-  dataset: TFloatMatrix;
-  X, y, yHat: TFloatMatrix;
-  theta, dJTheta: TFloatMatrix;
+  dataset, X, y, yHat: TDTMatrix;
+  Err, theta, intercept, dJTheta: TDTMatrix;
+  Pairs: TDTMatrix;
   i, m: integer;
-  learningRate, J: real;
-  intercept: TFloatVector;
-
-  test: TFloatMatrix;
-
-  function MSE(yHat, y: TFloatMatrix): real;
-  begin
-    Result := (1 / m) * sum(ElementWise(@pow, 2, Subtract(yHat, y)));
-  end;
+  learningRate, J: double;
 
 begin
   // load toy dataset
-  dataset := FloatMatrixFromCSV('ex2.csv');
+  dataset := TDTMatrixFromCSV('../../datasets/regression_1_var.csv');
 
   X := GetColumn(dataset, 0); // independent variable
   y := GetColumn(dataset, 1); // target
 
   // get number of samples
-  m := Shape(X)[0];
+  m := X.Height;
 
   // Add intercept term to X
-  intercept := CreateVector(m, 1);
-  InsertColumnAt(X, 0, intercept);
+  intercept := CreateMatrix(m, 1, 1);
+
+  X := InsertColumnsAt(X, intercept, 0);
 
   // model parameter, 2x1 matrix initialized with 0.5
   theta := CreateMatrix(2, 1, 0.5);
+
+  WriteLn('Initial theta:');
+  PrintMatrix(theta);
 
   // set the learning rate
   learningRate := 0.003;
@@ -49,23 +42,31 @@ begin
   // start gradient descent
   for i := 1 to 100 do
   begin
-    yHat := DotProduct(X, theta); // make prediction
+    yHat := X.Dot(theta); // make prediction
 
     // calculate mean squared error loss
-    J := MSE(yHat, y);
+    J := Mean(Power(yHat - y, 2));
 
-    if i mod 5 = 0 then
+    if i mod 10 = 0 then
       Writeln('Error at epoch ', i, ': ', J);
 
-    // calculate first order derivative of J with respect to theta
-    // ∇J = (2/m) * sum((ŷ - y) * X))
-    dJTheta := Multiply(2 / m,
-      sum(Multiply(Transpose(Subtract(yHat, y)), Transpose(X)), 1));
+    // first order derivative of error with respect to theta
+    Err := X.T.Dot(yHat - y);
+    dJTheta := ((1 / m) * (((yHat - y).T.dot(X))));
 
     // update parameter theta
-    theta := Subtract(theta, Multiply(learningRate, dJTheta));
+    theta := Subtract(theta, (learningRate * dJTheta));
   end;
 
-  WriteLn('Done');
+  WriteLn;
+  WriteLn('Done. Final theta:');
+  PrintMatrix(theta);
+
+  Pairs := CopyMatrix(y);
+  Pairs := InsertColumnsAt(Pairs, yHat, 0);
+
+  WriteLn('Predicted v.s. actual:');
+  PrintMatrix(Pairs);
+
   ReadLn;
 end.
