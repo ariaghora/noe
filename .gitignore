@@ -1,3 +1,9 @@
+# lazarus / pascal
+*.compiled
+*.lps
+*.bak
+*.ppu
+*.o
 *.exe
 *.dll
 *.lps
