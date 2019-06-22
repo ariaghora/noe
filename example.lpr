@@ -1,7 +1,9 @@
 program example;
 
 uses
+  {$IFDEF MSWINDOWS}
   wincrt,
+  {$ENDIF}
   SysUtils,
   DTCore; // core include
 

@@ -12,9 +12,14 @@ const
   {$IFDEF MSWINDOWS}
   { @exclude }
   BLAS_FILENAME = 'libopenblas.dll';
-  {$ELSE}
-  { @exclude }
-  BLAS_FILENAME = 'libopenblas.so';
+  {$ENDIF}
+  {$IFDEF UNIX}
+    {$IFDEF LINUX}
+      BLAS_FILENAME = 'libopenblas.so';
+    {$ENDIF}
+    {$IFDEF DARWIN}
+      BLAS_FILENAME = 'libopenblas.dylib';
+    {$ENDIF}
   {$ENDIF}
 
 type
