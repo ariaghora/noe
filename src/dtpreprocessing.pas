@@ -89,6 +89,7 @@ var
 begin
   self.Maxs := Max(X, 0);
   self.Mins := Min(X, 0);
+  Result := self;
 end;
 
 function TMinMaxScaler.Transform(X: TDTMatrix): TDTMatrix;
