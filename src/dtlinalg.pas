@@ -12,9 +12,9 @@ type
 
   { @abstract(A class to compute principal component analysis) }
   TPCA = class
-    k: integer;
     { The number of principal components }
     NComponents: integer;
+    { Computed principal components }
     Components: TDTMatrix;
   public
     constructor Create(NComponents: integer);
