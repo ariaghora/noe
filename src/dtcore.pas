@@ -84,11 +84,18 @@ type
   { @exclude }
   _dasum = function(N: longint; X: TFloatVector; incX: longint): double; cdecl;
 
+  // LAPACK interface
+
   { @exclude }
-  _dgesvd = function(layout: CBLAS_ORDER; jobu: char; jobvt: char;
+  _dgesvd = function(layout: LAPACK_ORDER; jobu: char; jobvt: char;
     m: longint; n: longint; A: TFloatVector; lda: longint; S: TFloatVector;
     U: TFloatVector; ldu: longint; VT: TFloatVector; ldvt: longint;
     superb: TFloatVector): longint; cdecl;
+  { @exclude }
+  _dgeev = function(layout: LAPACK_ORDER; jobvl: char; jobvr: char;
+    n: longint; A: TFloatVector; lda: longint; wr: TFloatVector;
+    wi: TFloatVector; vl: TFloatVector; ldvl: longint; vr: TFloatVector;
+    ldvr: longint): longint; cdecl;
 
 { initialize the engine }
 procedure DarkTealInit;
@@ -122,10 +129,6 @@ function Cov(X, Y: TDTMatrix): TDTMatrix;
 { Delete element in A.val with position pos.
   Should @bold(NOT) be used directly on a TDTMatrix. }
 function DeleteElement(var A: TDTMatrix; pos: integer): TDTMatrix;
-
-{ Delete several elements in A.val with position pos.
-  Should @bold(NOT) be used directly on a TDTMatrix. }
-procedure DeleteElements(var A: TDTMatrix; pos, amount: integer);
 
 { Get column of A from index idx.
   @param(A is a m by n TDTMatrix)
@@ -201,6 +204,16 @@ function Apply(func: TCallbackDouble; A: TDTMatrix): TDTMatrix;
   The values are stored as floating point numbers. }
 function TDTMatrixFromCSV(f: string): TDTMatrix;
 
+{ Delete several elements in A.val with position pos.
+  Should @bold(NOT) be used directly on a TDTMatrix. }
+procedure DeleteElements(var A: TDTMatrix; pos, amount: integer);
+
+{ Set the values in TDTMatrix A at column idx with the values of B }
+procedure SetColumn(var A: TDTMatrix; B: TDTMatrix; idx: integer);
+
+{ Swap values in column idx1 with the values in column idx2 }
+procedure SwapColumns(var A: TDTMatrix; idx1, idx2: integer);
+
 {$IFDEF FPC}
 {$PACKRECORDS C}
 {$ENDIF}
@@ -223,6 +236,8 @@ var
   { @exclude }
   LAPACKE_dgesvd: _dgesvd;
   { @exclude }
+  LAPACKE_dgeev: _dgeev;
+  { @exclude }
   libHandle: TLibHandle;
 
 implementation
@@ -241,6 +256,7 @@ begin
   Pointer(@blas_dtbmv) := GetProcedureAddress(libHandle, 'cblas_dtbmv');
   Pointer(@blas_dasum) := GetProcedureAddress(libHandle, 'cblas_dasum');
   Pointer(@LAPACKE_dgesvd) := GetProcedureAddress(libHandle, 'LAPACKE_dgesvd');
+  Pointer(@LAPACKE_dgeev) := GetProcedureAddress(libHandle, 'LAPACKE_dgeev');
 end;
 
 procedure DarkTealRelease;
@@ -443,7 +459,7 @@ end;
 
 function Dot(A, B: TDTMatrix): TDTMatrix;
 begin
-  Result:=nil;
+  Result := nil;
   SetLength(Result.val, A.Height * B.Width);
   blas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
     A.Height, B.Width, B.Height, // m, n, k
@@ -741,6 +757,23 @@ end;
 function Exp(x: double): double;
 begin
   Result := system.exp(x);
+end;
+
+procedure SetColumn(var A: TDTMatrix; B: TDTMatrix; idx: integer);
+var
+  i: integer;
+begin
+  for i := 0 to B.Height - 1 do
+    A.val[i * A.Width + idx] := B.val[i];
+end;
+
+procedure SwapColumns(var A: TDTMatrix; idx1, idx2: integer);
+var
+  tmp: TDTMatrix;
+begin
+  tmp := A.GetColumn(idx1);
+  SetColumn(A, A.GetColumn(idx2), idx1);
+  SetColumn(A, tmp, idx2);
 end;
 
 function Sqrt(x: double): double;
