@@ -2,7 +2,6 @@
 <img src="assets/noe-txt.png" alt="logo" width="300px"></img>
 </div>
 
-# Noe
 Hi, mortal. This is noe.
 
 ```delphi
