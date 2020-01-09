@@ -181,7 +181,6 @@ begin
   Result.Reshape(Shape);
 end;
 
-{ iterate over a tensor }
 procedure PrintTensor(T: TTensor);
 var
   n, offset, digitMax, decimalPlace, dtIter: longint;
@@ -204,21 +203,18 @@ var
       end;
     end;
 
-    //if ithDimChanged < n - 1 then
+    if ithDimChanged < n - 1 then
+      Write(DupeString(']', NewlineNum));
+
+    Write(DupeString(sLineBreak, NewlineNum));
+
+    if ithDimChanged = n - 1 then
+      Write(', ');
+
+    if ithDimChanged < n - 1 then
     begin
-      if ithDimChanged < n - 1 then
-        Write(DupeString(']', NewlineNum));
-
-      Write(DupeString(sLineBreak, NewlineNum));
-
-      if ithDimChanged = n - 1 then
-        Write(', ');
-
-      if ithDimChanged < n - 1 then
-      begin
-        Write(DupeString(' ', n - NewlineNum));
-        Write(DupeString('[', NewlineNum));
-      end;
+      Write(DupeString(' ', n - NewlineNum));
+      Write(DupeString('[', NewlineNum));
     end;
 
     Write(T.Val[offset]: digitMax + decimalPlace + 1: decimalPlace);
