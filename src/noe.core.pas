@@ -36,6 +36,8 @@ const
 { Operator overloading --------------------------------------------------------}
 operator := (Val: single) M: TTensor;
 operator +(A, B: TTensor) C: TTensor;
+operator -(A, B: TTensor) C: TTensor;
+operator * (A, B: TTensor) C: TTensor;
 
 { Helpers ---------------------------------------------------------------------}
 function Equals(A, B: TTensor): boolean;
@@ -61,6 +63,16 @@ end;
 operator +(A, B: TTensor) C: TTensor;
 begin
   C := noe.Math.Add(A, B);
+end;
+
+operator -(A, B: TTensor)C: TTensor;
+begin
+  C := noe.Math.Subtract(A, B);
+end;
+
+operator * (A, B: TTensor)C: TTensor;
+begin
+  C := noe.Math.Multiply(A, B);
 end;
 
 function Equals(A, B: TTensor): boolean;

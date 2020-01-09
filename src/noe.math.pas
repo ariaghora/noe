@@ -10,6 +10,8 @@ uses
   Classes, noe.core;
 
 function Add(A, B: TTensor): TTensor;
+function Subtract(A, B: TTensor): TTensor;
+function Multiply(A, B: TTensor): TTensor;
 function Sum(M: TTensor): TTensor; overload;
 function Sum(M: TTensor; axis: byte): TTensor; overload;
 
@@ -27,6 +29,34 @@ begin
   SetLength(Result.Val, Length(A.Val));
   for i := 0 to Length(A.Val) - 1 do
     Result.Val[i] := A.Val[i] + B.Val[i];
+end;
+
+function Subtract(A, B: TTensor): TTensor;
+var
+  i: longint;
+begin
+  Assert(Length(A.Val) = Length(B.Val), MSG_ASSERTION_DIM_MISMATCH);
+
+  Result := TTensor.Create;
+  Result.Reshape(A.Shape);
+
+  SetLength(Result.Val, Length(A.Val));
+  for i := 0 to Length(A.Val) - 1 do
+    Result.Val[i] := A.Val[i] - B.Val[i];
+end;
+
+function Multiply(A, B: TTensor): TTensor;
+var
+  i: longint;
+begin
+  Assert(Length(A.Val) = Length(B.Val), MSG_ASSERTION_DIM_MISMATCH);
+
+  Result := TTensor.Create;
+  Result.Reshape(A.Shape);
+
+  SetLength(Result.Val, Length(A.Val));
+  for i := 0 to Length(A.Val) - 1 do
+    Result.Val[i] := A.Val[i] * B.Val[i];
 end;
 
 function Sum(M: TTensor): TTensor;
