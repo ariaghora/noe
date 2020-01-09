@@ -2,7 +2,7 @@
 <img src="assets/noe-txt.png" alt="logo" width="200px"></img>
 </div>
 
-This is my experimental project to understand the mechanism behind n-dimensional array: how's its layout in memory, how to do indexing, etc. Furthermore, I am also learning what happens under the hood of automatic differentiation for a neural network, so this project might be the good basis for it.
+This is my experimental project to understand the mechanism behind n-dimensional array: how is its layout in memory, how to do indexing, etc. Furthermore, I am also learning what happens under the hood of the automatic differentiation for a neural network. So, this project might be a good basis for it.
 
 > This project used to be "darkteal". Please check the `master` branch for darkteal's code.
 
