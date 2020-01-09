@@ -2,7 +2,7 @@
 <img src="assets/noe-txt.png" alt="logo" width="300px"></img>
 </div>
 
-Hi, mortal. This is noe.
+Hi. This is noe. This used to be darkteal. Please check the `master` branch for darkteal's code.
 
 ```delphi
 uses
