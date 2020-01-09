@@ -54,7 +54,7 @@ type
     function Eval: TTensor;
   end;
 
-procedure PrintMatrix(M: TNode); overload;
+//procedure PrintMatrix(M: TNode); overload;
 
 implementation
 
@@ -81,7 +81,7 @@ begin
   //self.FShape[0] := self.Mat.Shape[0];
   //self.FShape[1] := self.Mat.Shape[1];
 
-  self.FGrad := FullFloat(self.Shape[0], self.Shape[1], 0);
+  self.FGrad := FullTensor([self.Shape[0], self.Shape[1]], 0);
   self.PrevGrad := self.FGrad;
 end;
 
@@ -119,16 +119,16 @@ begin
   Result := self.Mat;
 end;
 
-procedure PrintMatrix(M: TNode); overload;
-var
-  preamble: string;
-begin
-  preamble := 'shape=' + IntToStr(M.Eval.Shape[0]) + 'x' + IntToStr(M.Eval.Shape[1]);
-
-
-  preamble := preamble + ' (TNode), Name=' + M.Name;
-  noe.core.PrintTensor(M.Eval, preamble);
-end;
+//procedure PrintMatrix(M: TNode); overload;
+//var
+//  preamble: string;
+//begin
+//  preamble := 'shape=' + IntToStr(M.Eval.Shape[0]) + 'x' + IntToStr(M.Eval.Shape[1]);
+//
+//
+//  preamble := preamble + ' (TNode), Name=' + M.Name;
+//  noe.core.PrintTensor(M.Eval, preamble);
+//end;
 
 initialization
   GLOBAL_NODE_COUNT := 0;

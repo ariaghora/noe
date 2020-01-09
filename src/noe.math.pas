@@ -1,4 +1,4 @@
-unit noe.Math;
+unit noe.math;
 
 { Math interface }
 

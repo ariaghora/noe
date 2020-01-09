@@ -35,7 +35,7 @@ begin
   PrevNodes.Add(@A);
   PrevNodes.Add(@B);
 
-  self.Grad := FullFloat(self.Shape[0], self.Shape[1], 0);
+  self.Grad := FullTensor([self.Shape[0], self.Shape[1]], 0);
   self.PrevGrad := self.Grad;
 end;
 
