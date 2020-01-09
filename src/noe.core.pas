@@ -5,7 +5,7 @@ unit noe.core;
 interface
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils, strutils, Math;
 
 var
   _node_count: longint;
@@ -37,22 +37,16 @@ const
 operator := (Val: single) M: TTensor;
 operator +(A, B: TTensor) C: TTensor;
 
-
-
 { Helpers ---------------------------------------------------------------------}
 function Equals(A, B: TTensor): boolean;
 function IndexToOffset(Index, Shape: array of longint): longint;
 
-{ Create a matrix with randomized float values }
-function FullFloat(Arr: array of single): TTensor; overload;
-function FullFloat(Height, Width: longint): TTensor; overload;
-function FullFloat(Height, Width: longint; Val: single): TTensor; overload;
+{ Tensor creation ------------------------------------------------------------ }
 function FullTensor(Shape: array of longint): TTensor; overload;
 function FullTensor(Shape: array of longint; Val: single): TTensor; overload;
-function FullTensor(Shape, Vals: array of longint): TTensor; overload;
+function FullTensor(Shape: array of longint; Vals: array of single): TTensor; overload;
 
-procedure PrintTensor(M: TTensor; Preamble: string); overload;
-procedure PrintTensor(M: TTensor);
+procedure PrintTensor(T: TTensor);
 
 implementation
 
@@ -61,7 +55,7 @@ uses
 
 operator := (Val: single) M: TTensor;
 begin
-  M := FullFloat(1, 1, Val);
+  M := FullTensor([1, 1], Val);
 end;
 
 operator +(A, B: TTensor) C: TTensor;
@@ -86,6 +80,7 @@ var
   i, j, d, SumRes, ProdRes: longint;
 begin
   d := Length(Index);
+  Assert(d = Length(Shape), 'Cannot convert index to offset with such shape');
   SumRes := 0;
   for i := 0 to d - 1 do
   begin
@@ -99,6 +94,7 @@ begin
   Result := SumRes;
 end;
 
+{ Determine the required 1-d array size based on a tensor shape }
 function ShapeToSize(Shape: array of longint): longint;
 var
   i, size: longint;
@@ -135,42 +131,6 @@ begin
     self.FShape[i] := ShapeVals[i];
 end;
 
-function FullFloat(Arr: array of single): TTensor;
-begin
-  Result.Val := @Arr;
-  SetLength(Result.Val, Length(Arr));
-  Result.Reshape([1, Length(Arr)]);
-end;
-
-{ Utility functions }
-function FullFloat(Height, Width: longint): TTensor;
-var
-  i, length: longint;
-begin
-  Result := TTensor.Create;
-  length := Height * Width;
-  SetLength(Result.Val, length);
-  for i := 0 to length - 1 do
-  begin
-    Result.val[i] := Random;
-  end;
-  Result.Reshape([Height, Width]);
-end;
-
-function FullFloat(Height, Width: longint; Val: single): TTensor;
-var
-  i, length: longint;
-begin
-  Result := TTensor.Create;
-  length := Height * Width;
-  SetLength(Result.Val, length);
-  for i := 0 to length - 1 do
-  begin
-    Result.val[i] := Val;
-  end;
-  Result.Reshape([Height, Width]);
-end;
-
 function FullTensor(Shape: array of longint): TTensor;
 var
   i, size: longint;
@@ -195,7 +155,7 @@ begin
   Result.Reshape(shape);
 end;
 
-function FullTensor(Shape, Vals: array of longint): TTensor;
+function FullTensor(Shape: array of longint; Vals: array of single): TTensor;
 var
   i, size: longint;
 begin
@@ -209,32 +169,83 @@ begin
   Result.Reshape(Shape);
 end;
 
-
-procedure PrintTensor(M: TTensor; Preamble: string);
+{ iterate over a tensor }
+procedure PrintTensor(T: TTensor);
 var
-  i, j: longint;
-begin
-  writeln(Preamble, ':', sLineBreak);
-  for i := 0 to M.Shape[0] - 1 do
+  n, offset, digitMax, decimalPlace, dtIter: longint;
+  res, dimTracker: array of longint;
+
+  procedure PPrint(res: array of longint);
+  var
+    i, NewlineNum, ithDimChanged: longint;
   begin
-    for j := 0 to M.Shape[1] - 1 do
-    begin
-      Write(M.Val[i * M.Shape[1] + j]: 8: 2);
-      if j < (M.Shape[1] - 1) then
-        Write(' ');
-    end;
-    WriteLn();
-  end;
-  WriteLn();
-end;
+    NewlineNum := 0;
 
-procedure PrintTensor(M: TTensor);
-var
-  preamble: string;
+    for i := Length(res) - 1 downto 0 do
+    begin
+      if dimTracker[i] <> res[i] then
+      begin
+        dimTracker[i] := res[i];
+
+        NewlineNum := n - i - 1;
+        ithDimChanged := i; // in which dimension there is a change?
+      end;
+    end;
+
+    //if ithDimChanged < n - 1 then
+    begin
+      if ithDimChanged < n - 1 then
+        Write(DupeString(']', NewlineNum));
+
+      Write(DupeString(sLineBreak, NewlineNum));
+
+      if ithDimChanged = n - 1 then
+        Write(', ');
+
+      if ithDimChanged < n - 1 then
+      begin
+        Write(DupeString(' ', n - NewlineNum));
+        Write(DupeString('[', NewlineNum));
+      end;
+    end;
+
+    Write(T.Val[offset]: digitMax + decimalPlace + 1: decimalPlace);
+  end;
+
+  // d is dimension iterator, d=0..n-1
+  procedure iterate(d: longint; shape, res: array of longint);
+  var
+    i: longint;
+  begin
+    if d >= n then
+    begin
+      PPrint(res);
+      Inc(offset);
+      exit;
+    end;
+
+    for i := 0 to shape[d] - 1 do
+    begin
+      res[d] := i;
+      iterate(d + 1, shape, res);
+    end;
+  end;
+
 begin
-  preamble := 'shape=' + IntToStr(M.Shape[0]) + 'x' + IntToStr(M.Shape[1]);
-  preamble := preamble + ' (TMatrix)';
-  PrintTensor(M, preamble);
+  offset := 0;
+  n := Length(T.Shape);
+
+  digitMax := Math.ceil(Math.log10(Math.MaxValue(T.Val)));
+  decimalPlace := 2;
+
+  SetLength(dimTracker, n);
+  for dtIter := 0 to n - 1 do
+    dimTracker[dtIter] := 0;
+
+  SetLength(res, n);
+  Write(DupeString('[', n));
+  iterate(0, T.GetShape, res);
+  WriteLn(DupeString(']', n));
 end;
 
 end.
