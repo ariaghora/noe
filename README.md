@@ -9,7 +9,8 @@ This is my experimental project to understand the mechanism behind n-dimensional
 ## Declaring and initializing tensors
 ```delphi
 uses
-  noe.core
+  noe.core, // --> main unit
+  noe.mat   // --> extending standard math unit
 
 var
   A, B, C: TTensor; 
