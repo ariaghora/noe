@@ -1,19 +1,53 @@
-unit noe.math;
+{ Extending FPC's math unit (and partially system unit) to be able to work
+  with tensors }
 
-{ Math interface }
+unit noe.Math;
 
 {$mode objfpc}{$H+}
 
 interface
 
+
 uses
-  Classes, noe.core;
+  Classes, Math, noe.core;
+
+type
+  { Wrapping FPC's f:R->R unary functions in math unit }
+  TUFunc = function(v: float): float;
+
+  { Wrapping FPC's f:RxR->R binary functions in math unit }
+  TBFunc = function(v1, v2: float): float;
 
 function Add(A, B: TTensor): TTensor;
 function Subtract(A, B: TTensor): TTensor;
 function Multiply(A, B: TTensor): TTensor;
+
 function Sum(M: TTensor): TTensor; overload;
 function Sum(M: TTensor; axis: byte): TTensor; overload;
+
+{ Helper to apply a function on each tensor's element }
+function ApplyUfunc(A: TTensor; Func: TUFunc): TTensor;
+function ApplyBfunc(A: TTensor; v: float; Func: TBFunc): TTensor;
+
+{ Logarithm functions }
+function Log10(A: TTensor): TTensor;
+function Log2(A: TTensor): TTensor;
+
+operator ** (A: TTensor; expo: float) B: TTensor; inline;
+
+{ Trigonometric functions }
+
+{ Some of functions belong to system unit are in different format. Hence, they
+  need to be wrapped to make them compatible. They are given suffix "F"
+  (indicating float-valued function) to avoid confusion. }
+function SinF(x: float): float;
+function CosF(x: float): float;
+
+function Sin(A: TTensor): TTensor;
+function Cos(A: TTensor): TTensor;
+
+{ Exponential functions }
+function Power(A: TTensor; exponent: float): TTensor;
 
 implementation
 
@@ -97,6 +131,68 @@ begin
         Result.val[i] := Result.val[i] + M.val[i * M.Shape[1] + j];
     end;
   end;
+end;
+
+function Log10(A: TTensor): TTensor;
+begin
+  Result := ApplyUfunc(A, @Math.log10);
+end;
+
+function Log2(A: TTensor): TTensor;
+begin
+  Result := ApplyUfunc(A, @Math.log2);
+end;
+
+operator ** (A: TTensor; expo: float)B: TTensor;
+begin
+  B := Power(A, expo);
+end;
+
+function SinF(x: float): float;
+begin
+  Result := System.Sin(x);
+end;
+
+function CosF(x: float): float;
+begin
+  Result := System.Cos(x);
+end;
+
+function Sin(A: TTensor): TTensor;
+begin
+  Result := ApplyUfunc(A, @SinF);
+end;
+
+function Cos(A: TTensor): TTensor;
+begin
+  Result := ApplyUfunc(A, @CosF);
+end;
+
+function Power(A: TTensor; exponent: float): TTensor;
+begin
+  Result := ApplyBfunc(A, exponent, @Math.power);
+end;
+
+function ApplyUfunc(A: TTensor; Func: TUFunc): TTensor;
+var
+  i: longint;
+begin
+  Result := TTensor.Create;
+  Result.Reshape(A.Shape);
+  SetLength(Result.val, Length(A.val));
+  for i := 0 to length(A.val) - 1 do
+    Result.val[i] := func(A.val[i]);
+end;
+
+function ApplyBfunc(A: TTensor; v: float; Func: TBFunc): TTensor;
+var
+  i: longint;
+begin
+  Result := TTensor.Create;
+  Result.Reshape(A.Shape);
+  SetLength(Result.val, Length(A.val));
+  for i := 0 to length(A.val) - 1 do
+    Result.val[i] := func(A.val[i], v);
 end;
 
 end.

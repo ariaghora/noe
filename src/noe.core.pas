@@ -24,7 +24,7 @@ type
     FShape: array of longint;
   public
     function GetShape: TIntVector;
-    function GetVal(Index: array of longint): single;
+    function GetVal(Index: array of longint): float;
     procedure Reshape(ShapeVals: array of longint);
     property Shape: TIntVector read FShape;
   end;
@@ -34,7 +34,7 @@ const
   MSG_ASSERTION_INVALID_AXIS = 'Invalid axis. The value should be either 0 or 1.';
 
 { Operator overloading --------------------------------------------------------}
-operator := (Val: single) M: TTensor;
+operator := (Val: float) M: TTensor;
 operator +(A, B: TTensor) C: TTensor;
 operator -(A, B: TTensor) C: TTensor;
 operator * (A, B: TTensor) C: TTensor;
@@ -45,8 +45,8 @@ function IndexToOffset(Index, Shape: array of longint): longint;
 
 { Tensor creation ------------------------------------------------------------ }
 function FullTensor(Shape: array of longint): TTensor; overload;
-function FullTensor(Shape: array of longint; Val: single): TTensor; overload;
-function FullTensor(Shape: array of longint; Vals: array of single): TTensor; overload;
+function FullTensor(Shape: array of longint; Val: float): TTensor; overload;
+function FullTensor(Shape: array of longint; Vals: array of float): TTensor; overload;
 
 procedure PrintTensor(T: TTensor);
 
@@ -55,7 +55,7 @@ implementation
 uses
   noe.Math;
 
-operator := (Val: single) M: TTensor;
+operator := (Val: float) M: TTensor;
 begin
   M := FullTensor([1, 1], Val);
 end;
@@ -119,7 +119,7 @@ end;
 
 { TTensor implementations }
 
-function TTensor.GetVal(Index: array of longint): single;
+function TTensor.GetVal(Index: array of longint): float;
 var
   Offset: longint;
 begin
@@ -155,7 +155,7 @@ begin
   Result.Reshape(shape);
 end;
 
-function FullTensor(Shape: array of longint; Val: single): TTensor;
+function FullTensor(Shape: array of longint; Val: float): TTensor;
 var
   i, size: longint;
 begin
@@ -167,7 +167,7 @@ begin
   Result.Reshape(shape);
 end;
 
-function FullTensor(Shape: array of longint; Vals: array of single): TTensor;
+function FullTensor(Shape: array of longint; Vals: array of float): TTensor;
 var
   i, size: longint;
 begin
