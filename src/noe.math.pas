@@ -29,6 +29,10 @@ function Sum(M: TTensor; axis: byte): TTensor; overload;
 function ApplyUfunc(A: TTensor; Func: TUFunc): TTensor;
 function ApplyBfunc(A: TTensor; v: float; Func: TBFunc): TTensor;
 
+{ Angle conversion }
+function DegToRad(A: TTensor): TTensor; inline;
+function RadToDeg(A: TTensor): TTensor; inline;
+
 { Logarithm functions }
 function Log10(A: TTensor): TTensor;
 function Log2(A: TTensor): TTensor;
@@ -45,6 +49,7 @@ function CosF(x: float): float;
 
 function Sin(A: TTensor): TTensor;
 function Cos(A: TTensor): TTensor;
+function Tan(A: TTensor): TTensor;
 
 { Exponential functions }
 function Power(A: TTensor; exponent: float): TTensor;
@@ -133,6 +138,16 @@ begin
   end;
 end;
 
+function DegToRad(A: TTensor): TTensor;
+begin
+  Result := ApplyUfunc(A, @Math.degtorad);
+end;
+
+function RadToDeg(A: TTensor): TTensor;
+begin
+  Result := ApplyUfunc(A, @Math.radtodeg);
+end;
+
 function Log10(A: TTensor): TTensor;
 begin
   Result := ApplyUfunc(A, @Math.log10);
@@ -166,6 +181,11 @@ end;
 function Cos(A: TTensor): TTensor;
 begin
   Result := ApplyUfunc(A, @CosF);
+end;
+
+function Tan(A: TTensor): TTensor;
+begin
+  Result := ApplyUfunc(A, @Math.tan);
 end;
 
 function Power(A: TTensor; exponent: float): TTensor;
