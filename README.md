@@ -95,9 +95,37 @@ PrintTensor(A - B);
 WriteLn('A * B:');
 PrintTensor(A * B);
 ```
+And some others:
+```delphi
+A := FullTensor([3,3]) + FullTensor([3, 3], 1);
+PrintTensor( Log10(A) );
+PrintTensor( Log2(A) );
+
+A := FullTensor(
+  [2, 2],
+
+  [ 0., 30.,
+   45., 90.]
+);
+
+A := DegToRad(A); // Also check RadToDeg(A)
+PrintTensor( Sin(A) );
+PrintTensor( Cos(A) );
+PrintTensor( Tan(A) );
+
+A := FullTensor(
+  [2, 2],
+  [1., 2.,
+   3., 4.]
+);
+A := A ** 2;
+PrintTensor(A); 
+```
+Please check `noe.math.pas` for more covered functionalities.
 
 ## Note
 
 - There is no broadcasting mechanism yet. For arithmetical operations, make sure the dimension of the operands matches. Broadcasting is also in my learning list. So, it is to be implemented.
 - `GetValue` can only access a single value. So, the dimension of the index should matches the dimension of the tensor.
+- No complex value handling yet.
 - Performance is not of my primary consideration, at least for now. I want simply a quick proof of concept of what I am learning.
