@@ -41,8 +41,9 @@ type
   end;
 
 const
-  MSG_ASSERTION_DIM_MISMATCH = 'Dimension mismatch.';
-  MSG_ASSERTION_INVALID_AXIS = 'Invalid axis. The value should be either 0 or 1.';
+  MSG_ASSERTION_DIM_MISMATCH     = 'Dimension mismatch.';
+  MSG_ASSERTION_INVALID_AXIS     = 'Invalid axis. The value should be either 0 or 1.';
+  MSG_ASSERTION_DIFFERENT_LENGTH = 'Two arrays have different length.';
 
 { Operator overloading --------------------------------------------------------}
 operator := (Val: float) M: TTensor;
@@ -71,7 +72,7 @@ function FullTensor(Shape: array of longint; Vals: array of float): TTensor; ove
 implementation
 
 uses
-  noe.Math;
+  noe.Math, noe.utils;
 
 operator := (Val: float) M: TTensor;
 begin
@@ -100,9 +101,7 @@ begin
   Assert((A.Shape[0] = B.Shape[0]) and (A.Shape[1] = B.Shape[1]),
     MSG_ASSERTION_DIM_MISMATCH);
 
-  Result := True;
-  for i := 0 to Length(A.Val) - 1 do
-    Result := Result and (A.Val[i] = B.Val[i]);
+  Result := (A.val = B.val);
 end;
 
 function IndexToOffset(Index, Shape: array of longint): longint;
