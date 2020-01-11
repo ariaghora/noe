@@ -1,5 +1,16 @@
-{ Extending FPC's math unit (and partially system unit) to be able to work
-  with tensors }
+{
+ This file is part of "noe" library.
+
+ Noe library. Copyright (C) 2020 Aria Ghora Prabono.
+
+ This unit extends FPC's math unit (and partially system unit) to be able to
+ work with tensors.
+
+ To do:
+  - implement einsum
+  - implement matrix multiplication backend(s)
+  - adapt more math functions from math.pas
+}
 
 unit noe.Math;
 
@@ -37,8 +48,6 @@ function RadToDeg(A: TTensor): TTensor; inline;
 function Log10(A: TTensor): TTensor;
 function Log2(A: TTensor): TTensor;
 
-operator ** (A: TTensor; expo: float) B: TTensor; inline;
-
 { Trigonometric functions }
 
 { Some of functions belong to system unit are in different format. Hence, they
@@ -53,6 +62,8 @@ function Tan(A: TTensor): TTensor;
 
 { Exponential functions }
 function Power(A: TTensor; exponent: float): TTensor;
+
+operator ** (A: TTensor; expo: float) B: TTensor; inline;
 
 implementation
 

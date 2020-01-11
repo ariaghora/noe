@@ -1,3 +1,15 @@
+{
+ This file is part of "noe" library.
+
+ Noe library. Copyright (C) 2020 Aria Ghora Prabono.
+
+ This unit contains the interface for TTensor to perform multidimensional array
+ operations. The dimension can be of any arbitrary nonnegative integer.
+
+ To do:
+  - implement broadcasting mechanism
+  - implement a function to get string from tensor values
+}
 unit noe.core;
 
 {$mode objfpc}
@@ -7,11 +19,9 @@ interface
 uses
   Classes, SysUtils, strutils, Math;
 
-var
-  _node_count: longint;
-
 type
   TIntVector = array of longint;
+
   { TShape }
   TShape = record
     Height: longint;
