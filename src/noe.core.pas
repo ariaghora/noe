@@ -25,6 +25,7 @@ type
   public
     function GetShape: TIntVector;
     function GetVal(Index: array of longint): float;
+    function GetAt(Index: array of longint): TTensor;
     procedure Reshape(ShapeVals: array of longint);
     property Shape: TIntVector read FShape;
   end;
@@ -92,7 +93,7 @@ var
   i, j, d, SumRes, ProdRes: longint;
 begin
   d := Length(Index);
-  Assert(d = Length(Shape), 'Cannot convert index to offset with such shape');
+  Assert(d <= Length(Shape), 'Cannot convert index to offset with such shape');
   SumRes := 0;
   for i := 0 to d - 1 do
   begin
@@ -127,6 +128,41 @@ begin
     'Index dimension does not match the tensor dimension');
   Offset := IndexToOffset(Index, self.Shape);
   Result := self.Val[Offset];
+end;
+
+function TTensor.GetAt(Index: array of longint): TTensor;
+var
+  i, ResultLength, offset, LIndex, LShape: longint;
+  AdjustedIndex, ResultingShape: array of longint;
+begin
+  LIndex := Length(Index);
+  LShape := Length(self.Shape);
+
+  SetLength(AdjustedIndex, 0);      // fill with
+  SetLength(AdjustedIndex, LShape); // zero
+
+  { Suppose, the given index is [1,2] while the tensor is 4 dimensional, adjust
+    the index to [1,2,0,0], i.e., fill the remaining dimension indices with
+    zeros. }
+  for i := 0 to LShape - 1 do
+    AdjustedIndex[i] := Index[i];
+
+  offset := IndexToOffset(AdjustedIndex, self.Shape);
+
+  SetLength(ResultingShape, LShape - LIndex);
+  for i := 0 to (LShape - LIndex) - 1 do
+    ResultingShape[i] := self.Shape[i + LShape - LIndex - 1];
+
+  Result := TTensor.Create;
+  Result.Reshape(ResultingShape);
+
+  ResultLength := 1;
+  for i := LIndex to LShape - 1 do
+    ResultLength := ResultLength * self.Shape[i];
+
+  SetLength(Result.Val, ResultLength);
+  for i := 0 to ResultLength - 1 do
+    Result.Val[i] := self.Val[i + offset];
 end;
 
 function TTensor.GetShape: TIntVector;

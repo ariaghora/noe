@@ -43,11 +43,40 @@ PrintTensor(B);
 ```
 Accessing the value of a tensor using a multidimensional index:
 ```delphi
-{ Get the value of tensor A at index 0,1 }
-WriteLn(A.GetVal([0, 1])); // will give 1
+A := FullTensor([3, 2, 3]);
+WriteLn('A:');
+PrintTensor(A);
 
-{ Get the value of tensor B at index 1,0,2 }
-WriteLn(B.GetVal([1, 0, 1])); // will give 0.83
+WriteLn(sLineBreak + 'A at index [2]:');
+PrintTensor(A.getat([2]));
+
+WriteLn(sLineBreak + 'A at index [0, 1]:');
+PrintTensor(A.getat([0, 1]));
+
+WriteLn(sLineBreak + 'A at index [1, 1, 0]:');
+PrintTensor(A.getat([1, 1, 0]));            
+```
+
+```
+A:
+[[[0.97, 0.47, 0.57]
+  [0.08, 0.51, 0.13]]
+
+ [[0.43, 0.67, 0.55]
+  [0.93, 0.86, 0.84]]
+
+ [[0.00, 0.32, 0.03]
+  [0.57, 0.95, 0.32]]]
+
+A at index [2]:
+[[0.00, 0.32, 0.03]
+ [0.57, 0.95, 0.32]]
+
+A at index [0, 1]:
+[0.08, 0.51, 0.13]
+
+A at index [1, 1, 0]:
+0.93
 ```
 A tensor with specified values:
 ```delphi
@@ -127,6 +156,5 @@ Please check `noe.math.pas` for more covered functionalities.
 ## Note
 
 - There is no broadcasting mechanism yet. For arithmetical operations, make sure the dimension of the operands matches. Broadcasting is also in my learning list. So, it is to be implemented.
-- `GetValue` can only access a single value. So, the dimension of the index should matches the dimension of the tensor.
 - No complex value handling yet.
-- Performance is not of my primary consideration, at least for now. I want simply a quick proof of concept of what I am learning.
+- Performance is not of my primary consideration, at least for now. I want simply a quick proof of concept of what I am learning. But it is not too shabby either. Don't worry.
