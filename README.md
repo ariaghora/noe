@@ -41,7 +41,37 @@ PrintTensor(B);
  [[0.45, 0.83, 0.70]
   [0.56, 0.31, 0.77]]]
 ```
-Accessing the value of a tensor using multidimensional indexing:
+A tensor with specified values:
+```delphi
+{ 2x3 tensor filled with values specified }
+C := FullTensor(
+  [2, 3],      //--> target shape
+
+  [1., 2., 3., //--> the data
+   4., 5., 6.] //
+);
+PrintTensor(C);
+
+WriteLn;
+
+{ Reshape C into a 6x1 tensor }
+C.Reshape([6, 1]);
+PrintTensor(C);
+```
+
+```
+[[1.00, 2.00, 3.00]
+ [4.00, 5.00, 6.00]]
+
+[[1.00]
+ [2.00]
+ [3.00]
+ [4.00]
+ [5.00]
+ [6.00]]
+```
+## Accessing tensor values
+To accessing the value of a tensor we can use multidimensional indexing:
 ```delphi
 A := FullTensor([3, 2, 3]);
 WriteLn('A:');
@@ -78,36 +108,8 @@ A at index [0, 1]:
 A at index [1, 1, 0]:
 0.93
 ```
-A tensor with specified values:
-```delphi
-{ 2x3 tensor filled with values specified }
-C := FullTensor(
-  [2, 3],      //--> target shape
-
-  [1., 2., 3., //--> the data
-   4., 5., 6.] //
-);
-PrintTensor(C);
-
-WriteLn;
-
-{ Reshape C into a 6x1 tensor }
-C.Reshape([6, 1]);
-PrintTensor(C);
-```
-
-```
-[[1.00, 2.00, 3.00]
- [4.00, 5.00, 6.00]]
-
-[[1.00]
- [2.00]
- [3.00]
- [4.00]
- [5.00]
- [6.00]]
-```
-Some basic element-wise arithmetical operations are also supported:
+## Some basic math operations
+Several basic math operations on tensors are also supported.
 ```delphi
 A := FullTensor([3, 3], 1);
 B := FullTensor([3, 3]);
