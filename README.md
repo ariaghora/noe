@@ -41,7 +41,7 @@ PrintTensor(B);
  [[0.45, 0.83, 0.70]
   [0.56, 0.31, 0.77]]]
 ```
-Accessing the value of a tensor using a multidimensional index:
+Accessing the value of a tensor using multidimensional indexing:
 ```delphi
 A := FullTensor([3, 2, 3]);
 WriteLn('A:');
