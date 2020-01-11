@@ -24,7 +24,6 @@ type
     FShape: array of longint;
   public
     function GetShape: TIntVector;
-    function GetVal(Index: array of longint): float;
     function GetAt(Index: array of longint): TTensor;
     procedure Reshape(ShapeVals: array of longint);
     property Shape: TIntVector read FShape;
@@ -41,15 +40,22 @@ operator -(A, B: TTensor) C: TTensor;
 operator * (A, B: TTensor) C: TTensor;
 
 { Helpers ---------------------------------------------------------------------}
+
+{ Check if all corresponding elements in two tensor are equal }
 function Equals(A, B: TTensor): boolean;
+
+{ Determine the offset based on given index }
 function IndexToOffset(Index, Shape: array of longint): longint;
+
+{ Determine the required 1-d array size based on a tensor shape }
+function ShapeToSize(Shape: array of longint): longint;
+
+procedure PrintTensor(T: TTensor);
 
 { Tensor creation ------------------------------------------------------------ }
 function FullTensor(Shape: array of longint): TTensor; overload;
 function FullTensor(Shape: array of longint; Val: float): TTensor; overload;
 function FullTensor(Shape: array of longint; Vals: array of float): TTensor; overload;
-
-procedure PrintTensor(T: TTensor);
 
 implementation
 
@@ -107,7 +113,6 @@ begin
   Result := SumRes;
 end;
 
-{ Determine the required 1-d array size based on a tensor shape }
 function ShapeToSize(Shape: array of longint): longint;
 var
   i, size: longint;
@@ -116,18 +121,6 @@ begin
   for i := 0 to Length(Shape) - 1 do
     size := size * shape[i];
   Result := size;
-end;
-
-{ TTensor implementations }
-
-function TTensor.GetVal(Index: array of longint): float;
-var
-  Offset: longint;
-begin
-  Assert(length(self.Shape) = length(Index),
-    'Index dimension does not match the tensor dimension');
-  Offset := IndexToOffset(Index, self.Shape);
-  Result := self.Val[Offset];
 end;
 
 function TTensor.GetAt(Index: array of longint): TTensor;
