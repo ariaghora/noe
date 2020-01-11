@@ -23,12 +23,6 @@ uses
 type
   TIntVector = array of longint;
 
-  { TShape }
-  TShape = record
-    Height: longint;
-    Width: longint;
-  end;
-
   { TTensor }
   TTensor = class
     Val: array of single;
