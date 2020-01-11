@@ -9,6 +9,7 @@
  To do:
   - implement broadcasting mechanism
   - implement a function to get string from tensor values
+  - add transpose capability
 }
 unit noe.core;
 
@@ -35,6 +36,12 @@ type
   public
     function GetShape: TIntVector;
     function GetAt(Index: array of longint): TTensor;
+    // Helps are welcome to implement:
+    // -------------------------------
+    // 1) function T(Dims: array of longint): TTensor;
+    //    --> Transpose along specified dimensions
+    // 2) function T: TTensor;
+    //    --> Transpose along the first dimension
     procedure Reshape(ShapeVals: array of longint);
     property Shape: TIntVector read FShape;
   end;
