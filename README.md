@@ -48,13 +48,13 @@ WriteLn('A:');
 PrintTensor(A);
 
 WriteLn(sLineBreak + 'A at index [2]:');
-PrintTensor(A.getat([2]));
+PrintTensor(A.GetAt([2]));
 
 WriteLn(sLineBreak + 'A at index [0, 1]:');
-PrintTensor(A.getat([0, 1]));
+PrintTensor(A.GetAt([0, 1]));
 
 WriteLn(sLineBreak + 'A at index [1, 1, 0]:');
-PrintTensor(A.getat([1, 1, 0]));            
+PrintTensor(A.GetAt([1, 1, 0]));            
 ```
 
 ```
