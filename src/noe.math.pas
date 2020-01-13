@@ -20,7 +20,7 @@ interface
 
 
 uses
-  Classes, Math, noe.core;
+  Classes, SysUtils, Math, RegExpr, noe.core, noe.utils;
 
 type
   { Wrapping FPC's f:R->R unary functions in math unit }
@@ -35,6 +35,12 @@ function Multiply(A, B: TTensor): TTensor;
 
 function Sum(M: TTensor): TTensor; overload;
 function Sum(M: TTensor; axis: byte): TTensor; overload;
+
+{ Evaluates the Einstein summation convention on the operands.
+  The initial implementation is heavily inspired from Kyle Hundman's attempt to
+  mirror numpy's einsum, so not all operations are supported. Any helps are
+  welcome. }
+function Einsum(Subscripts: string; Op: array of TTensor): TTensor;
 
 { Helper to apply a function on each tensor's element }
 function ApplyUfunc(A: TTensor; Func: TUFunc): TTensor;
@@ -204,6 +210,46 @@ begin
   Result := ApplyBfunc(A, exponent, @Math.power);
 end;
 
+function Einsum(Subscripts: string; Op: array of TTensor): TTensor;
+var
+  re: TRegExpr;
+  match: boolean;
+  TmpTensor: TTensor;
+  i, len: longint;
+  halves, broadcast: string;
+  tables: TStringArray;
+begin
+  if '->' in Subscripts then
+  begin
+    re := TRegExpr.Create('(.)\1');
+    match := re.Exec(Subscripts);
+    { there are repeated letters, return diagonal }
+    if match then
+    begin
+      Assert(Op[0].Shape[0] = Op[0].Shape[1], 'Cannot collapse index ' +
+        re.Match[0].Chars[0]);
+
+      Result := TTensor.Create;
+      len := Op[0].Shape[0];
+      SetLength(Result.Val, len);
+      Result.Reshape([len]);
+      for i := 0 to len - 1 do
+        Result.Val[i] := Op[0].GetAt([i, i]).Val[0];
+    end
+    { tensor dot multiplication and specific dimension broadcasting }
+    else
+    begin
+      writeln('tensor dot');
+    end;
+  end
+  { there are repeated letters but no '->', return sum of diagonal }
+  else
+  begin
+    Result := Math.sum(Einsum(Subscripts + '->', Op).Val);
+  end;
+
+end;
+
 function ApplyUfunc(A: TTensor; Func: TUFunc): TTensor;
 var
   i: longint;
@@ -227,4 +273,3 @@ begin
 end;
 
 end.
-
