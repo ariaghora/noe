@@ -41,8 +41,8 @@ type
   end;
 
 const
-  MSG_ASSERTION_DIM_MISMATCH     = 'Dimension mismatch.';
-  MSG_ASSERTION_INVALID_AXIS     = 'Invalid axis. The value should be either 0 or 1.';
+  MSG_ASSERTION_DIM_MISMATCH = 'Dimension mismatch.';
+  MSG_ASSERTION_INVALID_AXIS = 'Invalid axis. The value should be either 0 or 1.';
   MSG_ASSERTION_DIFFERENT_LENGTH = 'Two arrays have different length.';
 
 { Operator overloading --------------------------------------------------------}
@@ -76,7 +76,7 @@ uses
 
 operator := (Val: float) M: TTensor;
 begin
-  M := FullTensor([1, 1], Val);
+  M := FullTensor([1], Val);
 end;
 
 operator +(A, B: TTensor) C: TTensor;
@@ -279,20 +279,25 @@ var
   end;
 
 begin
-  offset := 0;
-  n := Length(T.Shape);
-
   digitMax := Math.ceil(Math.log10(Math.MaxValue(T.Val)));
   decimalPlace := 2;
 
-  SetLength(dimTracker, n);
-  for dtIter := 0 to n - 1 do
-    dimTracker[dtIter] := 0;
+  if Length(T.Val) = 1 then { it is a scalar }
+    writeln(T.Val[0]: digitMax + decimalPlace + 1: decimalPlace)
+  else { it is a higher rank tensor }
+  begin
+    offset := 0;
+    n := Length(T.Shape);
 
-  SetLength(res, n);
-  Write(DupeString('[', n));
-  iterate(0, T.GetShape, res);
-  WriteLn(DupeString(']', n));
+    SetLength(dimTracker, n);
+    for dtIter := 0 to n - 1 do
+      dimTracker[dtIter] := 0;
+
+    SetLength(res, n);
+    Write(DupeString('[', n));
+    iterate(0, T.GetShape, res);
+    WriteLn(DupeString(']', n));
+  end;
 end;
 
 end.
