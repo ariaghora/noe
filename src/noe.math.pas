@@ -20,7 +20,7 @@ interface
 
 
 uses
-  Classes, SysUtils, Math, RegExpr, noe.core, noe.utils;
+  Classes, SysUtils, Math, RegExpr, fgl, noe.core, noe.utils;
 
 type
   { Wrapping FPC's f:R->R unary functions in math unit }
@@ -40,7 +40,7 @@ function Sum(M: TTensor; axis: byte): TTensor; overload;
   The initial implementation is heavily inspired from Kyle Hundman's attempt to
   mirror numpy's einsum, so not all operations are supported. Any helps are
   welcome. }
-function Einsum(Subscripts: string; Op: array of TTensor): TTensor;
+function Einsum(Subscripts: string; Pots: array of TTensor): TTensor;
 
 { Helper to apply a function on each tensor's element }
 function ApplyUfunc(A: TTensor; Func: TUFunc): TTensor;
@@ -72,6 +72,9 @@ function Power(A: TTensor; exponent: float): TTensor;
 operator ** (A: TTensor; expo: float) B: TTensor; inline;
 
 implementation
+
+uses
+  crt;
 
 function Add(A, B: TTensor): TTensor;
 var
@@ -210,14 +213,58 @@ begin
   Result := ApplyBfunc(A, exponent, @Math.power);
 end;
 
-function Einsum(Subscripts: string; Op: array of TTensor): TTensor;
+function Einsum(Subscripts: string; Pots: array of TTensor): TTensor;
+type
+  TNameDimsMap = specialize TFPGMap<string, TIntVector>;
+  TStringIntMap = specialize TFPGMap<string, longint>;
+  TIntVectorArr = array of TIntVector;
 var
   re: TRegExpr;
-  match: boolean;
-  TmpTensor: TTensor;
-  i, len: longint;
-  halves, broadcast: string;
-  tables: TStringArray;
+  match, keepGoing, skipCombo, found: boolean;
+  TmpTensor, output: TTensor;
+  i, j, h, len, dim, plug: longint;
+  split, tables: TStringArray;
+  broadcastList, flatTables, originalTables, uniqueTables: ansistring;
+  nameAndDims: TNameDimsMap;
+  uniqueDict: TStringIntMap;
+  comb, bcomb, flatDims, broadcastDims, combinations: TIntVector;
+  dims, combos, broadcastCombos: TIntVectorArr;
+  s: string;
+
+  function Combo(dimension: array of longint): TIntVectorArr;
+  var
+    row, res: TIntVector;
+    tmpResult: TIntVectorArr;
+
+    procedure iterate(d: longint; shape, res: array of longint);
+    var
+      i, j: longint;
+    begin
+      if d >= Length(dimension) then
+      begin
+        SetLength(row, Length(res));
+        for j := 0 to Length(res) - 1 do
+          row[j] := res[j];
+        SetLength(tmpResult, Length(tmpResult) + 1);
+        tmpResult[Length(tmpResult) - 1] := row;
+        exit;
+      end;
+
+      for i := 0 to shape[d] - 1 do
+      begin
+        res[d] := i;
+        iterate(d + 1, shape, res);
+      end;
+    end;
+
+  begin
+    SetLength(tmpResult, 0);
+    SetLength(res, Length(dimension));
+    iterate(0, dimension, res);
+
+    Result := tmpResult;
+  end;
+
 begin
   if '->' in Subscripts then
   begin
@@ -226,26 +273,116 @@ begin
     { there are repeated letters, return diagonal }
     if match then
     begin
-      Assert(Op[0].Shape[0] = Op[0].Shape[1], 'Cannot collapse index ' +
+      Assert(Pots[0].Shape[0] = Pots[0].Shape[1], 'Cannot collapse index ' +
         re.Match[0].Chars[0]);
 
       Result := TTensor.Create;
-      len := Op[0].Shape[0];
+      len := Pots[0].Shape[0];
       SetLength(Result.Val, len);
       Result.Reshape([len]);
       for i := 0 to len - 1 do
-        Result.Val[i] := Op[0].GetAt([i, i]).Val[0];
+        Result.Val[i] := Pots[0].GetAt([i, i]).Val[0];
     end
+
     { tensor dot multiplication and specific dimension broadcasting }
     else
     begin
-      writeln('tensor dot');
+      split := Subscripts.Split('->');
+      tables := split[0].Split(',');
+      broadcastList := split[2];
+
+      nameAndDims := TNameDimsMap.Create;
+      SetLength(dims, Length(Pots));
+      for i := 0 to length(Pots) - 1 do
+      begin
+        nameAndDims.Add(tables[i], Pots[i].Shape);
+        dims[i] := Pots[i].Shape;
+      end;
+
+      SetLength(flatDims, 0);
+      flatTables := '';
+      originalTables := '';
+      for i := 0 to Length(dims) - 1 do
+      begin
+        for s in tables[i] do
+        begin
+          flatTables := flatTables + s;
+          if not (s in originalTables) then
+            originalTables := originalTables + s;
+        end;
+
+        for j := 0 to length(dims[i]) - 1 do
+        begin
+          SetLength(flatDims, Length(flatDims) + 1);
+          flatDims[Length(flatDims) - 1] := dims[i][j];
+        end;
+      end;
+      uniqueTables := SortStr(originalTables);
+
+      uniqueDict := TStringIntMap.Create;
+      for i := 0 to Length(flatTables) - 1 do
+        uniqueDict.Add(flatTables.Chars[i], flatDims[i]);
+
+      SetLength(combinations, 0);
+      for s in uniqueTables do
+        if uniqueDict.IndexOf(s) > -1 then
+        begin
+          SetLength(combinations, Length(combinations) + 1);
+          combinations[Length(combinations) - 1] := uniqueDict.KeyData[s];
+        end;
+      keepGoing := True;
+
+      setLength(broadcastDims, 0);
+      while keepGoing do
+        for s in broadcastList do
+        begin
+          setLength(broadcastDims, length(broadcastDims) + 1);
+          broadcastDims[length(broadcastDims) - 1] := uniqueDict.KeyData[s];
+          keepGoing := False;
+        end;
+
+      combos := combo(combinations);
+      broadcastCombos := combo(broadcastDims);
+      output := FullTensor(broadcastDims, 0.0);
+
+      for bcomb in broadcastCombos do
+      begin
+        plug := 0;
+        for comb in combos do
+        begin
+          skipCombo := False;
+
+          { TODO optimize these lines to obtain skipCombo}
+          for s in broadcastList do
+            if comb[uniqueTables.IndexOf(s)] <> bcomb[broadcastList.IndexOf(s)] then
+              skipCombo := True;
+
+          if not skipCombo then
+          begin
+            { let's call it a day :) }
+          end;
+
+        end;
+      end;
+
+
+
+
+      { don't remove yet! }
+      //for bcomb in combos do
+      //begin
+      //  for i in bcomb do
+      //    Write(i, ' ');
+      //  writeln;
+      //end;
+
     end;
   end
+
   { there are repeated letters but no '->', return sum of diagonal }
   else
   begin
-    Result := Math.sum(Einsum(Subscripts + '->', Op).Val);
+    Result := Math.sum(Einsum(Subscripts + '->', Pots).Val);
   end;
 
 end;

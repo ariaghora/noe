@@ -279,7 +279,7 @@ var
   end;
 
 begin
-  digitMax := Math.ceil(Math.log10(Math.MaxValue(T.Val)));
+  digitMax := Math.ceil(Math.log10(Math.MaxValue(T.Val) + 0.01));
   decimalPlace := 2;
 
   if Length(T.Val) = 1 then { it is a scalar }
