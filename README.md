@@ -185,7 +185,7 @@ PrintTensor(A);
 Please check `noe.math.pas` for more covered functionalities.
 
 ## Einsum!
-I also implemented `Einsum` function. It mirrors (subset of) numpy's einsum functionality. 
+I also implemented `Einsum` (Einstein's summation convention) function. It mirrors (subset of) numpy's einsum functionality. Using the `Einsum`, many common multi-dimensional, linear algebraic array operations can be represented in a simple fashion. 
 ```delphi
 A := FullTensor(
   [3, 3],
