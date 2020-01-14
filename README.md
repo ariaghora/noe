@@ -71,7 +71,7 @@ PrintTensor(C);
  [6.00]]
 ```
 ## Accessing tensor values
-To accessing the value of a tensor we can use multidimensional indexing:
+To access the value of a tensor we can use multidimensional indexing:
 ```delphi
 A := FullTensor([3, 2, 3]);
 WriteLn('A:');
@@ -156,7 +156,7 @@ PrintTensor(A);
 Please check `noe.math.pas` for more covered functionalities.
 
 ## Einsum!
-I also implemented `Einsum` function:
+I also implemented `Einsum` function. It mirrors (subset of) numpy's einsum functionality. 
 ```delphi
 A := FullTensor(
   [3, 3],
@@ -230,7 +230,7 @@ The `Einsum` implementation is yet to be ready. There are some known notations w
 - Bilinear transformation `Einsum('ik,jkl,il->ij', [a, b, c])` 
 - Tensor contraction `Einsum('pqrs,tuqvr->pstuv', [A, B])` 
 
-Please have a try, and open an issue if you find any.
+Please have a try, and open an issue if you find more nonfunctional notations. I will appreciate.
 
 
 ## Other considerations
