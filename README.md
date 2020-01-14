@@ -6,11 +6,19 @@ This is my experimental project to understand the mechanism behind n-dimensional
 
 > This project used to be "darkteal". Please check the `master` branch for darkteal's code. There are some machine learning stuffs there. It is not abandoned. It is being upgraded with a better data representation... ;)
 
+## Table of contents
+- [Declaring and initializing tensors](#Declaring-and-initializing-tensors)
+- [Accessing tensor values](#Accessing-tensor-values)
+- [Some basic math operations](#Some-basic-math-operations)
+- [Einsum](#einsum)
+  - [Issues on `einsum`](#issues-on-einsum)
+- [Other considerations](#Other-considerations)
+
 ## Declaring and initializing tensors
 ```delphi
 uses
   noe.core, // --> main unit
-  noe.mat   // --> extending standard math unit
+  noe.math  // --> extending standard math unit
 
 var
   A, B, C: TTensor; 
@@ -69,6 +77,27 @@ PrintTensor(C);
  [4.00]
  [5.00]
  [6.00]]
+```
+A helper function `RangeF(n)` is provided to generate an ```array of float``` containing values from 0 to n-1. It can be paired with `FullTensor` to initialize a tensor:
+```delphi
+A := FullTensor([3,4,5], RangeF(60));
+PrintTensor(A);
+```
+```
+[[[ 0.00,  1.00,  2.00,  3.00,  4.00]
+  [ 5.00,  6.00,  7.00,  8.00,  9.00]
+  [10.00, 11.00, 12.00, 13.00, 14.00]
+  [15.00, 16.00, 17.00, 18.00, 19.00]]
+
+ [[20.00, 21.00, 22.00, 23.00, 24.00]
+  [25.00, 26.00, 27.00, 28.00, 29.00]
+  [30.00, 31.00, 32.00, 33.00, 34.00]
+  [35.00, 36.00, 37.00, 38.00, 39.00]]
+
+ [[40.00, 41.00, 42.00, 43.00, 44.00]
+  [45.00, 46.00, 47.00, 48.00, 49.00]
+  [50.00, 51.00, 52.00, 53.00, 54.00]
+  [55.00, 56.00, 57.00, 58.00, 59.00]]]
 ```
 ## Accessing tensor values
 To access the value of a tensor we can use multidimensional indexing:
@@ -232,10 +261,10 @@ WriteLn('tensor contraction:');
 printTensor(Einsum('ijk,jil->kl', [A, B]));
 WriteLn();
 ```
-**Important note**
+### Issues on `einsum`
 The `Einsum` implementation is yet to be ready. There are some known notations which will output undesirable result:
-- Sum of entries `Einsum('ij->'[A])` 
-- Bilinear transformation `Einsum('ik,jkl,il->ij', [a, b, c])` 
+- Sum of entries `Einsum('ij->', [A])` 
+- Bilinear transformation `Einsum('ik,jkl,il->ij', [A, B, C])` 
 
 Please have a try, and open an issue if you find more nonfunctional notations. I will appreciate.
 
