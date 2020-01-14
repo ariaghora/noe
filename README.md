@@ -155,6 +155,7 @@ PrintTensor(A);
 ```
 Please check `noe.math.pas` for more covered functionalities.
 
+## Einsum!
 I also implemented `Einsum` function:
 ```delphi
 A := FullTensor(
