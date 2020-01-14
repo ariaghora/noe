@@ -223,12 +223,19 @@ WriteLn();
 WriteLn('A transposed w.r.t. dimension 2 & 3:');
 printtensor(Einsum('ijk->ikj', [A]));
 WriteLn();
+
+{ Note: RangeF(60) generates an array of float from 0 to 59 }
+A := FullTensor([3,4,5], RangeF(60)); 
+B := FullTensor([4,3,2], RangeF(24));
+
+WriteLn('tensor contraction:');
+printTensor(Einsum('ijk,jil->kl', [A, B]));
+WriteLn();
 ```
 **Important note**
 The `Einsum` implementation is yet to be ready. There are some known notations which will output undesirable result:
 - Sum of entries `Einsum('ij->'[A])` 
 - Bilinear transformation `Einsum('ik,jkl,il->ij', [a, b, c])` 
-- Tensor contraction `Einsum('pqrs,tuqvr->pstuv', [A, B])` 
 
 Please have a try, and open an issue if you find more nonfunctional notations. I will appreciate.
 

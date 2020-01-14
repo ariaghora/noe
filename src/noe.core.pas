@@ -63,6 +63,9 @@ function IndexToOffset(Index, Shape: array of longint): longint;
 { Determine the required 1-d array size based on a tensor shape }
 function ShapeToSize(Shape: array of longint): longint;
 
+{ Generates an array of float within range of (0, n] }
+function RangeF(n: longint): TFloatVector;
+
 procedure PrintTensor(T: TTensor);
 
 { Tensor creation ------------------------------------------------------------ }
@@ -219,6 +222,15 @@ begin
   for i := 0 to size - 1 do
     Result.Val[i] := Vals[i];
   Result.Reshape(Shape);
+end;
+
+function RangeF(n: longint): TFloatVector;
+var
+  i: longint;
+begin
+  SetLength(Result, n);
+  for i := 0 to n - 1 do
+    Result[i] := i;
 end;
 
 procedure PrintTensor(T: TTensor);
