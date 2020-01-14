@@ -7,7 +7,6 @@
  work with tensors.
 
  To do:
-  - implement einsum
   - implement matrix multiplication backend(s)
   - adapt more math functions from math.pas
   - implement iterate() that accepts callback to iterate over dimensions
