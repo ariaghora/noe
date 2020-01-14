@@ -155,8 +155,85 @@ PrintTensor(A);
 ```
 Please check `noe.math.pas` for more covered functionalities.
 
-## Note
+I also implemented `Einsum` function:
+```delphi
+A := FullTensor(
+  [3, 3],
+
+  [1, 2, 3,
+   4, 5, 6,
+   7, 8, 9]
+);
+B := FullTensor([3, 4], 2);
+
+WriteLn('A:'); printtensor(A); WriteLn();
+WriteLn('B:'); printtensor(B); WriteLn();
+
+WriteLn();
+
+WriteLn('dot product AB:');
+printtensor(Einsum('ij,jk->ik', [A, B]));
+WriteLn();
+
+WriteLn('element-wise product A o B:');
+printtensor(Einsum('ij,ij->ij', [A, B]));
+WriteLn();
+
+WriteLn('diagonal of A:');
+printtensor(Einsum('ii->i', [A]));
+WriteLn();
+
+WriteLn('sum of diagonal of A:');
+printtensor(Einsum('ii', [A]));
+WriteLn();
+
+WriteLn('A transposed:');
+printtensor(Einsum('ij->ji', [A]));
+WriteLn();
+
+WriteLn('sum of A along 1st dimension:');
+printtensor(Einsum('ij->i', [A]));
+WriteLn();
+
+WriteLn('sum of A along 2nd dimension:');
+printtensor(Einsum('ij->j', [A]));
+WriteLn();
+```
+It also works on the operations of higher rank tensors:
+```delphi
+A := FullTensor(
+  [2, 2, 3],
+
+  [1, 2, 3,
+   4, 5, 6,
+
+   4, 5, 6,
+   7, 8, 9]
+);
+B := FullTensor([3, 4], 2);
+
+WriteLn('A:'); printtensor(A); WriteLn();
+WriteLn('B:'); printtensor(B); WriteLn();
+
+WriteLn('batch matrix multiplication of A & B:');
+printtensor(Einsum('aij,jk->aik', [A, B]));
+WriteLn();
+
+WriteLn('A transposed w.r.t. dimension 2 & 3:');
+printtensor(Einsum('ijk->ikj', [A]));
+WriteLn();
+```
+**Important note**
+The `Einsum` implementation is yet to be ready. There are some known notations which will output undesirable result:
+- Sum of entries `Einsum('ij->'[A])` 
+- Bilinear transformation `Einsum('ik,jkl,il->ij', [a, b, c])` 
+- Tensor contraction `Einsum('pqrs,tuqvr->pstuv', [A, B])` 
+
+Please have a try, and open an issue if you find any.
+
+
+## Other considerations
 
 - There is no broadcasting mechanism yet. For arithmetical operations, make sure the dimension of the operands matches. Broadcasting is also in my learning list. So, it is to be implemented.
 - No complex value handling yet.
-- Performance is not of my primary consideration, at least for now. I want simply a quick proof of concept of what I am learning. But it is not too shabby either. Don't worry.
+- Performance is not of my primary concern, at least for now. I want simply a quick proof of concept of what I am learning. But it is not too shabby either. Don't worry.
