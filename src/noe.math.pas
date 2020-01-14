@@ -10,6 +10,7 @@
   - implement einsum
   - implement matrix multiplication backend(s)
   - adapt more math functions from math.pas
+  - implement iterate() that accepts callback to iterate over dimensions
 }
 
 unit noe.Math;
@@ -217,19 +218,22 @@ function Einsum(Subscripts: string; Pots: array of TTensor): TTensor;
 type
   TNameDimsMap = specialize TFPGMap<string, TIntVector>;
   TStringIntMap = specialize TFPGMap<string, longint>;
+  TIntVectorList = specialize TFPGList<TIntVector>;
   TIntVectorArr = array of TIntVector;
 var
   re: TRegExpr;
   match, keepGoing, skipCombo, found: boolean;
   TmpTensor, output: TTensor;
-  i, j, h, len, dim, plug: longint;
+  i, j, h, len, dim: longint;
   split, tables: TStringArray;
   broadcastList, flatTables, originalTables, uniqueTables: ansistring;
   nameAndDims: TNameDimsMap;
   uniqueDict: TStringIntMap;
-  comb, bcomb, flatDims, broadcastDims, combinations: TIntVector;
+  comb, bcomb, indices, flatDims, broadcastDims, combinations: TIntVector;
+  forMultiPlying: TFloatVector;
   dims, combos, broadcastCombos: TIntVectorArr;
   s: string;
+  plug, Value, v: float;
 
   function Combo(dimension: array of longint): TIntVectorArr;
   var
@@ -343,7 +347,8 @@ begin
 
       combos := combo(combinations);
       broadcastCombos := combo(broadcastDims);
-      output := FullTensor(broadcastDims, 0.0);
+
+      Result := FullTensor(broadcastDims, 0.0);
 
       for bcomb in broadcastCombos do
       begin
@@ -359,23 +364,28 @@ begin
 
           if not skipCombo then
           begin
-            { let's call it a day :) }
+            SetLength(forMultiPlying, Length(tables));
+            for i := 0 to Length(tables) - 1 do
+            begin
+              setlength(indices, Length(tables[i]));
+              for j := 0 to length(tables[i]) - 1 do
+              begin
+                indices[j] := comb[uniqueTables.IndexOf(tables[i].Chars[j])];
+              end;
+
+              forMultiPlying[i] := (Pots[i].GetAt(indices).Val[0]);
+            end;
+
+            Value := 1;
+            for v in forMultiPlying do
+              Value := Value * v;
+
+
+            plug := plug + Value;
           end;
-
         end;
+        Result.Val[IndexToOffset(bcomb, broadcastDims)] := plug;
       end;
-
-
-
-
-      { don't remove yet! }
-      //for bcomb in combos do
-      //begin
-      //  for i in bcomb do
-      //    Write(i, ' ');
-      //  writeln;
-      //end;
-
     end;
   end
 

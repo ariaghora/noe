@@ -22,6 +22,7 @@ uses
 
 type
   TIntVector = array of longint;
+  TFloatVector = array of float;
 
   { TTensor }
   TTensor = class
