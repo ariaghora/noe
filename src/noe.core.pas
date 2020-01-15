@@ -41,6 +41,8 @@ type
     property Shape: TIntVector read FShape;
   end;
 
+  TCallback = procedure(val: float; idx: TIntVector; currDim: longint; var T: TTensor);
+
 const
   MSG_ASSERTION_DIM_MISMATCH = 'Dimension mismatch.';
   MSG_ASSERTION_INVALID_AXIS = 'Invalid axis. The value should be either 0 or 1.';
@@ -67,6 +69,7 @@ function ShapeToSize(Shape: array of longint): longint;
 function RangeF(n: longint): TFloatVector;
 
 procedure PrintTensor(T: TTensor);
+procedure IterateTensor(T: TTensor; Callback: TCallback);
 
 { Tensor creation ------------------------------------------------------------ }
 function FullTensor(Shape: array of longint): TTensor; overload;
@@ -233,10 +236,56 @@ begin
     Result[i] := i;
 end;
 
+procedure IterateTensor(T: TTensor; Callback: TCallback);
+var
+  n, offset, ithDimChanged, dtIter: longint;
+  res, dimTracker: TIntVector;
+
+  procedure iterate(d: longint; res: TIntVector);
+  var
+    i, j: longint;
+  begin
+    if d >= n then
+    begin
+      for j := Length(res) - 1 downto 0 do
+      begin
+        if dimTracker[j] <> res[j] then
+        begin
+          dimTracker[j] := res[j];
+
+          //NewlineNum := n - j - 1;
+          ithDimChanged := j; // in which dimension there is a change?
+        end;
+      end;
+
+      Callback(T.Val[offset], res, ithDimChanged, T);
+      Inc(offset);
+      exit;
+    end;
+
+    for i := 0 to T.shape[d] - 1 do
+    begin
+      res[d] := i;
+      iterate(d + 1, res);
+    end;
+  end;
+
+begin
+  offset := 0;
+  n := Length(T.Shape);
+  SetLength(res, n);
+  n := Length(T.shape);
+  SetLength(dimTracker, n);
+  for dtIter := 0 to n - 1 do
+    dimTracker[dtIter] := 0;
+  iterate(0, res);
+end;
+
 procedure PrintTensor(T: TTensor);
 var
   n, offset, digitMax, decimalPlace, dtIter: longint;
   res, dimTracker: array of longint;
+  outstr: string = '';
 
   procedure PPrint(res: array of longint);
   var
@@ -256,20 +305,21 @@ var
     end;
 
     if ithDimChanged < n - 1 then
-      Write(DupeString(']', NewlineNum));
+      outstr := outstr + (DupeString(']', NewlineNum));
 
-    Write(DupeString(sLineBreak, NewlineNum));
+    outstr := outstr + (DupeString(sLineBreak, NewlineNum));
 
     if ithDimChanged = n - 1 then
-      Write(', ');
+      outstr := outstr + (', ');
 
     if ithDimChanged < n - 1 then
     begin
-      Write(DupeString(' ', n - NewlineNum));
-      Write(DupeString('[', NewlineNum));
+      outstr := outstr + (DupeString(' ', n - NewlineNum));
+      outstr := outstr + (DupeString('[', NewlineNum));
     end;
 
-    Write(T.Val[offset]: digitMax + decimalPlace + 1: decimalPlace);
+    outstr := outstr + FloatToStrF(T.Val[offset], ffFixed, decimalPlace,
+      digitMax + decimalPlace);
   end;
 
   // d is dimension iterator, d=0..n-1
@@ -307,9 +357,11 @@ begin
       dimTracker[dtIter] := 0;
 
     SetLength(res, n);
-    Write(DupeString('[', n));
+    outstr := outstr + (DupeString('[', n));
     iterate(0, T.GetShape, res);
-    WriteLn(DupeString(']', n));
+    outstr := outstr + (DupeString(']', n));
+
+    Write(outstr);
   end;
 end;
 

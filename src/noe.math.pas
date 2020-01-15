@@ -73,9 +73,6 @@ operator ** (A: TTensor; expo: float) B: TTensor; inline;
 
 implementation
 
-uses
-  crt;
-
 function Add(A, B: TTensor): TTensor;
 var
   i: longint;
@@ -378,7 +375,6 @@ begin
             Value := 1;
             for v in forMultiPlying do
               Value := Value * v;
-
 
             plug := plug + Value;
           end;
