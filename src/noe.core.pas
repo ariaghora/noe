@@ -12,7 +12,7 @@
 }
 unit noe.core;
 
-{$mode objfpc}
+{$mode objfpc}{$H+}
 
 interface
 
