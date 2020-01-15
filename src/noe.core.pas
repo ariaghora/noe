@@ -9,7 +9,6 @@
  To do:
   - implement broadcasting mechanism
   - implement a function to get string from tensor values
-  - add transpose capability
 }
 unit noe.core;
 
@@ -31,12 +30,8 @@ type
   public
     function GetShape: TIntVector;
     function GetAt(Index: array of longint): TTensor;
-    // Helps are welcome to implement:
-    // -------------------------------
-    // 1) function T(Dims: array of longint): TTensor;
-    //    --> Transpose along specified dimensions
-    // 2) function T: TTensor;
-    //    --> Transpose along the first dimension
+    { transpose for matrix, reverse index for tensors }
+    function T: TTensor;
     procedure Reshape(ShapeVals: array of longint);
     property Shape: TIntVector read FShape;
   end;
@@ -58,6 +53,8 @@ operator * (A, B: TTensor) C: TTensor;
 
 { Check if all corresponding elements in two tensor are equal }
 function Equals(A, B: TTensor): boolean;
+
+function DimsToLetter(dims: array of longint): string;
 
 { Determine the offset based on given index }
 function IndexToOffset(Index, Shape: array of longint): longint;
@@ -109,6 +106,14 @@ begin
     MSG_ASSERTION_DIM_MISMATCH);
 
   Result := (A.val = B.val);
+end;
+
+function DimsToLetter(dims: array of longint): string;
+var
+  alphabet: string = 'abcdefghijklmnopqrstuvwxyz';
+  i: longint;
+begin
+  Result := Copy(alphabet, 1, Length(dims));
 end;
 
 function IndexToOffset(Index, Shape: array of longint): longint;
@@ -173,6 +178,14 @@ begin
   SetLength(Result.Val, ResultLength);
   for i := 0 to ResultLength - 1 do
     Result.Val[i] := self.Val[i + offset];
+end;
+
+function TTensor.T: TTensor;
+begin
+  //writeln(DimsToLetter(self.Shape) + '->' +
+    //ReverseString(DimsToLetter(self.Shape)));
+  Result := Einsum(DimsToLetter(self.Shape) + '->' +
+    ReverseString(DimsToLetter(self.Shape)), [self]);
 end;
 
 function TTensor.GetShape: TIntVector;
@@ -318,8 +331,7 @@ var
       outstr := outstr + (DupeString('[', NewlineNum));
     end;
 
-    outstr := outstr + FloatToStrF(T.Val[offset], ffFixed, decimalPlace,
-      digitMax + decimalPlace);
+    outstr := outstr + FloatToStrF(T.Val[offset], ffFixed, digitMax, decimalPlace);
   end;
 
   // d is dimension iterator, d=0..n-1

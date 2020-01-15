@@ -71,6 +71,8 @@ function Power(A: TTensor; exponent: float): TTensor;
 
 operator ** (A: TTensor; expo: float) B: TTensor; inline;
 
+function Transpose(T: TTensor; dims: array of longint): TTensor;
+
 implementation
 
 function Add(A, B: TTensor): TTensor;
@@ -178,6 +180,19 @@ end;
 operator ** (A: TTensor; expo: float)B: TTensor;
 begin
   B := Power(A, expo);
+end;
+
+function Transpose(T: TTensor; dims: array of longint): TTensor;
+var
+  resultedIdx, dimsLetter: string;
+  i: longint;
+begin
+  dimsLetter := DimsToLetter(dims);
+  Assert(Length(dims) = length(T.Shape), 'dims length does not match tensor dimension');
+  resultedIdx := DimsToLetter(dims);
+  for i := 0 to Length(dims) - 1 do
+    resultedIdx[i + 1] := dimsLetter.Chars[dims[i]];
+  Result := Einsum(dimsLetter + '->' + resultedIdx, [T]);
 end;
 
 function SinF(x: float): float;
