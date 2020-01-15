@@ -262,9 +262,10 @@ printTensor(Einsum('ijk,jil->kl', [A, B]));
 WriteLn();
 ```
 ### Issues on `einsum`
-The `Einsum` implementation is yet to be ready. There are some known notations which will output undesirable result:
-- Sum of entries `Einsum('ij->', [A])` 
-- Bilinear transformation `Einsum('ik,jkl,il->ij', [A, B, C])` 
+- Slow. The current implementation is painfully slow. Do not use it too much.
+- The `Einsum` implementation is yet to be ready. There are some known notations which will output undesirable result:
+  - Sum of entries `Einsum('ij->', [A])` 
+  - Bilinear transformation `Einsum('ik,jkl,il->ij', [A, B, C])` 
 
 Please have a try, and open an issue if you find more nonfunctional notations. I will appreciate.
 
