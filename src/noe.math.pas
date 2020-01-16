@@ -20,7 +20,10 @@ interface
 
 
 uses
-  Classes, SysUtils, Math, RegExpr, fgl, noe.core, noe.utils;
+  Classes, SysUtils, Math, RegExpr, fgl, noe.core, noe.utils, noe.backend.blas;
+
+const
+  {$I config}
 
 type
   { Wrapping FPC's f:R->R unary functions in math unit }
@@ -32,6 +35,7 @@ type
 function Add(A, B: TTensor): TTensor;
 function Subtract(A, B: TTensor): TTensor;
 function Multiply(A, B: TTensor): TTensor;
+function MatMul(A, B: TTensor): TTensor;
 
 function Sum(M: TTensor): TTensor; overload;
 function Sum(M: TTensor; axis: byte): TTensor; overload;
@@ -115,6 +119,15 @@ begin
   SetLength(Result.Val, Length(A.Val));
   for i := 0 to Length(A.Val) - 1 do
     Result.Val[i] := A.Val[i] * B.Val[i];
+end;
+
+function MatMul(A, B: TTensor): TTensor;
+begin
+  Assert((length(A.Shape) <= 2) and (length(B.Shape) <= 2),
+    'Tensor dimension must be <= 2.');
+
+  { calculates matrix multiplication according to the backend }
+  Result := __MatMul(A, B);
 end;
 
 function Sum(M: TTensor): TTensor;

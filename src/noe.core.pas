@@ -17,7 +17,7 @@ unit noe.core;
 interface
 
 uses
-  Classes, SysUtils, strutils, Math;
+  Classes, eventlog, SysUtils, strutils, Math;
 
 type
   TIntVector = array of longint;
@@ -25,7 +25,7 @@ type
 
   { TTensor }
   TTensor = class
-    Val: array of single;
+    Val: TFloatVector;
     FShape: array of longint;
   public
     function GetShape: TIntVector;
