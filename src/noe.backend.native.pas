@@ -16,6 +16,7 @@ interface
 uses
   Classes, SysUtils, noe.core;
 
+{ Naive O(n^3) matmul implementation }
 function MatMul_Native(A, B: TTensor): TTensor;
 
 implementation
