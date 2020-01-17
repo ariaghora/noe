@@ -43,11 +43,11 @@ var
 
   libHandle: THandle = dynlibs.NilHandle;
 
-function __MatMul(A, B: TTensor): TTensor;
+function MatMul_BLAS(A, B: TTensor): TTensor;
 
 implementation
 
-function __MatMul(A, B: TTensor): TTensor;
+function MatMul_BLAS(A, B: TTensor): TTensor;
 begin
   Result := TTensor.Create;
   SetLength(Result.val, A.Shape[0] * B.Shape[1]);
@@ -67,10 +67,6 @@ initialization
   Assert(libHandle <> dynlibs.NilHandle, 'Failed loading ' + BLAS_FILENAME);
 
   blas_dgemm := TFuncDgemm(GetProcedureAddress(libHandle, 'cblas_dgemm'));
-
-  {$IFDEF BLAS}
-  writeln('blasss');
-  {$ENDIF}
 
 finalization
   blas_dgemm := nil;

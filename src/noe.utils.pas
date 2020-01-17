@@ -19,6 +19,8 @@ uses
 { Sorting chars in a string using bubble sort. Not for big strings. }
 function SortStr(s: string; ascending:boolean=true): string; inline;
 
+procedure NoeLog(tag, msg: string);
+
 operator in (substr, mainstr: string) b: boolean;
 operator in (str: string; arr: array of string) b: boolean;
 operator = (a, b: array of longint) c: boolean;
@@ -54,6 +56,14 @@ begin
     end;
   end;
   result:=tmpstr;
+end;
+
+procedure NoeLog(tag, msg: string);
+begin
+  if noe.core.NoeConfig.debug and IsConsole then
+  begin
+    WriteLn(tag + ': ' + msg);
+  end;
 end;
 
 operator in (substr, mainstr: string)b: boolean;

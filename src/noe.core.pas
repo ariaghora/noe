@@ -25,7 +25,7 @@ type
 
   { TTensor }
   TTensor = class
-    Val: TFloatVector;
+    Val:    TFloatVector;
     FShape: array of longint;
   public
     function GetShape: TIntVector;
@@ -36,25 +36,23 @@ type
     property Shape: TIntVector read FShape;
   end;
 
+  TConfig = record
+    debug:   boolean;
+    useBLAS: boolean;
+    backend: string;
+    BLASFileName: string;
+  end;
+
   TCallback = procedure(val: float; idx: TIntVector; currDim: longint; var T: TTensor);
 
 const
-  {$IFDEF MSWINDOWS}
-  { @exclude }
-  BLAS_FILENAME = 'libopenblas.dll';
-  {$ENDIF}
-  {$IFDEF UNIX}
-  {$IFDEF LINUX}
-  BLAS_FILENAME = 'libblas.so.3';
-  {$ENDIF}
-  {$IFDEF DARWIN}
-  BLAS_FILENAME = 'libopenblas.dylib';
-  {$ENDIF}
-  {$ENDIF}
-
-  MSG_ASSERTION_DIM_MISMATCH = 'Dimension mismatch.';
-  MSG_ASSERTION_INVALID_AXIS = 'Invalid axis. The value should be either 0 or 1.';
+  {$I config}
+  MSG_ASSERTION_DIM_MISMATCH     = 'Dimension mismatch.';
+  MSG_ASSERTION_INVALID_AXIS     = 'Invalid axis. The value should be either 0 or 1.';
   MSG_ASSERTION_DIFFERENT_LENGTH = 'Two arrays have different length.';
+
+var
+  NoeConfig: TConfig;
 
 { Operator overloading --------------------------------------------------------}
 operator := (Val: float) M: TTensor;
@@ -390,4 +388,9 @@ begin
   end;
 end;
 
+initialization
+  NoeConfig.debug := True;
+  NoeConfig.backend := 'BLAS';
+  NoeConfig.BLASFileName := BLAS_FILENAME;
+  NoeConfig.useBLAS := True;
 end.

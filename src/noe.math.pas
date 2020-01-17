@@ -22,9 +22,6 @@ interface
 uses
   Classes, SysUtils, Math, RegExpr, fgl, noe.core, noe.utils, noe.backend.blas;
 
-const
-  {$I config}
-
 type
   { Wrapping FPC's f:R->R unary functions in math unit }
   TUFunc = function(v: float): float;
@@ -127,7 +124,10 @@ begin
     'Tensor dimension must be <= 2.');
 
   { calculates matrix multiplication according to the backend }
-  Result := __MatMul(A, B);
+  if noe.core.NoeConfig.useBLAS then
+    Result := MatMul_BLAS(A, B)
+  else
+    Result := FullTensor([2, 2], 0);
 end;
 
 function Sum(M: TTensor): TTensor;
