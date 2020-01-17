@@ -67,8 +67,11 @@ function Equals(A, B: TTensor): boolean;
 
 function DimsToLetter(dims: array of longint): string;
 
-{ Determine the offset based on given index }
+{ Determine the offset based on given multidimensional index }
 function IndexToOffset(Index, Shape: array of longint): longint;
+
+{ Determine the multidimensional index based on given offset }
+function OffsetToIndex(offset: longint; Shape: array of longint): TIntVector;
 
 { Determine the required 1-d array size based on a tensor shape }
 function ShapeToSize(Shape: array of longint): longint;
@@ -144,6 +147,32 @@ begin
     SumRes := SumRes + ProdRes * Index[i];
   end;
   Result := SumRes;
+end;
+
+function OffsetToIndex(offset: longint; Shape: array of longint): TIntVector;
+var
+  dim, cnt: longint;
+
+  function Reverse(A: array of longint): TIntVector;
+  var
+    i: longint;
+  begin
+    SetLength(Result, Length(A));
+    for i := Length(A) - 1 downto 0 do
+      Result[Length(A) - i - 1] := A[i];
+  end;
+
+begin
+  SetLength(Result, Length(Shape));
+  cnt := 0;
+  for dim in Reverse(Shape) do
+  begin
+    Result[cnt] := offset mod dim;
+    offset := offset div dim;
+    cnt := cnt + 1;
+  end;
+
+  Result := Reverse(Result);
 end;
 
 function ShapeToSize(Shape: array of longint): longint;
