@@ -20,13 +20,15 @@ This is my experimental project to understand the mechanism behind n-dimensional
 - Add `noe/src` into the include search path, and you are good to go with the basic.
   - In Lazarus IDE: Project > Project Options > Compiler Options > Paths. Then add the path to `noe/src` in "Other unit files (-Fu)".
 ### BLAS backend
-Noe provides optional (**but recommended**) integration with basic linear algebra subroutine (BLAS) to accelerate several functions, such as matrix multiplication (`MatMul`). Noe uses BLAS implementation based on openblas. To install openblas:
+Noe provides optional (**but recommended**) integration with basic linear algebra subroutine (BLAS) to accelerate several functions, such as matrix multiplication (`MatMul`). Noe uses BLAS implementation based on OpenBLAS. To install OpenBLAS:
 - On Linux:
-   - Debian/Ubuntu/Kali: run `apt install libopenblas-base`
+   - Debian/Ubuntu/Kali: run `apt install libopenblas-base`.
 - On Windows:
-   - Provide the libopenblas.dll
+   - Provide the libopenblas.dll. 
 - On OSX:
-   - Provide the libopenblas.dylib 
+   - Provide the libopenblas.dylib.
+
+It is always recommended to compile the so/dll/dylib yourself, **especially for Windows**. Some precompiled one might be available out there, but I cannot guarantee the compatibility. Please refer to [this link](https://github.com/xianyi/OpenBLAS) for more complete documentation about compiling OpenBLAS.
 
 ## Declaring and initializing tensors
 ```delphi
