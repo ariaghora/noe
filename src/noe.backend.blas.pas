@@ -4,6 +4,13 @@
  Noe library. Copyright (C) 2020 Aria Ghora Prabono.
 
  This unit provides an interface to OpenBLAS library.
+ Dependency:
+ o Linux:
+   - Debian/Ubuntu/Kali: apt install libopenblas-base
+ o Windows:
+   - Provide the libopenblas.dll
+ o OSX:
+   - Provide the libopenblas.dylib
 }
 
 unit noe.backend.blas;
@@ -16,11 +23,11 @@ uses
   Classes, SysUtils, dynlibs, noe.core;
 
 type
-  CBLAS_ORDER = (CblasRowMajor = 101, CblasColMajor = 102);
+  CBLAS_ORDER     = (CblasRowMajor = 101, CblasColMajor = 102);
   CBLAS_TRANSPOSE = (CblasNoTrans = 111, CblasTrans = 112, CblasConjTrans = 113);
-  CBLAS_UPLO = (CblasUpper = 121, CblasLower = 122);
-  CBLAS_DIAG = (CblasNonUnit = 131, CblasUnit = 132);
-  LAPACK_ORDER = (LAPACKRowMajor = 101, LAPACKColMajor = 102);
+  CBLAS_UPLO      = (CblasUpper = 121, CblasLower = 122);
+  CBLAS_DIAG      = (CblasNonUnit = 131, CblasUnit = 132);
+  LAPACK_ORDER    = (LAPACKRowMajor = 101, LAPACKColMajor = 102);
 
   TFuncDgemm = procedure(Order: CBLAS_ORDER; TransA: CBLAS_TRANSPOSE;
     TransB: CBLAS_TRANSPOSE; M: longint; N: longint; K: longint;
@@ -30,6 +37,20 @@ type
 {$IFDEF FPC}
 {$PACKRECORDS C}
 {$ENDIF}
+
+const
+  {$IFDEF MSWINDOWS}
+  { @exclude }
+  BLAS_FILENAME = 'libopenblas.dll';
+  {$ENDIF}
+  {$IFDEF UNIX}
+  {$IFDEF LINUX}
+  BLAS_FILENAME = 'libblas.so.3';
+  {$ENDIF}
+  {$IFDEF DARWIN}
+  BLAS_FILENAME = 'libopenblas.dylib';
+  {$ENDIF}
+  {$ENDIF}
 
 var
   blas_dgemm: TFuncDgemm;
@@ -56,10 +77,9 @@ begin
 end;
 
 initialization
-  Assert(FileExists('libopenblas.dll'), 'Cannot load libopenblas.dll');
-  libHandle := LoadLibrary('libopenblas.dll');
+  libHandle := LoadLibrary(BLAS_FILENAME);
+  Assert(libHandle <> dynlibs.NilHandle, 'Failed loading ' + BLAS_FILENAME);
 
-  Assert(libHandle <> dynlibs.NilHandle, 'Failed loading libopenblas.dll');
   blas_dgemm := TFuncDgemm(GetProcedureAddress(libHandle, 'cblas_dgemm'));
 
   {$IFDEF BLAS}

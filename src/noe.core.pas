@@ -21,7 +21,7 @@ uses
 
 type
   TIntVector = array of longint;
-  TFloatVector = array of float;
+  TFloatVector = array of double;
 
   { TTensor }
   TTensor = class
@@ -183,7 +183,7 @@ end;
 function TTensor.T: TTensor;
 begin
   //writeln(DimsToLetter(self.Shape) + '->' +
-    //ReverseString(DimsToLetter(self.Shape)));
+  //ReverseString(DimsToLetter(self.Shape)));
   Result := Einsum(DimsToLetter(self.Shape) + '->' +
     ReverseString(DimsToLetter(self.Shape)), [self]);
 end;
