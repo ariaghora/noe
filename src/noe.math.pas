@@ -38,7 +38,7 @@ function MatMul(A, B: TTensor): TTensor;
 function Sum(M: TTensor): TTensor; overload;
 function Sum(M: TTensor; axis: byte): TTensor; overload;
 
-{ Evaluates the Einstein summation convention on the operands.
+{ Evaluates the Einstein summation convention on the operands. Very slow now.
   The initial implementation is heavily inspired from Kyle Hundman's attempt to
   mirror numpy's einsum, so not all operations are supported. Any helps are
   welcome. }
