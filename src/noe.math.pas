@@ -20,7 +20,8 @@ interface
 
 
 uses
-  Classes, SysUtils, Math, RegExpr, fgl, noe.core, noe.utils, noe.backend.blas;
+  Classes, SysUtils, Math, RegExpr, fgl, noe.core, noe.utils,
+  noe.backend.blas, noe.backend.native;
 
 type
   { Wrapping FPC's f:R->R unary functions in math unit }
@@ -127,7 +128,7 @@ begin
   if noe.core.NoeConfig.useBLAS then
     Result := MatMul_BLAS(A, B)
   else
-    Result := FullTensor([2, 2], 0);
+    Result := MatMul_Native(A, B);
 end;
 
 function Sum(M: TTensor): TTensor;
