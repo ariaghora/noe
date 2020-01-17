@@ -38,20 +38,6 @@ type
 {$PACKRECORDS C}
 {$ENDIF}
 
-const
-  {$IFDEF MSWINDOWS}
-  { @exclude }
-  BLAS_FILENAME = 'libopenblas.dll';
-  {$ENDIF}
-  {$IFDEF UNIX}
-  {$IFDEF LINUX}
-  BLAS_FILENAME = 'libblas.so.3';
-  {$ENDIF}
-  {$IFDEF DARWIN}
-  BLAS_FILENAME = 'libopenblas.dylib';
-  {$ENDIF}
-  {$ENDIF}
-
 var
   blas_dgemm: TFuncDgemm;
 

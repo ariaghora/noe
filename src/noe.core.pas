@@ -20,7 +20,7 @@ uses
   Classes, eventlog, SysUtils, strutils, Math;
 
 type
-  TIntVector = array of longint;
+  TIntVector   = array of longint;
   TFloatVector = array of double;
 
   { TTensor }
@@ -39,6 +39,19 @@ type
   TCallback = procedure(val: float; idx: TIntVector; currDim: longint; var T: TTensor);
 
 const
+  {$IFDEF MSWINDOWS}
+  { @exclude }
+  BLAS_FILENAME = 'libopenblas.dll';
+  {$ENDIF}
+  {$IFDEF UNIX}
+  {$IFDEF LINUX}
+  BLAS_FILENAME = 'libblas.so.3';
+  {$ENDIF}
+  {$IFDEF DARWIN}
+  BLAS_FILENAME = 'libopenblas.dylib';
+  {$ENDIF}
+  {$ENDIF}
+
   MSG_ASSERTION_DIM_MISMATCH = 'Dimension mismatch.';
   MSG_ASSERTION_INVALID_AXIS = 'Invalid axis. The value should be either 0 or 1.';
   MSG_ASSERTION_DIFFERENT_LENGTH = 'Two arrays have different length.';
