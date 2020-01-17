@@ -2,17 +2,31 @@
 <img src="assets/noe-txt.png" alt="logo" width="200px"></img>
 </div>
 
-This is my experimental project to understand the mechanism behind n-dimensional array: how is its layout in memory, how to do indexing, etc. Furthermore, I am also learning what happens under the hood of the automatic differentiation for a neural network in near future. So, this project might be a good basis for it.
+This is my experimental project to understand the mechanism behind n-dimensional array: how is its layout in memory, how to do indexing, etc. Furthermore, I am also learning what happens under the hood of the automatic differentiation for a neural network in near future. That said, noe (In Korean: 뇌, means “brain”) is developed towards the implementation of neural networks (therefore the name). So, this project might be a good basis for it.
 
 > This project used to be "darkteal". Please check the `master` branch for darkteal's code. There are some machine learning stuffs there. It is not abandoned. It is being upgraded with a better data representation... ;)
 
 ## Table of contents
+- [Quickstart](#quickstart)
 - [Declaring and initializing tensors](#Declaring-and-initializing-tensors)
 - [Accessing tensor values](#Accessing-tensor-values)
 - [Some basic math operations](#Some-basic-math-operations)
 - [Einsum](#einsum)
   - [Issues on `einsum`](#issues-on-einsum)
 - [Other considerations](#Other-considerations)
+
+## Quickstart
+### Basic setup
+- Add `noe/src` into the include search path, and you are good to go with the basic.
+  - In Lazarus IDE: Project > Project Options > Compiler Options > Paths. Then add the path to `noe/src` in "Other unit files (-Fu)".
+### BLAS backend
+Noe provides optional (**but recommended**) integration with basic linear algebra subroutine (BLAS) to accelerate several functions, such as matrix multiplication (`MatMul`). Noe uses BLAS implementation based on openblas. To install openblas:
+- On Linux:
+   - Debian/Ubuntu/Kali: run `apt install libopenblas-base`
+- On Windows:
+   - Provide the libopenblas.dll
+- On OSX:
+   - Provide the libopenblas.dylib 
 
 ## Declaring and initializing tensors
 ```delphi
