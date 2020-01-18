@@ -290,4 +290,4 @@ Please have a try, and open an issue if you find more nonfunctional notations. I
 
 - There is no broadcasting mechanism yet. For arithmetical operations, make sure the dimension of the operands matches. Broadcasting is also in my learning list. So, it is to be implemented.
 - No complex value handling yet.
-- Performance is not of my primary concern, at least for now. I want simply a quick proof of concept of what I am learning. But it is not too shabby either. Don't worry.
+- Performance is not of my primary concern, at least for now. Kindly note that I am a firm believer of a saying “premature optimization is the root of all evil". I want simply a quick proof of concept of what I am learning. But it is not too shabby either. Don't worry.

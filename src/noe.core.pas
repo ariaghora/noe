@@ -222,9 +222,7 @@ end;
 
 function TTensor.T: TTensor;
 begin
-
-  Result := Einsum(DimsToLetter(self.Shape) + '->' +
-    ReverseString(DimsToLetter(self.Shape)), [self]);
+  Result := noe.Math.Transpose(Self);
 end;
 
 function TTensor.GetShape: TIntVector;

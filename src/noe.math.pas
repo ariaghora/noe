@@ -9,6 +9,7 @@
  To do:
   - adapt more math functions from math.pas
   - implement iterate() that accepts callback to iterate over dimensions
+  - provide backends for matrix transposition
 }
 
 unit noe.Math;
@@ -19,7 +20,7 @@ interface
 
 
 uses
-  Classes, SysUtils, Math, RegExpr, fgl, noe.core, noe.utils,
+  Classes, SysUtils, strutils, Math, RegExpr, fgl, noe.core, noe.utils,
   noe.backend.blas, noe.backend.native;
 
 type
@@ -74,6 +75,7 @@ operator ** (A: TTensor; expo: float) B: TTensor; inline;
 
 function Transpose2D(T: TTensor): TTensor;
 function Transpose(T: TTensor; dims: array of longint): TTensor;
+function Transpose(T: TTensor): TTensor;
 
 implementation
 
@@ -216,18 +218,26 @@ var
   resultedIdx, dimsLetter: string;
   i: longint;
 begin
+  dimsLetter := DimsToLetter(dims);
+  Assert(Length(dims) = length(T.Shape),
+    'dims length does not match tensor dimension');
+  resultedIdx := DimsToLetter(dims);
+  for i := 0 to Length(dims) - 1 do
+    resultedIdx[i + 1] := dimsLetter.Chars[dims[i]];
+  Result := Einsum(dimsLetter + '->' + resultedIdx, [T]);
+end;
+
+function Transpose(T: TTensor): TTensor;
+begin
   // attempt with 2d transpose first
   if (Length(T.Shape) = 2) then
-    Result := Transpose2D(T)
+  begin
+    Result := Transpose2D(T);
+  end
   else
   begin
-    dimsLetter := DimsToLetter(dims);
-    Assert(Length(dims) = length(T.Shape),
-      'dims length does not match tensor dimension');
-    resultedIdx := DimsToLetter(dims);
-    for i := 0 to Length(dims) - 1 do
-      resultedIdx[i + 1] := dimsLetter.Chars[dims[i]];
-    Result := Einsum(dimsLetter + '->' + resultedIdx, [T]);
+    Result := Einsum(DimsToLetter(T.Shape) + '->' +
+      ReverseString(DimsToLetter(T.Shape)), [T]);
   end;
 end;
 
