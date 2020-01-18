@@ -17,7 +17,7 @@ unit noe.core;
 interface
 
 uses
-  Classes, eventlog, SysUtils, strutils, Math;
+  Classes, SysUtils, strutils, Math;
 
 type
   TIntVector   = array of longint;
@@ -79,6 +79,11 @@ function ShapeToSize(Shape: array of longint): longint;
 { Generates an array of float within range of (0, n] }
 function RangeF(n: longint): TFloatVector;
 
+{ Broadcasting ----------------------------------------------------------------}
+
+{ Check if two tensors are broadcasatable }
+function IsBroadcastable(A, B: TTensor): boolean;
+
 procedure PrintTensor(T: TTensor);
 procedure IterateTensor(T: TTensor; Callback: TCallback);
 
@@ -113,8 +118,6 @@ begin
 end;
 
 function Equals(A, B: TTensor): boolean;
-var
-  i: longint;
 begin
   Assert((A.Shape[0] = B.Shape[0]) and (A.Shape[1] = B.Shape[1]),
     MSG_ASSERTION_DIM_MISMATCH);
@@ -125,7 +128,6 @@ end;
 function DimsToLetter(dims: array of longint): string;
 var
   alphabet: string = 'abcdefghijklmnopqrstuvwxyz';
-  i: longint;
 begin
   Result := Copy(alphabet, 1, Length(dims));
 end;
@@ -152,27 +154,17 @@ end;
 function OffsetToIndex(offset: longint; Shape: array of longint): TIntVector;
 var
   dim, cnt: longint;
-
-  function Reverse(A: array of longint): TIntVector;
-  var
-    i: longint;
-  begin
-    SetLength(Result, Length(A));
-    for i := Length(A) - 1 downto 0 do
-      Result[Length(A) - i - 1] := A[i];
-  end;
-
 begin
   SetLength(Result, Length(Shape));
   cnt := 0;
-  for dim in Reverse(Shape) do
+  for dim in ReverseIntArr(Shape) do
   begin
     Result[cnt] := offset mod dim;
     offset := offset div dim;
     cnt := cnt + 1;
   end;
 
-  Result := Reverse(Result);
+  Result := ReverseIntArr(Result);
 end;
 
 function ShapeToSize(Shape: array of longint): longint;
@@ -329,6 +321,27 @@ begin
   for dtIter := 0 to n - 1 do
     dimTracker[dtIter] := 0;
   iterate(0, res);
+end;
+
+function IsBroadcastable(A, B: TTensor): boolean;
+var
+  i, violated: longint;
+  revA, revB: TIntVector;
+begin
+  { counting the violation of broadcasting rule }
+  violated := 0;
+  Result := False;
+  revA := ReverseIntArr(A.Shape);
+  revB := ReverseIntArr(B.Shape);
+  for i := 0 to Min(Length(A.Shape), Length(B.Shape)) - 1 do
+  begin
+    if (revA[i] <> revB[i]) then
+      if ((revA[i] <> 1) and (revB[i] <> 1)) then
+      begin
+        Inc(violated);
+      end;
+  end;
+  Result := violated = 0;
 end;
 
 procedure PrintTensor(T: TTensor);

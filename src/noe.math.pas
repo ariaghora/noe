@@ -275,13 +275,11 @@ function Einsum(Subscripts: string; Pots: array of TTensor): TTensor;
 type
   TNameDimsMap = specialize TFPGMap<string, TIntVector>;
   TStringIntMap = specialize TFPGMap<string, longint>;
-  TIntVectorList = specialize TFPGList<TIntVector>;
   TIntVectorArr = array of TIntVector;
 var
   re: TRegExpr;
-  match, keepGoing, skipCombo, found: boolean;
-  TmpTensor, output: TTensor;
-  i, j, h, len, dim: longint;
+  match, keepGoing, skipCombo: boolean;
+  i, j, len: longint;
   split, tables: TStringArray;
   broadcastList, flatTables, originalTables, uniqueTables: ansistring;
   nameAndDims: TNameDimsMap;

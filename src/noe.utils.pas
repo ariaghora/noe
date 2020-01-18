@@ -16,6 +16,10 @@ interface
 uses
   strutils;
 
+type
+  TIntVector = array of longint;
+function ReverseIntArr(A: array of longint): TIntVector;
+
 { Sorting chars in a string using bubble sort. Not for big strings. }
 function SortStr(s: string; ascending:boolean=true): string; inline;
 
@@ -29,6 +33,15 @@ implementation
 
 uses
   noe.core;
+
+function ReverseIntArr(A: array of longint): TIntVector;
+var
+  i: longint;
+begin
+  SetLength(Result, Length(A));
+  for i := Length(A) - 1 downto 0 do
+    Result[Length(A) - i - 1] := A[i];
+end;
 
 function SortStr(s: string; ascending:boolean=true): string;
 var
