@@ -48,8 +48,15 @@ type
     constructor Create(var ref: TTensor; targetShape: TIntVector);
 
     { Get the value pointing to FRef at the (mapped) offset.
-      TODO in the future, precompute the mapping in the constructor }
+      TODO in the future, precompute the mapping in the constructor. Or not? }
     function GetValByOffset(offset: longint): double;
+    property Val[i: longint]: double read GetValByOffset;
+  end;
+
+  TBroadcastResult = record
+    A: TProxy;
+    B: TProxy;
+    broadcastShape: TIntVector;
   end;
 
   TConfig = record
@@ -100,6 +107,7 @@ function RangeF(n: longint): TFloatVector;
 { Check if two tensors are broadcasatable }
 function IsBroadcastable(A, B: TTensor): boolean;
 function GetBroadcastedDims(A, B: TTensor): TIntVector;
+function Broadcast(A, B: TTensor): TBroadcastResult;
 
 procedure PrintTensor(T: TTensor);
 procedure IterateTensor(T: TTensor; Callback: TCallback);
@@ -429,6 +437,17 @@ begin
   revB := ReverseIntArr(revB);
   for i := 0 to Max(Length(A.Shape), Length(B.Shape)) - 1 do
     Result[i] := max(revA[i], revB[i]);
+end;
+
+function Broadcast(A, B: TTensor): TBroadcastResult;
+var
+  outDim: TIntVector;
+begin
+  outDim := GetBroadcastedDims(A, B);
+  Result.A := TProxy.Create(A, outDim);
+  Result.B := TProxy.Create(B, outDim);
+  Result.broadcastShape := copy(outDim);
+
 end;
 
 procedure PrintTensor(T: TTensor);

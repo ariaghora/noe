@@ -82,31 +82,28 @@ implementation
 function Add(A, B: TTensor): TTensor;
 var
   i: longint;
-  Ap, Bp: TProxy;
-  targetDim: TIntVector;
+  br: TBroadcastResult;
 begin
   { if the dimensions are the same, perform usual element-wise operation }
   if (A.Shape = B.Shape) then
   begin
     Result := TTensor.Create;
     Result.Reshape(A.Shape);
-
     SetLength(Result.Val, Length(A.Val));
     for i := 0 to Length(A.Val) - 1 do
       Result.Val[i] := A.Val[i] + B.Val[i];
   end
   else { otherwise, perform broadcasting }
   begin
+    { first, check if broadcastable }
     Assert(IsBroadcastable(A, B), 'Cannot perform broadcasting');
-    targetDim := GetBroadcastedDims(A, B);
-    Ap := TProxy.Create(A, targetDim);
-    Bp := TProxy.Create(B, targetDim);
+    br := Broadcast(A, B);
 
     Result := TTensor.Create;
-    Result.Reshape(targetDim);
-    SetLength(Result.Val, ShapeToSize(targetDim));
-    for i := 0 to ShapeToSize(targetDim) - 1 do
-      Result.Val[i] := Ap.GetValByOffset(i) + Bp.GetValByOffset(i);
+    Result.Reshape(br.broadcastShape);
+    SetLength(Result.Val, ShapeToSize(br.broadcastShape));
+    for i := 0 to ShapeToSize(br.broadcastShape) - 1 do
+      Result.Val[i] := br.A.Val[i] + br.B.Val[i];
   end;
 
 end;
