@@ -82,15 +82,33 @@ implementation
 function Add(A, B: TTensor): TTensor;
 var
   i: longint;
+  Ap, Bp: TProxy;
+  targetDim: TIntVector;
 begin
-  Assert(Length(A.Val) = Length(B.Val), MSG_ASSERTION_DIM_MISMATCH);
+  { if the dimensions are the same, perform usual element-wise operation }
+  if (A.Shape = B.Shape) then
+  begin
+    Result := TTensor.Create;
+    Result.Reshape(A.Shape);
 
-  Result := TTensor.Create;
-  Result.Reshape(A.Shape);
+    SetLength(Result.Val, Length(A.Val));
+    for i := 0 to Length(A.Val) - 1 do
+      Result.Val[i] := A.Val[i] + B.Val[i];
+  end
+  else { otherwise, perform broadcasting }
+  begin
+    Assert(IsBroadcastable(A, B), 'Cannot perform broadcasting');
+    targetDim := GetBroadcastedDims(A, B);
+    Ap := TProxy.Create(A, targetDim);
+    Bp := TProxy.Create(B, targetDim);
 
-  SetLength(Result.Val, Length(A.Val));
-  for i := 0 to Length(A.Val) - 1 do
-    Result.Val[i] := A.Val[i] + B.Val[i];
+    Result := TTensor.Create;
+    Result.Reshape(targetDim);
+    SetLength(Result.Val, ShapeToSize(targetDim));
+    for i := 0 to ShapeToSize(targetDim) - 1 do
+      Result.Val[i] := Ap.GetValByOffset(i) + Bp.GetValByOffset(i);
+  end;
+
 end;
 
 function Subtract(A, B: TTensor): TTensor;

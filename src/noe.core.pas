@@ -36,6 +36,22 @@ type
     property Shape: TIntVector read FShape;
   end;
 
+  { A proxy of a tensor broadcasted to a specific dimension. The proxies are
+    created whenever a broadcasting is needed to prevent the creation of exact
+    copy of a tensor }
+  TProxy = class
+    FRef:      TTensor;
+    { Adjusted reference dimension (prepending the dimension when needed) }
+    FRefShape: TIntVector;
+    FTargetShape: TIntVector;
+  public
+    constructor Create(var ref: TTensor; targetShape: TIntVector);
+
+    { Get the value pointing to FRef at the (mapped) offset.
+      TODO in the future, precompute the mapping in the constructor }
+    function GetValByOffset(offset: longint): double;
+  end;
+
   TConfig = record
     debug:   boolean;
     useBLAS: boolean;
@@ -83,6 +99,7 @@ function RangeF(n: longint): TFloatVector;
 
 { Check if two tensors are broadcasatable }
 function IsBroadcastable(A, B: TTensor): boolean;
+function GetBroadcastedDims(A, B: TTensor): TIntVector;
 
 procedure PrintTensor(T: TTensor);
 procedure IterateTensor(T: TTensor; Callback: TCallback);
@@ -175,6 +192,47 @@ begin
   for i := 0 to Length(Shape) - 1 do
     size := size * shape[i];
   Result := size;
+end;
+
+{ TProxy }
+
+constructor TProxy.Create(var ref: TTensor; targetShape: TIntVector);
+var
+  i, nExtraDim: longint;
+begin
+  FRef := ref;
+  FTargetShape := targetShape;
+
+  nExtraDim := Length(targetShape) - Length(ref.Shape);
+  SetLength(FRefShape, Length(ref.Shape) + nExtraDim);
+  for i := 0 to Length(FRefShape) - 1 do
+    FRefShape[i] := 1;
+  for i := 0 to length(ref.Shape) - 1 do
+    FRefShape[i] := ReverseIntArr(ref.Shape)[i];
+  FRefShape := ReverseIntArr(FRefShape);
+end;
+
+function TProxy.GetValByOffset(offset: longint): double;
+var
+  expectedIndex, possibleIndex, mappedIndex: TIntVector;
+  i: longint;
+begin
+  expectedIndex := OffsetToIndex(offset, FTargetShape);
+  possibleIndex := OffsetToIndex(offset, FRefShape);
+
+  SetLength(mappedIndex, Length(expectedIndex));
+
+  { map expected index to the proper index }
+  for i := 0 to Length(expectedIndex) - 1 do
+  begin
+    if expectedIndex[i] > possibleIndex[i] then
+    begin
+      mappedIndex[i] := 0;
+    end
+    else
+      mappedIndex[i] := expectedIndex[i];
+  end;
+  Result := FRef.Val[IndexToOffset(mappedIndex, FRefShape)];
 end;
 
 function TTensor.GetAt(Index: array of longint): TTensor;
@@ -342,6 +400,35 @@ begin
       end;
   end;
   Result := violated = 0;
+end;
+
+function GetBroadcastedDims(A, B: TTensor): TIntVector;
+var
+  i, finalDimSize: longint;
+  revA, revB: TIntVector;
+begin
+  Assert(IsBroadcastable(A, B), 'A and B cannot be broadcasted');
+  finalDimSize := Max(Length(A.Shape), Length(B.Shape));
+
+  SetLength(Result, finalDimSize);
+  SetLength(revA, finalDimSize);
+  SetLength(revB, finalDimSize);
+  for i := 0 to Length(Result) - 1 do
+  begin
+    revA[i] := 1;
+    revB[i] := 1;
+  end;
+
+  for i := 0 to length(A.Shape) - 1 do
+    revA[i] := ReverseIntArr(A.Shape)[i];
+
+  for i := 0 to Length(B.Shape) - 1 do
+    revB[i] := ReverseIntArr(B.Shape)[i];
+
+  revA := ReverseIntArr(revA);
+  revB := ReverseIntArr(revB);
+  for i := 0 to Max(Length(A.Shape), Length(B.Shape)) - 1 do
+    Result[i] := max(revA[i], revB[i]);
 end;
 
 procedure PrintTensor(T: TTensor);
