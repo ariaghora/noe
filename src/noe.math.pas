@@ -7,7 +7,6 @@
  work with tensors.
 
  To do:
-  - implement matrix multiplication backend(s)
   - adapt more math functions from math.pas
   - implement iterate() that accepts callback to iterate over dimensions
 }
@@ -73,6 +72,7 @@ function Power(A: TTensor; exponent: float): TTensor;
 
 operator ** (A: TTensor; expo: float) B: TTensor; inline;
 
+function Transpose2D(T: TTensor): TTensor;
 function Transpose(T: TTensor; dims: array of longint): TTensor;
 
 implementation
@@ -196,17 +196,39 @@ begin
   B := Power(A, expo);
 end;
 
+function Transpose2D(T: TTensor): TTensor;
+var
+  i, j: longint;
+begin
+  Assert(Length(T.Shape) = 2, 'Transpose2D only accepts rank-2 tensors');
+  Result := TTensor.Create;
+  Result.Reshape([T.Shape[1], T.Shape[0]]);
+  SetLength(Result.Val, Length(T.Val));
+  for i := 0 to T.Shape[0] - 1 do
+    for j := 0 to T.Shape[1] - 1 do
+    begin
+      Result.Val[j * T.Shape[0] + i] := T.Val[i * T.Shape[1] + j];
+    end;
+end;
+
 function Transpose(T: TTensor; dims: array of longint): TTensor;
 var
   resultedIdx, dimsLetter: string;
   i: longint;
 begin
-  dimsLetter := DimsToLetter(dims);
-  Assert(Length(dims) = length(T.Shape), 'dims length does not match tensor dimension');
-  resultedIdx := DimsToLetter(dims);
-  for i := 0 to Length(dims) - 1 do
-    resultedIdx[i + 1] := dimsLetter.Chars[dims[i]];
-  Result := Einsum(dimsLetter + '->' + resultedIdx, [T]);
+  // attempt with 2d transpose first
+  if (Length(T.Shape) = 2) then
+    Result := Transpose2D(T)
+  else
+  begin
+    dimsLetter := DimsToLetter(dims);
+    Assert(Length(dims) = length(T.Shape),
+      'dims length does not match tensor dimension');
+    resultedIdx := DimsToLetter(dims);
+    for i := 0 to Length(dims) - 1 do
+      resultedIdx[i + 1] := dimsLetter.Chars[dims[i]];
+    Result := Einsum(dimsLetter + '->' + resultedIdx, [T]);
+  end;
 end;
 
 function SinF(x: float): float;
