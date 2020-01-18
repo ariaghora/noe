@@ -106,7 +106,7 @@ function RangeF(n: longint): TFloatVector;
 
 { Check if two tensors are broadcasatable }
 function IsBroadcastable(A, B: TTensor): boolean;
-function GetBroadcastedDims(A, B: TTensor): TIntVector;
+function GetBroadcastDims(A, B: TTensor): TIntVector;
 function Broadcast(A, B: TTensor): TBroadcastResult;
 
 procedure PrintTensor(T: TTensor);
@@ -410,7 +410,7 @@ begin
   Result := violated = 0;
 end;
 
-function GetBroadcastedDims(A, B: TTensor): TIntVector;
+function GetBroadcastDims(A, B: TTensor): TIntVector;
 var
   i, finalDimSize: longint;
   revA, revB: TIntVector;
@@ -443,7 +443,7 @@ function Broadcast(A, B: TTensor): TBroadcastResult;
 var
   outDim: TIntVector;
 begin
-  outDim := GetBroadcastedDims(A, B);
+  outDim := GetBroadcastDims(A, B);
   Result.A := TProxy.Create(A, outDim);
   Result.B := TProxy.Create(B, outDim);
   Result.broadcastShape := copy(outDim);
