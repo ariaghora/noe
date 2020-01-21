@@ -10,6 +10,7 @@ Some of its features:
 - Creation of arbitrary rank tensors
 - Support of some arithmetical operations
 - Numpy-style broadcasting
+- Interface with BLAS routine 
 
 ## Table of contents
 - [Quickstart](#quickstart)
