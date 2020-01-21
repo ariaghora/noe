@@ -32,6 +32,7 @@ type
 
 function Add(A, B: TTensor): TTensor;
 function Subtract(A, B: TTensor): TTensor;
+function Divide(A, B: TTensor): TTensor;
 function Multiply(A, B: TTensor): TTensor;
 function MatMul(A, B: TTensor): TTensor;
 
@@ -60,18 +61,18 @@ function Log2(A: TTensor): TTensor;
 
 { Some of functions belong to system unit are in different format. Hence, they
   need to be wrapped to make them compatible. They are given suffix "F"
-  (indicating float-valued function) to avoid confusion. }
-function SinF(x: float): float;
-function CosF(x: float): float;
+  (indicating double-valued function) to avoid confusion. }
+function SinF(x: double): double;
+function CosF(x: double): double;
 
 function Sin(A: TTensor): TTensor;
 function Cos(A: TTensor): TTensor;
 function Tan(A: TTensor): TTensor;
 
 { Exponential functions }
-function Power(A: TTensor; exponent: float): TTensor;
+function Power(A: TTensor; exponent: double): TTensor;
 
-operator ** (A: TTensor; expo: float) B: TTensor; inline;
+operator ** (A: TTensor; expo: double) B: TTensor; inline;
 
 function Transpose2D(T: TTensor): TTensor;
 function Transpose(T: TTensor; dims: array of longint): TTensor;
@@ -105,21 +106,63 @@ begin
     for i := 0 to ShapeToSize(br.broadcastShape) - 1 do
       Result.Val[i] := br.A.Val[i] + br.B.Val[i];
   end;
-
 end;
 
 function Subtract(A, B: TTensor): TTensor;
 var
   i: longint;
+  br: TBroadcastResult;
 begin
-  Assert(Length(A.Val) = Length(B.Val), MSG_ASSERTION_DIM_MISMATCH);
+  { if the dimensions are the same, perform usual element-wise operation }
+  if (A.Shape = B.Shape) then
+  begin
+    Result := TTensor.Create;
+    Result.Reshape(A.Shape);
 
-  Result := TTensor.Create;
-  Result.Reshape(A.Shape);
+    SetLength(Result.Val, Length(A.Val));
+    for i := 0 to Length(A.Val) - 1 do
+      Result.Val[i] := A.Val[i] - B.Val[i];
+  end
+  else { otherwise, perform broadcasting }
+  begin
+    { first, check if broadcastable }
+    Assert(IsBroadcastable(A, B), 'Cannot perform broadcasting');
+    br := Broadcast(A, B);
 
-  SetLength(Result.Val, Length(A.Val));
-  for i := 0 to Length(A.Val) - 1 do
-    Result.Val[i] := A.Val[i] - B.Val[i];
+    Result := TTensor.Create;
+    Result.Reshape(br.broadcastShape);
+    SetLength(Result.Val, ShapeToSize(br.broadcastShape));
+    for i := 0 to ShapeToSize(br.broadcastShape) - 1 do
+      Result.Val[i] := br.A.Val[i] - br.B.Val[i];
+  end;
+end;
+
+function Divide(A, B: TTensor): TTensor;
+var
+  i: longint;
+  br: TBroadcastResult;
+begin
+  { if the dimensions are the same, perform usual element-wise operation }
+  if (A.Shape = B.Shape) then
+  begin
+    Result := TTensor.Create;
+    Result.Reshape(A.Shape);
+    SetLength(Result.Val, Length(A.Val));
+    for i := 0 to Length(A.Val) - 1 do
+      Result.Val[i] := A.Val[i] / B.Val[i];
+  end
+  else { otherwise, perform broadcasting }
+  begin
+    { first, check if broadcastable }
+    Assert(IsBroadcastable(A, B), 'Cannot perform broadcasting');
+    br := Broadcast(A, B);
+
+    Result := TTensor.Create;
+    Result.Reshape(br.broadcastShape);
+    SetLength(Result.Val, ShapeToSize(br.broadcastShape));
+    for i := 0 to ShapeToSize(br.broadcastShape) - 1 do
+      Result.Val[i] := br.A.Val[i] / br.B.Val[i];
+  end;
 end;
 
 function Multiply(A, B: TTensor): TTensor;
@@ -208,7 +251,7 @@ begin
   Result := ApplyUfunc(A, @Math.log2);
 end;
 
-operator ** (A: TTensor; expo: float)B: TTensor;
+operator ** (A: TTensor; expo: double)B: TTensor;
 begin
   B := Power(A, expo);
 end;
@@ -256,12 +299,12 @@ begin
   end;
 end;
 
-function SinF(x: float): float;
+function SinF(x: double): double;
 begin
   Result := System.Sin(x);
 end;
 
-function CosF(x: float): float;
+function CosF(x: double): double;
 begin
   Result := System.Cos(x);
 end;
@@ -281,7 +324,7 @@ begin
   Result := ApplyUfunc(A, @Math.tan);
 end;
 
-function Power(A: TTensor; exponent: float): TTensor;
+function Power(A: TTensor; exponent: double): TTensor;
 begin
   Result := ApplyBfunc(A, exponent, @Math.power);
 end;
@@ -303,7 +346,7 @@ var
   forMultiPlying: TFloatVector;
   dims, combos, broadcastCombos: TIntVectorArr;
   s: string;
-  plug, Value, v: float;
+  plug, Value, v: double;
 
   function Combo(dimension: array of longint): TIntVectorArr;
   var
@@ -477,7 +520,7 @@ begin
     Result.val[i] := func(A.val[i]);
 end;
 
-function ApplyBfunc(A: TTensor; v: float; Func: TBFunc): TTensor;
+function ApplyBfunc(A: TTensor; v: double; Func: TBFunc): TTensor;
 var
   i: longint;
 begin

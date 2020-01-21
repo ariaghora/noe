@@ -81,6 +81,7 @@ var
 operator := (Val: float) M: TTensor;
 operator +(A, B: TTensor) C: TTensor;
 operator -(A, B: TTensor) C: TTensor;
+operator / (A, B: TTensor) C: TTensor;
 operator * (A, B: TTensor) C: TTensor;
 
 { Helpers ---------------------------------------------------------------------}
@@ -135,6 +136,11 @@ end;
 operator -(A, B: TTensor)C: TTensor;
 begin
   C := noe.Math.Subtract(A, B);
+end;
+
+operator/(A, B: TTensor)C: TTensor;
+begin
+  C := noe.Math.Divide(A, B);
 end;
 
 operator * (A, B: TTensor)C: TTensor;
