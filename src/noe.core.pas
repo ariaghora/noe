@@ -83,6 +83,10 @@ operator +(A, B: TTensor) C: TTensor;
 operator -(A, B: TTensor) C: TTensor;
 operator / (A, B: TTensor) C: TTensor;
 operator * (A, B: TTensor) C: TTensor;
+operator ** (A: TTensor; expo: double) B: TTensor; inline;
+operator ** (A, B: TTensor) C: TTensor; inline;
+operator explicit (Val: float) M: TTensor;
+
 
 { Helpers ---------------------------------------------------------------------}
 
@@ -138,7 +142,7 @@ begin
   C := noe.Math.Subtract(A, B);
 end;
 
-operator/(A, B: TTensor)C: TTensor;
+operator / (A, B: TTensor)C: TTensor;
 begin
   C := noe.Math.Divide(A, B);
 end;
@@ -146,6 +150,21 @@ end;
 operator * (A, B: TTensor)C: TTensor;
 begin
   C := noe.Math.Multiply(A, B);
+end;
+
+operator ** (A: TTensor; expo: double)B: TTensor;
+begin
+  B := Power(A, expo);
+end;
+
+operator ** (A, B: TTensor)C: TTensor;
+begin
+  C := Power(A, B);
+end;
+
+operator explicit(Val: float)M: TTensor;
+begin
+  M := FullTensor([1], Val);
 end;
 
 function Equals(A, B: TTensor): boolean;

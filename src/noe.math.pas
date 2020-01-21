@@ -18,7 +18,6 @@ unit noe.Math;
 
 interface
 
-
 uses
   Classes, SysUtils, strutils, Math, RegExpr, fgl, noe.core, noe.utils,
   noe.backend.blas, noe.backend.native;
@@ -28,8 +27,15 @@ type
   TUFunc = function(v: float): float;
 
   { Wrapping FPC's f:RxR->R binary functions in math unit }
-  TBFunc = function(v1, v2: float): float;
+  TBFunc = function(v1, v2: double): double;
 
+{ basic binary functions }
+function AddF(v1, v2: double): double;
+function SubtractF(v1, v2: double): double;
+function DivideF(v1, v2: double): double;
+function MultiplyF(v1, v2: double): double;
+
+{ binary functions for tensors }
 function Add(A, B: TTensor): TTensor;
 function Subtract(A, B: TTensor): TTensor;
 function Divide(A, B: TTensor): TTensor;
@@ -47,7 +53,8 @@ function Einsum(Subscripts: string; Pots: array of TTensor): TTensor;
 
 { Helper to apply a function on each tensor's element }
 function ApplyUfunc(A: TTensor; Func: TUFunc): TTensor;
-function ApplyBfunc(A: TTensor; v: float; Func: TBFunc): TTensor;
+function ApplyBfunc(A: TTensor; v: double; Func: TBFunc): TTensor; overload;
+function ApplyBfunc(A, B: TTensor; Func: TBFunc): TTensor; overload;
 
 { Angle conversion }
 function DegToRad(A: TTensor): TTensor; inline;
@@ -70,9 +77,8 @@ function Cos(A: TTensor): TTensor;
 function Tan(A: TTensor): TTensor;
 
 { Exponential functions }
-function Power(A: TTensor; exponent: double): TTensor;
-
-operator ** (A: TTensor; expo: double) B: TTensor; inline;
+function Power(A: TTensor; exponent: double): TTensor; overload;
+function Power(A, B: TTensor): TTensor; overload;
 
 function Transpose2D(T: TTensor): TTensor;
 function Transpose(T: TTensor; dims: array of longint): TTensor;
@@ -80,103 +86,44 @@ function Transpose(T: TTensor): TTensor;
 
 implementation
 
-function Add(A, B: TTensor): TTensor;
-var
-  i: longint;
-  br: TBroadcastResult;
+function AddF(v1, v2: double): double;
 begin
-  { if the dimensions are the same, perform usual element-wise operation }
-  if (A.Shape = B.Shape) then
-  begin
-    Result := TTensor.Create;
-    Result.Reshape(A.Shape);
-    SetLength(Result.Val, Length(A.Val));
-    for i := 0 to Length(A.Val) - 1 do
-      Result.Val[i] := A.Val[i] + B.Val[i];
-  end
-  else { otherwise, perform broadcasting }
-  begin
-    { first, check if broadcastable }
-    Assert(IsBroadcastable(A, B), 'Cannot perform broadcasting');
-    br := Broadcast(A, B);
+  Result := v1 + v2;
+end;
 
-    Result := TTensor.Create;
-    Result.Reshape(br.broadcastShape);
-    SetLength(Result.Val, ShapeToSize(br.broadcastShape));
-    for i := 0 to ShapeToSize(br.broadcastShape) - 1 do
-      Result.Val[i] := br.A.Val[i] + br.B.Val[i];
-  end;
+function SubtractF(v1, v2: double): double;
+begin
+  Result := v1 - v2;
+end;
+
+function DivideF(v1, v2: double): double;
+begin
+  Result := v1 / v2;
+end;
+
+function MultiplyF(v1, v2: double): double;
+begin
+  Result := v1 * v2;
+end;
+
+function Add(A, B: TTensor): TTensor;
+begin
+  Result := ApplyBfunc(A, B, @AddF);
 end;
 
 function Subtract(A, B: TTensor): TTensor;
-var
-  i: longint;
-  br: TBroadcastResult;
 begin
-  { if the dimensions are the same, perform usual element-wise operation }
-  if (A.Shape = B.Shape) then
-  begin
-    Result := TTensor.Create;
-    Result.Reshape(A.Shape);
-
-    SetLength(Result.Val, Length(A.Val));
-    for i := 0 to Length(A.Val) - 1 do
-      Result.Val[i] := A.Val[i] - B.Val[i];
-  end
-  else { otherwise, perform broadcasting }
-  begin
-    { first, check if broadcastable }
-    Assert(IsBroadcastable(A, B), 'Cannot perform broadcasting');
-    br := Broadcast(A, B);
-
-    Result := TTensor.Create;
-    Result.Reshape(br.broadcastShape);
-    SetLength(Result.Val, ShapeToSize(br.broadcastShape));
-    for i := 0 to ShapeToSize(br.broadcastShape) - 1 do
-      Result.Val[i] := br.A.Val[i] - br.B.Val[i];
-  end;
+  Result := ApplyBfunc(A, B, @SubtractF);
 end;
 
 function Divide(A, B: TTensor): TTensor;
-var
-  i: longint;
-  br: TBroadcastResult;
 begin
-  { if the dimensions are the same, perform usual element-wise operation }
-  if (A.Shape = B.Shape) then
-  begin
-    Result := TTensor.Create;
-    Result.Reshape(A.Shape);
-    SetLength(Result.Val, Length(A.Val));
-    for i := 0 to Length(A.Val) - 1 do
-      Result.Val[i] := A.Val[i] / B.Val[i];
-  end
-  else { otherwise, perform broadcasting }
-  begin
-    { first, check if broadcastable }
-    Assert(IsBroadcastable(A, B), 'Cannot perform broadcasting');
-    br := Broadcast(A, B);
-
-    Result := TTensor.Create;
-    Result.Reshape(br.broadcastShape);
-    SetLength(Result.Val, ShapeToSize(br.broadcastShape));
-    for i := 0 to ShapeToSize(br.broadcastShape) - 1 do
-      Result.Val[i] := br.A.Val[i] / br.B.Val[i];
-  end;
+  Result := ApplyBfunc(A, B, @DivideF);
 end;
 
 function Multiply(A, B: TTensor): TTensor;
-var
-  i: longint;
 begin
-  Assert(Length(A.Val) = Length(B.Val), MSG_ASSERTION_DIM_MISMATCH);
-
-  Result := TTensor.Create;
-  Result.Reshape(A.Shape);
-
-  SetLength(Result.Val, Length(A.Val));
-  for i := 0 to Length(A.Val) - 1 do
-    Result.Val[i] := A.Val[i] * B.Val[i];
+  Result := ApplyBfunc(A, B, @MultiplyF);
 end;
 
 function MatMul(A, B: TTensor): TTensor;
@@ -251,11 +198,6 @@ begin
   Result := ApplyUfunc(A, @Math.log2);
 end;
 
-operator ** (A: TTensor; expo: double)B: TTensor;
-begin
-  B := Power(A, expo);
-end;
-
 function Transpose2D(T: TTensor): TTensor;
 var
   i, j: longint;
@@ -327,6 +269,11 @@ end;
 function Power(A: TTensor; exponent: double): TTensor;
 begin
   Result := ApplyBfunc(A, exponent, @Math.power);
+end;
+
+function Power(A, B: TTensor): TTensor;
+begin
+  Result := ApplyBfunc(A, B, @Math.power);
 end;
 
 function Einsum(Subscripts: string; Pots: array of TTensor): TTensor;
@@ -518,6 +465,36 @@ begin
   SetLength(Result.val, Length(A.val));
   for i := 0 to length(A.val) - 1 do
     Result.val[i] := func(A.val[i]);
+end;
+
+function ApplyBfunc(A, B: TTensor; Func: TBFunc): TTensor;
+var
+  i: longint;
+  br: TBroadcastResult;
+begin
+  { if the dimensions are the same, perform usual element-wise operation }
+  if (A.Shape = B.Shape) then
+  begin
+    Result := TTensor.Create;
+    Result.Reshape(A.Shape);
+
+    SetLength(Result.Val, Length(A.Val));
+    for i := 0 to Length(A.Val) - 1 do
+      Result.Val[i] := A.Val[i] - B.Val[i];
+  end
+  else { otherwise, perform broadcasting }
+  begin
+    { first, check if broadcastable }
+    Assert(IsBroadcastable(A, B), 'Cannot perform broadcasting');
+    br := Broadcast(A, B);
+
+    Result := TTensor.Create;
+    Result.Reshape(br.broadcastShape);
+    SetLength(Result.Val, ShapeToSize(br.broadcastShape));
+    { apply binary function }
+    for i := 0 to ShapeToSize(br.broadcastShape) - 1 do
+      Result.Val[i] := Func(br.A.Val[i], br.B.Val[i]);
+  end;
 end;
 
 function ApplyBfunc(A: TTensor; v: double; Func: TBFunc): TTensor;
