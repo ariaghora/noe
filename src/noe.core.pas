@@ -233,13 +233,14 @@ begin
   { map expected index to the proper index }
   for i := 0 to Length(expectedIndex) - 1 do
   begin
-    if expectedIndex[i] > possibleIndex[i] then
+    if expectedIndex[i] > FRefShape[i] - 1 then
     begin
       mappedIndex[i] := 0;
     end
     else
       mappedIndex[i] := expectedIndex[i];
   end;
+
   Result := FRef.Val[IndexToOffset(mappedIndex, FRefShape)];
 end;
 
