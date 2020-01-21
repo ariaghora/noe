@@ -39,10 +39,14 @@ type
   { A proxy of a tensor broadcasted to a specific dimension. The proxies are
     created whenever a broadcasting is needed to prevent the creation of exact
     copy of a tensor }
-  TProxy = class
+
+  { TTensorProxy }
+
+  TTensorProxy = class
     FRef:      TTensor;
     { Adjusted reference dimension (prepending the dimension when needed) }
     FRefShape: TIntVector;
+    FIndices: TIntVector;
     FTargetShape: TIntVector;
   public
     constructor Create(var ref: TTensor; targetShape: TIntVector);
@@ -50,12 +54,14 @@ type
     { Get the value pointing to FRef at the (mapped) offset.
       TODO in the future, precompute the mapping in the constructor. Or not? }
     function GetValByOffset(offset: longint): double;
+    function MapOffset(offset: longint): longint;
+    procedure GenerateIndex;
     property Val[i: longint]: double read GetValByOffset;
   end;
 
   TBroadcastResult = record
-    A: TProxy;
-    B: TProxy;
+    A: TTensorProxy;
+    B: TTensorProxy;
     broadcastShape: TIntVector;
   end;
 
@@ -227,9 +233,9 @@ begin
   Result := size;
 end;
 
-{ TProxy }
+{ TTensorProxy }
 
-constructor TProxy.Create(var ref: TTensor; targetShape: TIntVector);
+constructor TTensorProxy.Create(var ref: TTensor; targetShape: TIntVector);
 var
   i, nExtraDim: longint;
 begin
@@ -245,13 +251,12 @@ begin
   FRefShape := ReverseIntArr(FRefShape);
 end;
 
-function TProxy.GetValByOffset(offset: longint): double;
+function TTensorProxy.GetValByOffset(offset: longint): double;
 var
-  expectedIndex, possibleIndex, mappedIndex: TIntVector;
+  expectedIndex, mappedIndex: TIntVector;
   i: longint;
 begin
   expectedIndex := OffsetToIndex(offset, FTargetShape);
-  possibleIndex := OffsetToIndex(offset, FRefShape);
 
   SetLength(mappedIndex, Length(expectedIndex));
 
@@ -267,6 +272,37 @@ begin
   end;
 
   Result := FRef.Val[IndexToOffset(mappedIndex, FRefShape)];
+end;
+
+function TTensorProxy.MapOffset(offset: longint): longint;
+var
+  expectedIndex, mappedIndex: TIntVector;
+  i: longint;
+begin
+  expectedIndex := OffsetToIndex(offset, FTargetShape);
+
+  SetLength(mappedIndex, Length(expectedIndex));
+
+  { map expected index to the proper index }
+  for i := 0 to Length(expectedIndex) - 1 do
+  begin
+    if expectedIndex[i] > FRefShape[i] - 1 then
+    begin
+      mappedIndex[i] := 0;
+    end
+    else
+      mappedIndex[i] := expectedIndex[i];
+  end;
+
+  Result := IndexToOffset(mappedIndex, FRefShape);
+end;
+
+procedure TTensorProxy.GenerateIndex;
+var
+  i:longint;
+begin
+  SetLength(FIndices, Length(FRef.Val));
+  for i:=0 to Length(FRef.Val)-1 do FIndices[i]:=MapOffset(i);
 end;
 
 function TTensor.GetAt(Index: array of longint): TTensor;
@@ -470,8 +506,8 @@ var
   outDim: TIntVector;
 begin
   outDim := GetBroadcastDims(A, B);
-  Result.A := TProxy.Create(A, outDim);
-  Result.B := TProxy.Create(B, outDim);
+  Result.A := TTensorProxy.Create(A, outDim);
+  Result.B := TTensorProxy.Create(B, outDim);
   Result.broadcastShape := copy(outDim);
 
 end;
@@ -554,6 +590,7 @@ begin
     outstr := outstr + (DupeString('[', n));
     iterate(0, T.GetShape, res);
     outstr := outstr + (DupeString(']', n));
+    outstr := outstr + sLineBreak;
 
     Write(outstr);
   end;
