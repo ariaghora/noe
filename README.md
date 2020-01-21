@@ -6,6 +6,11 @@ This is my experimental project to understand the mechanism behind n-dimensional
 
 > This project used to be "darkteal". Please check the `master` branch for darkteal's code. There are some machine learning stuffs there. It is not abandoned. It is being upgraded with a better data representation... ;)
 
+Some of its features:
+- Creation of arbitrary rank tensors
+- Support of some arithmetical operations
+- Numpy-style broadcasting
+
 ## Table of contents
 - [Quickstart](#quickstart)
 - [Declaring and initializing tensors](#Declaring-and-initializing-tensors)
