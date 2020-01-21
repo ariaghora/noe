@@ -75,11 +75,8 @@ begin
 
   // TODO require_grad checking
   self.Mat := AMat;
-  //self.FShape.Height := self.Mat.Shape.Height;
-  //self.FShape.Width := self.Mat.Shape.Width;
+
   self.SetShape(self.Mat.Shape);
-  //self.FShape[0] := self.Mat.Shape[0];
-  //self.FShape[1] := self.Mat.Shape[1];
 
   self.FGrad := FullTensor([self.Shape[0], self.Shape[1]], 0);
   self.PrevGrad := self.FGrad;
@@ -119,16 +116,6 @@ begin
   Result := self.Mat;
 end;
 
-//procedure PrintMatrix(M: TNode); overload;
-//var
-//  preamble: string;
-//begin
-//  preamble := 'shape=' + IntToStr(M.Eval.Shape[0]) + 'x' + IntToStr(M.Eval.Shape[1]);
-//
-//
-//  preamble := preamble + ' (TNode), Name=' + M.Name;
-//  noe.core.PrintTensor(M.Eval, preamble);
-//end;
 
 initialization
   GLOBAL_NODE_COUNT := 0;
