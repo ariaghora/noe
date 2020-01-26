@@ -86,6 +86,7 @@ var
 { Operator overloading --------------------------------------------------------}
 operator := (Val: float) M: TTensor;
 operator +(A, B: TTensor) C: TTensor;
+operator -(A: TTensor) B: TTensor;
 operator -(A, B: TTensor) C: TTensor;
 operator / (A, B: TTensor) C: TTensor;
 operator * (A, B: TTensor) C: TTensor;
@@ -124,9 +125,11 @@ procedure PrintTensor(T: TTensor);
 procedure IterateTensor(T: TTensor; Callback: TCallback);
 
 { Tensor creation ------------------------------------------------------------ }
+function CopyTensor(A: TTensor): TTensor;
 function FullTensor(Shape: array of longint): TTensor; overload;
 function FullTensor(Shape: array of longint; Val: float): TTensor; overload;
 function FullTensor(Shape: array of longint; Vals: array of float): TTensor; overload;
+function Zeros(Shape: array of longint): TTensor;
 
 implementation
 
@@ -141,6 +144,15 @@ end;
 operator +(A, B: TTensor) C: TTensor;
 begin
   C := noe.Math.Add(A, B);
+end;
+
+operator -(A: TTensor)B: TTensor;
+var
+  i: longint;
+begin
+  B := CopyTensor(A);
+  for i := 0 to Length(B.val) - 1 do
+    B.val[i] := -A.val[i];
 end;
 
 operator -(A, B: TTensor)C: TTensor;
@@ -359,6 +371,13 @@ begin
     self.FShape[i] := ShapeVals[i];
 end;
 
+function CopyTensor(A: TTensor): TTensor;
+begin
+  Result := TTensor.Create;
+  Result.val := copy(A.val);
+  Result.Reshape(A.Shape);
+end;
+
 function FullTensor(Shape: array of longint): TTensor;
 var
   i, size: longint;
@@ -395,6 +414,11 @@ begin
   for i := 0 to size - 1 do
     Result.Val[i] := Vals[i];
   Result.Reshape(Shape);
+end;
+
+function Zeros(Shape: array of longint): TTensor;
+begin
+  Result := FullTensor(Shape, 0);
 end;
 
 function RangeF(n: longint): TFloatVector;
@@ -571,8 +595,16 @@ var
     end;
   end;
 
+  function MaxAbs(arr: array of double):double;
+  var i: double;
+  begin
+    Result := 0;
+    for i in arr do
+      if i > Result then Result := i;
+  end;
+
 begin
-  digitMax := Math.ceil(Math.log10(Math.MaxValue(T.Val) + 0.01));
+  digitMax := Math.ceil(Math.log10(abs(MaxAbs(T.Val)) + 0.01));
   decimalPlace := 2;
 
   if Length(T.Val) = 1 then { it is a scalar }
