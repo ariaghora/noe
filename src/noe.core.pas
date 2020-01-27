@@ -35,6 +35,8 @@ type
     procedure Reshape(ShapeVals: array of longint);
     property Shape: TIntVector read FShape;
   end;
+  PTensor = ^TTensor;
+  TTensorArr = array of TTensor;
 
   { A proxy of a tensor broadcasted to a specific dimension. The proxies are
     created whenever a broadcasting is needed to prevent the creation of exact
@@ -92,7 +94,6 @@ operator / (A, B: TTensor) C: TTensor;
 operator * (A, B: TTensor) C: TTensor;
 operator ** (A: TTensor; expo: double) B: TTensor; inline;
 operator ** (A, B: TTensor) C: TTensor; inline;
-operator explicit (Val: float) M: TTensor;
 
 
 { Helpers ---------------------------------------------------------------------}
@@ -130,6 +131,7 @@ function FullTensor(Shape: array of longint): TTensor; overload;
 function FullTensor(Shape: array of longint; Val: float): TTensor; overload;
 function FullTensor(Shape: array of longint; Vals: array of float): TTensor; overload;
 function Zeros(Shape: array of longint): TTensor;
+function Ones(Shape: array of longint): TTensor;
 
 implementation
 
@@ -178,11 +180,6 @@ end;
 operator ** (A, B: TTensor)C: TTensor;
 begin
   C := Power(A, B);
-end;
-
-operator explicit(Val: float)M: TTensor;
-begin
-  M := FullTensor([1], Val);
 end;
 
 function Equals(A, B: TTensor): boolean;
@@ -419,6 +416,11 @@ end;
 function Zeros(Shape: array of longint): TTensor;
 begin
   Result := FullTensor(Shape, 0);
+end;
+
+function Ones(Shape: array of longint): TTensor;
+begin
+  Result := FullTensor(Shape, 1.0);
 end;
 
 function RangeF(n: longint): TFloatVector;
