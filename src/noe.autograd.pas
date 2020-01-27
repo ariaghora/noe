@@ -42,7 +42,7 @@ type
       ABackwardFunc: TBackwardFunc); overload;
     constructor Create(ATensor: TTensor; AName: string;
       ABackwardFunc: TBackwardFunc; AIsLeaf: boolean); overload;
-    procedure Backward;
+    procedure Backpropagate;
     procedure Step(LearningRate: double);
     procedure ZeroGrad;
     property BackwardFunc: TBackwardFunc read FBackwardFunc write FBackwardFunc;
@@ -77,8 +77,11 @@ var
       for prv in v.Prev do
         TopoHelper(prv);
 
-      SetLength(Sorted, Length(Sorted) + 1);
-      Sorted[Length(Sorted) - 1] := v;
+      if v.RequiresGrad then
+      begin
+        SetLength(Sorted, Length(Sorted) + 1);
+        Sorted[Length(Sorted) - 1] := v;
+      end;
     end;
   end;
 begin
@@ -95,11 +98,7 @@ begin
 
   T.Grad := Ones(T.Data.Shape);
   for i := length(Sorted) - 1 downto 0 do
-  begin
-    if Sorted[i].RequiresGrad then
-     Sorted[i].BackwardFunc(Sorted[i].Prev, Sorted[i].FGrad);
-    //Sorted[i].Backward;
-  end;
+    Sorted[i].BackwardFunc(Sorted[i].Prev, Sorted[i].FGrad);
 end;
 
 operator in(T: TVariable; arr: array of TVariable)b: boolean;
@@ -145,7 +144,7 @@ end;
 constructor TVariable.Create(ATensor: TTensor; AName: string;
   ABackwardFunc: TBackwardFunc);
 begin
-  { it has a backward function, so it must be non-leaf }
+  { it has a Backpropagate function, so it must be non-leaf }
   self.Create(ATensor, AName, ABackwardFunc, False);
 end;
 
@@ -166,11 +165,9 @@ begin
   Inc(GLOBAL_NODE_COUNT);
 end;
 
-procedure TVariable.Backward;
+procedure TVariable.Backpropagate;
 begin
   BackwardGraph(self);
-  //if Self.RequiresGrad then
-  //   Self.BackwardFunc(self.Prev, self.FGrad);
 end;
 
 procedure TVariable.Step(LearningRate: double);
