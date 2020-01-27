@@ -84,6 +84,9 @@ function Transpose2D(T: TTensor): TTensor;
 function Transpose(T: TTensor; dims: array of longint): TTensor;
 function Transpose(T: TTensor): TTensor;
 
+{ Nonlinear activation functions }
+function ReLU(T: TTensor): TTensor;
+
 implementation
 
 function AddF(v1, v2: double): double;
@@ -239,6 +242,17 @@ begin
     Result := Einsum(DimsToLetter(T.Shape) + '->' +
       ReverseString(DimsToLetter(T.Shape)), [T]);
   end;
+end;
+
+function ReLU(T: TTensor): TTensor;
+var
+  i: longint;
+begin
+  Result := TTensor.Create;
+  Result.Reshape(T.Shape);
+  SetLength(Result.Val, Length(T.Val));
+  for i := 0 to Length(Result.Val) - 1 do
+    Result.Val[i] := Max(0, T.Val[i]);
 end;
 
 function SinF(x: double): double;
