@@ -40,7 +40,6 @@ end;
 { TGradientDescentOptimizer }
 
 procedure TGradientDescentOptimizer.UpdateParams(ModelParams: array of TVariable);
-
 var
   param: TVariable;
 begin
