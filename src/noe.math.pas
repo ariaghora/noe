@@ -480,7 +480,7 @@ begin
 
     SetLength(Result.Val, Length(A.Val));
     for i := 0 to Length(A.Val) - 1 do
-      Result.Val[i] := A.Val[i] - B.Val[i];
+      Result.Val[i] := Func(A.Val[i], B.Val[i]);
   end
   else { otherwise, perform broadcasting }
   begin

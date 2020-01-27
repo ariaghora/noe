@@ -12,108 +12,95 @@ var
 
 type
 
-  { Abstract data type as the backbone of the computational graph.
-
-    All variables and operations are derived from this class.}
-  PNode = ^TNode;
-  PNodeList = specialize TFPGList<PNode>;
-
-  { TNode }
-
-  TNode = class
-    FShape: TIntVector;
-  private
-    FGrad: TTensor;
-    FName: string;
-    FPrev: PNodeList;
-
-    FMat: TTensor;
-    FID: longint;
-    FPrevGrad: TTensor;
-  public
-    constructor Create(AName: string);
-    constructor Create(AMat: TTensor; AName: string);
-    function Eval: TTensor;
-    procedure Backward; virtual; abstract;
-    procedure SetShape(ShapeVals: array of longint);
-    property Mat: TTensor read FMat write FMat;
-    property Grad: TTensor read FGrad write FGrad;
-    property ID: longint read FID write FID;
-    property PrevNodes: PNodeList read FPrev write FPrev;
-    property PrevGrad: TTensor read FPrevGrad write FPrevGrad;
-    property Shape: TIntVector read FShape;// write SetShape;
-    property Name: string read FName write FName;
-  end;
-
   { TVariable }
 
-  TVariable = class(TNode)
-  public
-    constructor Create(var AMat: TTensor; AName: string);
-    procedure backward; override;
-    function Eval: TTensor;
-  end;
+  PVariable      = ^TVariable;
+  PVariableArray = array of PVariable;
 
-//procedure PrintMatrix(M: TNode); overload;
+  TVariable     = class;
+  TVariableArr  = array of TVariable;
+  TBackwardFunc = procedure(arr: TVariableArr; ADy: TTensor);
+
+  TVariable = class
+    FTensor: TTensor;
+    FGrad:   TTensor;
+    FID:     integer;
+    FIsLeaf: boolean;
+    FPrev:   TVariableArr;
+
+  private
+    FBackwardFunc: TBackwardFunc;
+    FName: string;
+    procedure SetData(AValue: TTensor);
+  public
+    constructor Create; overload;
+    constructor Create(AName: string); overload;
+    constructor Create(ATensor: TTensor; AName: string); overload;
+    constructor Create(ATensor: TTensor; AName: string;
+      ABackwardFunc: TBackwardFunc); overload;
+    procedure Backward;
+    procedure Step(LearningRate: double);
+    procedure ZeroGrad;
+    property BackwardFunc: TBackwardFunc read FBackwardFunc;
+    property Data: TTensor read FTensor write SetData;
+    property Grad: TTensor read FGrad write FGrad;
+    property IsLeaf: boolean read FIsLeaf write FIsLeaf;
+    property Name: string read FName write FName;
+    property Prev: TVariableArr read FPrev write FPrev;
+    property Tensor: TTensor read FTensor write FTensor;
+  end;
 
 implementation
 
-{ TNode }
-constructor TNode.Create(AName: string);
+procedure TVariable.SetData(AValue: TTensor);
 begin
-  self.Name := AName;
-  self.ID := GLOBAL_NODE_COUNT;
-  self.PrevNodes := PNodeList.Create;
+  if FTensor = AValue then
+    Exit;
+  FTensor := AValue;
+end;
+
+constructor TVariable.Create;
+begin
+  self.FName := '';
+  self.FIsLeaf := True;
+  self.FID := GLOBAL_NODE_COUNT;
 
   Inc(GLOBAL_NODE_COUNT);
 end;
 
-constructor TNode.Create(AMat: TTensor; AName: string);
+constructor TVariable.Create(AName: string);
 begin
-  self.Create(AName);
-  Self.Mat := Mat;
-
-  // TODO require_grad checking
-  self.Mat := AMat;
-
-  self.SetShape(self.Mat.Shape);
-
-  self.FGrad := FullTensor([self.Shape[0], self.Shape[1]], 0);
-  self.PrevGrad := self.FGrad;
-end;
-
-function TNode.Eval: TTensor;
-begin
-  Result := self.Mat;
-end;
-
-procedure TNode.SetShape(ShapeVals: array of longint);
-var
-  i: longint;
-begin
-  SetLength(self.FShape, Length(ShapeVals));
-  for i := 0 to Length(ShapeVals) - 1 do
-    self.FShape[i] := ShapeVals[i];
+  self.FName := AName;
 end;
 
 { TVariable }
-constructor TVariable.Create(var AMat: TTensor; AName: string);
+constructor TVariable.Create(ATensor: TTensor; AName: string);
 begin
-  inherited Create(AMat, AName);
-  self.Mat := AMat;
-  self.FShape[0] := self.Mat.Shape[0];
-  self.FShape[1] := self.Mat.Shape[1];
-
+  self.Create(AName);
+  self.FTensor := ATensor;
+  self.ZeroGrad;
 end;
 
-procedure TVariable.backward;
+constructor TVariable.Create(ATensor: TTensor; AName: string;
+  ABackwardFunc: TBackwardFunc);
 begin
-
+  self.Create(ATensor, AName);
+  self.FBackwardFunc := ABackwardFunc;
 end;
 
-function TVariable.Eval: TTensor;
+procedure TVariable.Backward;
 begin
-  Result := self.Mat;
+  Self.BackwardFunc(self.Prev, self.FGrad);
+end;
+
+procedure TVariable.Step(LearningRate: double);
+begin
+  self.Data := self.Data - LearningRate * self.Grad;
+end;
+
+procedure TVariable.ZeroGrad;
+begin
+  self.Grad := Zeros(self.Tensor.Shape);
 end;
 
 

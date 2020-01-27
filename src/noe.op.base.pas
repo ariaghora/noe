@@ -7,54 +7,35 @@ interface
 uses
   Classes, SysUtils, noe.core, noe.autograd;
 
-var
-  _node_count: longint;
+function VarOpAdd(arr: array of TVariable): TVariable;
 
-type
+procedure BackwardAdd(arr:TVariableArr; ADy: TTensor);
 
-  { TOPAdd }
-  TOPAdd = class(TNode)
-    A, B: TNode;
-  public
-    constructor Create(var _A, _B: TNode);
-    function Eval: TTensor; overload;
-    procedure Backward; override;
-  end;
-
-operator +(A, B: TNode) C: TOPAdd;
+//operator +(A, B: TNode) C: TOPAdd;
 
 implementation
 
-constructor TOPAdd.Create(var _A, _B: TNode);
+function VarOpAdd(arr: array of TVariable): TVariable;
 begin
-  inherited Create('Add');
-  PrevNodes := PNodeList.Create;
-  self.A := _A;
-  self.B := _B;
-  FShape := _A.Shape;
-  PrevNodes.Add(@A);
-  PrevNodes.Add(@B);
+  Result := TVariable.Create(arr[0].Data + arr[1].Data, 'Add', @BackwardAdd);
 
-  self.Grad := FullTensor([self.Shape[0], self.Shape[1]], 0);
-  self.PrevGrad := self.Grad;
+  SetLength(Result.FPrev, 2);
+  Result.Prev[0] := arr[0];
+  Result.Prev[1] := arr[1];
 end;
 
-function TOPAdd.Eval: TTensor;
+procedure BackwardAdd(arr: TVariableArr; ADy: TTensor);
 begin
-  // TODO replace with Sum(PNodeList)
-  Result := PrevNodes[0]^.Eval + PrevNodes[1]^.Eval;
+  arr[0].Grad := arr[0].Grad + ADy;
+  arr[1].Grad := arr[1].Grad + ADy;
 end;
 
-procedure TOPAdd.Backward;
-begin
-  PrevNodes[0]^.Grad := PrevNodes[0]^.Grad + self.PrevGrad;
-  PrevNodes[1]^.Grad := PrevNodes[1]^.Grad + self.PrevGrad;
-end;
+//operator +(A, B: TNode)C: TOPAdd;
+//begin
+//  C := OpAdd(A, B);
+//end;
 
-operator +(A, B: TNode) C: TOPAdd;
-begin
-  C := TOPAdd.Create(A, B);
-end;
+
 
 
 end.
