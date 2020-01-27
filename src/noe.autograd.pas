@@ -27,6 +27,7 @@ type
     FGrad:   TTensor;
     FID:     longint;
     FIsLeaf: boolean;
+    FRequiresGrad: boolean;
     FPrev:   TVariableArr;
   private
     FBackwardFunc: TBackwardFunc;
@@ -51,6 +52,7 @@ type
     property IsLeaf: boolean read FIsLeaf write FIsLeaf;
     property Name: string read FName write FName;
     property Prev: TVariableArr read FPrev write FPrev;
+    property RequiresGrad: boolean read FRequiresGrad write FRequiresGrad;
     property Tensor: TTensor read FTensor write FTensor;
   end;
 
@@ -94,7 +96,9 @@ begin
   T.Grad := Ones(T.Data.Shape);
   for i := length(Sorted) - 1 downto 0 do
   begin
-    Sorted[i].Backward;
+    if Sorted[i].RequiresGrad then
+     Sorted[i].BackwardFunc(Sorted[i].Prev, Sorted[i].FGrad);
+    //Sorted[i].Backward;
   end;
 end;
 
@@ -153,6 +157,9 @@ begin
   self.BackwardFunc := ABackwardFunc;
   self.IsLeaf := AIsLeaf;
 
+  { always true on creation unless specified otherwise }
+  self.RequiresGrad:= False;
+
   self.ZeroGrad;
 
   self.FID := GLOBAL_NODE_COUNT;
@@ -161,12 +168,15 @@ end;
 
 procedure TVariable.Backward;
 begin
-  Self.BackwardFunc(self.Prev, self.FGrad);
+  BackwardGraph(self);
+  //if Self.RequiresGrad then
+  //   Self.BackwardFunc(self.Prev, self.FGrad);
 end;
 
 procedure TVariable.Step(LearningRate: double);
 begin
-  self.Data := self.Data - LearningRate * self.Grad;
+  if Self.RequiresGrad then
+    self.Data := self.Data - LearningRate * self.Grad;
 end;
 
 procedure TVariable.ZeroGrad;
