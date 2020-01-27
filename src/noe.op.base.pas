@@ -56,7 +56,7 @@ end;
 
 function Subtract(A, B: TVariable): TVariable;
 begin
-  Result := TVariable.Create(A.Data + B.Data, 'Subtract', @BwSubtract);
+  Result := TVariable.Create(A.Data - B.Data, 'Subtract', @BwSubtract);
   Result.RequiresGrad := True;
 
   SetLength(Result.FPrev, 2);
