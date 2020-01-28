@@ -14,7 +14,7 @@ unit noe.utils;
 interface
 
 uses
-  strutils;
+  sysutils, strutils, classes, noe.core;
 
 type
   TIntVector = array of longint;
@@ -23,6 +23,9 @@ function ReverseIntArr(A: array of longint): TIntVector;
 { Sorting chars in a string using bubble sort. Not for big strings. }
 function SortStr(s: string; ascending:boolean=true): string; inline;
 
+{ Create a rank-2 tensor (a matrix) from a CSV file }
+function ReadCSV(fileName:string):TTensor;
+
 procedure NoeLog(tag, msg: string);
 
 operator in (substr, mainstr: string) b: boolean;
@@ -30,9 +33,6 @@ operator in (str: string; arr: array of string) b: boolean;
 operator = (a, b: array of longint) c: boolean;
 
 implementation
-
-uses
-  noe.core;
 
 function ReverseIntArr(A: array of longint): TIntVector;
 var
@@ -69,6 +69,54 @@ begin
     end;
   end;
   result:=tmpstr;
+end;
+
+function ReadCSV(fileName: string): TTensor;
+var
+  s, number: string;
+  sl: TStringList;
+  InFile: text;
+  RowCount, ColCount, offset: longint;
+begin
+  Assign(InFile, fileName);
+  Reset(InFile);
+
+  sl := TStringList.Create;
+  sl.StrictDelimiter := True;
+
+  { first run: estimate the RowCount & ColCount }
+  ReadLn(InFile, s);
+  sl.CommaText := s;
+  ColCount := sl.Count;
+
+  RowCount := 1;
+  while not eof(InFile) do
+  begin
+    Inc(RowCount);
+    ReadLn(InFile);
+  end;
+
+  { actual data handle }
+  Result := TTensor.Create;
+  Result.Reshape([RowCount, ColCount]);
+  SetLength(Result.Val, RowCount * ColCount);
+
+  offset := 0;
+  Reset(InFile);
+  while not eof(InFile) do
+  begin
+    ReadLn(InFile, s);
+    sl.CommaText := s;
+
+    for number in sl do
+    begin
+      Result.Val[offset] := StrToFloat(number);
+      Inc(offset);
+    end;
+  end;
+
+  Close(InFile);
+  sl.Free;
 end;
 
 procedure NoeLog(tag, msg: string);
