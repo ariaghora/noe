@@ -64,14 +64,14 @@ function RadToDeg(A: TTensor): TTensor; inline;
 function Log10(A: TTensor): TTensor;
 function Log2(A: TTensor): TTensor;
 
-{ Trigonometric functions }
-
 { Some of functions belong to system unit are in different format. Hence, they
   need to be wrapped to make them compatible. They are given suffix "F"
   (indicating double-valued function) to avoid confusion. }
 function SinF(x: double): double;
 function CosF(x: double): double;
+function ExpF(x: double): double;
 
+{ Trigonometric functions }
 function Sin(A: TTensor): TTensor;
 function Cos(A: TTensor): TTensor;
 function Tan(A: TTensor): TTensor;
@@ -79,6 +79,7 @@ function Tan(A: TTensor): TTensor;
 { Exponential functions }
 function Power(A: TTensor; exponent: double): TTensor; overload;
 function Power(A, B: TTensor): TTensor; overload;
+function Exp(A: TTensor): TTensor;
 
 function Transpose2D(T: TTensor): TTensor;
 function Transpose(T: TTensor; dims: array of longint): TTensor;
@@ -265,6 +266,11 @@ begin
   Result := System.Cos(x);
 end;
 
+function ExpF(x: double): double;
+begin
+  Result := System.exp(x);
+end;
+
 function Sin(A: TTensor): TTensor;
 begin
   Result := ApplyUfunc(A, @SinF);
@@ -288,6 +294,11 @@ end;
 function Power(A, B: TTensor): TTensor;
 begin
   Result := ApplyBfunc(A, B, @Math.power);
+end;
+
+function Exp(A: TTensor): TTensor;
+begin
+  Result := ApplyUfunc(A, @ExpF);
 end;
 
 function Einsum(Subscripts: string; Pots: array of TTensor): TTensor;

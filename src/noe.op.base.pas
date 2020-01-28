@@ -25,6 +25,7 @@ function MatMul(A, B: TVariable): TVariable;
 function Sqr(A: TVariable): TVariable;
 function Sqrt(A: TVariable): TVariable;
 function ReLU(A: TVariable): TVariable;
+function Exp(A: TVariable): TVariable;
 function SumElement(A: TVariable): TVariable;
 
 procedure BwAdd(arr: TVariableArr; ADy: TTensor);
@@ -34,10 +35,12 @@ procedure BwMultiplyC(arr: TVariableArr; ADy: TTensor);
 procedure BwMatmul(arr: TVariableArr; ADy: TTensor);
 
 procedure BwSqr(arr: TVariableArr; ADy: TTensor);
-procedure BwSqrt(arr: TVariableArr; ADy: TTensor);
+procedure BwSqrt(arr: TVariableArr; ADy: TTensor); // clarify the implementation
 procedure BwReLU(arr: TVariableArr; ADy: TTensor);
+procedure BwExp(arr: TVariableArr; ADy: TTensor);
 procedure BwSumElement(arr: TVariableArr; ADy: TTensor);
 
+operator := (Val: double) V: TVariable;
 operator +(A, B: TVariable) C: TVariable;
 operator -(A, B: TVariable) C: TVariable;
 
@@ -123,6 +126,15 @@ begin
   Result.Prev[0] := A;
 end;
 
+function Exp(A: TVariable): TVariable;
+begin
+  Result := TVariable.Create(noe.Math.Exp(A.Data), 'Exp', @BwExp);
+  Result.RequiresGrad := True;
+
+  SetLength(Result.FPrev, 1);
+  Result.Prev[0] := A;
+end;
+
 function SumElement(A: TVariable): TVariable;
 begin
   Result := TVariable.Create(noe.Math.sum(A.Data), 'Sum', @BwSumElement);
@@ -185,9 +197,20 @@ begin
       arr[0].Grad.Val[i] := arr[0].Grad.Val[i] + ADy.Val[i];
 end;
 
+procedure BwExp(arr: TVariableArr; ADy: TTensor);
+begin
+  arr[0].Grad := arr[0].Grad + (ADy * noe.math.Exp(arr[0].Data));
+end;
+
 procedure BwSumElement(arr: TVariableArr; ADy: TTensor);
 begin
-  arr[0].Grad := arr[0].Grad + (ADy * Ones(arr[0].Data.Shape));
+  arr[0].Grad := arr[0].Grad + FullTensor(arr[0].Data.Shape, ADy.Val[0]);
+end;
+
+operator := (Val: double)V: TVariable;
+begin
+  V := TVariable.Create(Val);
+  V.RequiresGrad := False;
 end;
 
 operator +(A, B: TVariable)C: TVariable;
