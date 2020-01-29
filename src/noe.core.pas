@@ -370,7 +370,7 @@ function TTensor.DumpCSV(Sep: string = ','): string;
 var
   i, j: integer;
 begin
-  Assert(Length(self.Shape) = 2, MSG_ASSERTION_RANK_2_TENSORS_ONLY);
+  Assert(Length(self.Shape) <= 2, MSG_ASSERTION_RANK_2_TENSORS_ONLY);
   Result := '';
   for i := 0 to self.Shape[0] - 1 do
   begin

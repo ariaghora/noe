@@ -52,6 +52,7 @@ procedure BwSumElement(arr: TVariableArr; ADy: TTensor);
 operator := (Val: double) V: TVariable;
 operator +(A, B: TVariable) C: TVariable;
 operator -(A, B: TVariable) C: TVariable;
+operator *(A, B: TVariable) C: TVariable;
 
 
 implementation
@@ -290,6 +291,11 @@ end;
 operator -(A, B: TVariable)C: TVariable;
 begin
   C := Subtract(A, B);
+end;
+
+operator*(A, B: TVariable)C: TVariable;
+begin
+  C := Multiply(A, B);
 end;
 
 end.
