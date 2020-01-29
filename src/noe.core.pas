@@ -28,6 +28,7 @@ type
     Val:    TFloatVector;
     FShape: array of longint;
   public
+    function DumpCSV(Sep: string = ','): string;
     function GetShape: TIntVector;
     function GetAt(Index: array of longint): TTensor;
     { transpose for matrix, reverse index for tensors }
@@ -363,6 +364,25 @@ end;
 function TTensor.T: TTensor;
 begin
   Result := noe.Math.Transpose(Self);
+end;
+
+function TTensor.DumpCSV(Sep: string = ','): string;
+var
+  i, j: integer;
+begin
+  Assert(Length(self.Shape) = 2, MSG_ASSERTION_RANK_2_TENSORS_ONLY);
+  Result := '';
+  for i := 0 to self.Shape[0] - 1 do
+  begin
+    for j := 0 to self.Shape[1] - 1 do
+    begin
+      Result := Result + FloatToStr(self.val[i * self.Shape[1] + j]);
+      if j < self.Shape[1] - 1 then
+        Result := Result + sep;
+    end;
+    if i < self.Shape[0] - 1 then
+      Result := Result + LineEnding;
+  end;
 end;
 
 function TTensor.GetShape: TIntVector;
