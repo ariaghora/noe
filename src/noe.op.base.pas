@@ -30,7 +30,10 @@ function Sqrt(A: TVariable): TVariable;
 function ReLU(A: TVariable): TVariable;
 function Tanh(A: TVariable): TVariable;
 function Exp(A: TVariable): TVariable;
-function SumElement(A: TVariable): TVariable;
+function Mean(A: TVariable; axis: byte): TVariable;
+function Mean(A: TVariable): TVariable; overload;
+function Sum(A: TVariable; axis: byte): TVariable;
+function Sum(A: TVariable): TVariable; overload;
 
 { backward functions ----------------------------------------------------------}
 procedure BwAdd(arr: TVariableArr; ADy: TTensor);
@@ -40,19 +43,19 @@ procedure BwMultiplyC(arr: TVariableArr; ADy: TTensor);
 procedure BwMatmul(arr: TVariableArr; ADy: TTensor);
 
 procedure BwCosh(arr: TVariableArr; ADy: TTensor);
+procedure BwExp(arr: TVariableArr; ADy: TTensor);
+procedure BwMean(arr: TVariableArr; ADy: TTensor);
+procedure BwReLU(arr: TVariableArr; ADy: TTensor);
 procedure BwSinh(arr: TVariableArr; ADy: TTensor);
 procedure BwSqr(arr: TVariableArr; ADy: TTensor);
-procedure BwSqrt(arr: TVariableArr; ADy: TTensor); // clarify the implementation
-procedure BwReLU(arr: TVariableArr; ADy: TTensor);
-procedure BwExp(arr: TVariableArr; ADy: TTensor);
+procedure BwSqrt(arr: TVariableArr; ADy: TTensor);
+procedure BwSum(arr: TVariableArr; ADy: TTensor);
 procedure BwTanh(arr: TVariableArr; ADy: TTensor);
-procedure BwSumElement(arr: TVariableArr; ADy: TTensor);
-// clarify the implementation, esp w.r.t. ADy
 
 operator := (Val: double) V: TVariable;
 operator +(A, B: TVariable) C: TVariable;
 operator -(A, B: TVariable) C: TVariable;
-operator *(A, B: TVariable) C: TVariable;
+operator * (A, B: TVariable) C: TVariable;
 
 
 implementation
@@ -172,9 +175,36 @@ begin
   Result.Prev[0] := A;
 end;
 
-function SumElement(A: TVariable): TVariable;
+function Mean(A: TVariable; axis: byte): TVariable;
 begin
-  Result := TVariable.Create(noe.Math.sum(A.Data), 'Sum', @BwSumElement);
+  Result := TVariable.Create(noe.Math.Mean(A.Data, axis), 'Mean', @BwMean);
+  Result.RequiresGrad := True;
+
+  SetLength(Result.FPrev, 1);
+  Result.Prev[0] := A;
+end;
+
+function Mean(A: TVariable): TVariable;
+begin
+  Result := TVariable.Create(noe.Math.Mean(A.Data), 'Mean', @BwMean);
+  Result.RequiresGrad := True;
+
+  SetLength(Result.FPrev, 1);
+  Result.Prev[0] := A;
+end;
+
+function Sum(A: TVariable; axis: byte): TVariable;
+begin
+  Result := TVariable.Create(noe.Math.sum(A.Data, axis), 'Sum', @BwSum);
+  Result.RequiresGrad := True;
+
+  SetLength(Result.FPrev, 1);
+  Result.Prev[0] := A;
+end;
+
+function Sum(A: TVariable): TVariable;
+begin
+  Result := TVariable.Create(noe.Math.sum(A.Data), 'Sum', @BwSum);
   Result.RequiresGrad := True;
 
   SetLength(Result.FPrev, 1);
@@ -271,7 +301,18 @@ begin
     arr[0].Grad := arr[0].Grad + (ADy / noe.Math.Cosh(arr[0].Data) ** 2);
 end;
 
-procedure BwSumElement(arr: TVariableArr; ADy: TTensor);
+procedure BwMean(arr: TVariableArr; ADy: TTensor);
+var
+  szArr, szDy: longint;
+begin
+  szArr := ShapeToSize(arr[0].Data.Shape);
+  szDy := ShapeToSize(ADy.Shape);
+  if arr[0].RequiresGrad then
+    arr[0].Grad := arr[0].Grad + FullTensor(arr[0].Data.Shape,
+      ADy.Val[0] / (szArr / szDy));
+end;
+
+procedure BwSum(arr: TVariableArr; ADy: TTensor);
 begin
   if arr[0].RequiresGrad then
     arr[0].Grad := arr[0].Grad + FullTensor(arr[0].Data.Shape, ADy.Val[0]);
@@ -293,7 +334,7 @@ begin
   C := Subtract(A, B);
 end;
 
-operator*(A, B: TVariable)C: TVariable;
+operator * (A, B: TVariable)C: TVariable;
 begin
   C := Multiply(A, B);
 end;
