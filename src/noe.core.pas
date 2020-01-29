@@ -35,7 +35,8 @@ type
     procedure Reshape(ShapeVals: array of longint);
     property Shape: TIntVector read FShape;
   end;
-  PTensor = ^TTensor;
+
+  PTensor    = ^TTensor;
   TTensorArr = array of TTensor;
 
   { A proxy of a tensor broadcasted to a specific dimension. The proxies are
@@ -48,7 +49,7 @@ type
     FRef:      TTensor;
     { Adjusted reference dimension (prepending the dimension when needed) }
     FRefShape: TIntVector;
-    FIndices: TIntVector;
+    FIndices:  TIntVector;
     FTargetShape: TIntVector;
   public
     constructor Create(var ref: TTensor; targetShape: TIntVector);
@@ -81,6 +82,7 @@ const
   MSG_ASSERTION_DIM_MISMATCH     = 'Dimension mismatch.';
   MSG_ASSERTION_INVALID_AXIS     = 'Invalid axis. The value should be either 0 or 1.';
   MSG_ASSERTION_DIFFERENT_LENGTH = 'Two arrays have different length.';
+  MSG_ASSERTION_RANK_2_TENSORS_ONLY = 'This function can be used only on rank-2 tensors';
 
 var
   NoeConfig: TConfig;
@@ -112,8 +114,10 @@ function OffsetToIndex(offset: longint; Shape: array of longint): TIntVector;
 { Determine the required 1-d array size based on a tensor shape }
 function ShapeToSize(Shape: array of longint): longint;
 
-{ Generates an array of float within range of (0, n] }
-function RangeF(n: longint): TFloatVector;
+{ Helpers API for matrix (rank-2 tensor) --------------------------------------}
+function GetRange(T: TTensor; RowIndex, ColumnIndex, Height, Width: longint): TTensor;
+function GetColumn(T: TTensor; ColumnIndex: longint): TTensor;
+function GetRow(T: TTensor; RowIndex: longint): TTensor;
 
 { Broadcasting ----------------------------------------------------------------}
 
@@ -132,6 +136,12 @@ function FullTensor(Shape: array of longint; Val: float): TTensor; overload;
 function FullTensor(Shape: array of longint; Vals: array of float): TTensor; overload;
 function Zeros(Shape: array of longint): TTensor;
 function Ones(Shape: array of longint): TTensor;
+
+{ Generates an array of float within range of (0, n] }
+function Range(start, stop, step: double): TTensor;
+function Range(start, stop: double): TTensor; overload;
+function Range(n: longint): TTensor; overload;
+//function LinSpace():
 
 implementation
 
@@ -308,10 +318,11 @@ end;
 
 procedure TTensorProxy.GenerateIndex;
 var
-  i:longint;
+  i: longint;
 begin
   SetLength(FIndices, Length(FRef.Val));
-  for i:=0 to Length(FRef.Val)-1 do FIndices[i]:=MapOffset(i);
+  for i := 0 to Length(FRef.Val) - 1 do
+    FIndices[i] := MapOffset(i);
 end;
 
 function TTensor.GetAt(Index: array of longint): TTensor;
@@ -423,13 +434,63 @@ begin
   Result := FullTensor(Shape, 1.0);
 end;
 
-function RangeF(n: longint): TFloatVector;
+function Range(start, stop, step: double): TTensor;
 var
-  i: longint;
+  i: double;
+  offset: longint;
 begin
-  SetLength(Result, n);
-  for i := 0 to n - 1 do
-    Result[i] := i;
+  Result := TTensor.Create;
+  Result.Reshape([floor((stop - start) / step)]);
+  SetLength(Result.Val, floor((stop - start) / step));
+
+  i := start;
+  offset := 0;
+  while i < stop do
+  begin
+    Result.Val[offset] := i;
+    i := i + step;
+    Inc(offset);
+  end;
+end;
+
+function Range(start, stop: double): TTensor;
+begin
+  Result := Range(start, stop, 1);
+end;
+
+function Range(n: longint): TTensor;
+begin
+  Result := Range(0, n, 1);
+end;
+
+function GetRange(T: TTensor; RowIndex, ColumnIndex, Height, Width: longint): TTensor;
+var
+  i, j, offset: longint;
+begin
+  Assert(Length(T.Shape) = 2, MSG_ASSERTION_RANK_2_TENSORS_ONLY);
+  Result := TTensor.Create;
+  Result.Reshape([Height, Width]);
+
+  SetLength(Result.Val, Height * Width);
+  offset := 0;
+  for i := RowIndex to RowIndex + Height - 1 do
+  begin
+    for j := ColumnIndex to ColumnIndex + Width - 1 do
+    begin
+      Result.Val[offset] := T.Val[i * T.Shape[1] + j];
+      Inc(offset);
+    end;
+  end;
+end;
+
+function GetColumn(T: TTensor; ColumnIndex: longint): TTensor;
+begin
+  Result := GetRange(T, 0, ColumnIndex, T.Shape[1], 1);
+end;
+
+function GetRow(T: TTensor; RowIndex: longint): TTensor;
+begin
+  Result := GetRange(T, RowIndex, 0, 1, T.Shape[0]);
 end;
 
 procedure IterateTensor(T: TTensor; Callback: TCallback);
@@ -597,12 +658,14 @@ var
     end;
   end;
 
-  function MaxAbs(arr: array of double):double;
-  var i: double;
+  function MaxAbs(arr: array of double): double;
+  var
+    i: double;
   begin
     Result := 0;
     for i in arr do
-      if i > Result then Result := i;
+      if i > Result then
+        Result := i;
   end;
 
 begin

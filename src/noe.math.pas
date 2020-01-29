@@ -73,8 +73,12 @@ function ExpF(x: double): double;
 
 { Trigonometric functions }
 function Sin(A: TTensor): TTensor;
+function Sinh(A: TTensor): TTensor;
 function Cos(A: TTensor): TTensor;
+function Cosh(A: TTensor): TTensor;
 function Tan(A: TTensor): TTensor;
+function Tanh(A: TTensor): TTensor;
+
 
 { Exponential functions }
 function Power(A: TTensor; exponent: double): TTensor; overload;
@@ -276,14 +280,29 @@ begin
   Result := ApplyUfunc(A, @SinF);
 end;
 
+function Sinh(A: TTensor): TTensor;
+begin
+  Result := ApplyUfunc(A, @Math.sinh);
+end;
+
 function Cos(A: TTensor): TTensor;
 begin
   Result := ApplyUfunc(A, @CosF);
 end;
 
+function Cosh(A: TTensor): TTensor;
+begin
+  Result := ApplyUfunc(A, @Math.cosh);
+end;
+
 function Tan(A: TTensor): TTensor;
 begin
   Result := ApplyUfunc(A, @Math.tan);
+end;
+
+function Tanh(A: TTensor): TTensor;
+begin
+  Result := ApplyUfunc(A, @Math.tanh);
 end;
 
 function Power(A: TTensor; exponent: double): TTensor;
