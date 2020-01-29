@@ -44,6 +44,10 @@ var
   libHandle: THandle = dynlibs.NilHandle;
 
 function MatMul_BLAS(A, B: TTensor): TTensor;
+function MeanCol_BLAS(A: TTensor): TTensor;
+function MeanRow_BLAS(A: TTensor): TTensor;
+function SumCol_BLAS(A: TTensor): TTensor;
+function SumRow_BLAS(A: TTensor): TTensor;
 
 implementation
 
@@ -60,6 +64,26 @@ begin
     Result.val, B.Shape[1]
     );
   Result.Reshape([A.Shape[0], B.Shape[1]]);
+end;
+
+function MeanCol_BLAS(A: TTensor): TTensor;
+begin
+  Result := MatMul_BLAS(FullTensor([1, A.Shape[0]], 1 / A.Shape[0]), A);
+end;
+
+function MeanRow_BLAS(A: TTensor): TTensor;
+begin
+  Result := MatMul_BLAS(A, FullTensor([A.Shape[1], 1], 1 / A.Shape[1]));
+end;
+
+function SumCol_BLAS(A: TTensor): TTensor;
+begin
+  Result := MatMul_BLAS(Ones([1, A.Shape[0]]), A);
+end;
+
+function SumRow_BLAS(A: TTensor): TTensor;
+begin
+  Result := MatMul_BLAS(A, Ones([A.Shape[1], 1]));
 end;
 
 initialization
