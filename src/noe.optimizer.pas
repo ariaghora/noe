@@ -13,7 +13,7 @@ unit noe.optimizer;
 interface
 
 uses
-  Classes, SysUtils, noe, noe.autograd;
+  Classes, SysUtils, noe;
 
 type
 

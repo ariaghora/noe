@@ -62,8 +62,6 @@ type
     procedure Show;
   private
     PlotList: TList;
-    procedure CleanDataFile;
-    procedure GenerateDataFile;
     function GenerateScript: string;
   end;
 
@@ -189,18 +187,6 @@ end;
 constructor TFigure.Create;
 begin
   PlotList := TList.Create;
-end;
-
-procedure TFigure.CleanDataFile;
-begin
-
-end;
-
-procedure TFigure.GenerateDataFile;
-var
-  i: integer;
-begin
-
 end;
 
 function TFigure.GenerateScript: string;
