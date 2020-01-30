@@ -2,11 +2,11 @@
 <img src="assets/noe-txt.png" alt="logo" width="200px"></img>
 </div>
 
-<p align="center">
+<div align="center">
   
 [![Generic badge](https://img.shields.io/badge/license-MIT-green.svg)](https://shields.io/)
 
-</p>
+</div>
 
 ***
 
