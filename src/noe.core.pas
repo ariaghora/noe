@@ -35,6 +35,9 @@ type
     function T: TTensor;
     procedure Reshape(ShapeVals: array of longint);
     property Shape: TIntVector read FShape;
+
+    { Math helpers }
+    function MatMul(Other: TTensor): TTensor;
   end;
 
   PTensor    = ^TTensor;
@@ -84,6 +87,7 @@ const
   MSG_ASSERTION_INVALID_AXIS     = 'Invalid axis. The value should be either 0 or 1.';
   MSG_ASSERTION_DIFFERENT_LENGTH = 'Two arrays have different length.';
   MSG_ASSERTION_RANK_2_TENSORS_ONLY = 'This function can be used only on rank-2 tensors';
+  MSG_ASSERTION_RANK_1_TENSORS_ONLY = 'This function can be used only on rank-1 tensors';
 
 var
   NoeConfig: TConfig;
@@ -114,6 +118,8 @@ function OffsetToIndex(offset: longint; Shape: array of longint): TIntVector;
 
 { Determine the required 1-d array size based on a tensor shape }
 function ShapeToSize(Shape: array of longint): longint;
+
+function Squeeze(T: TTensor): TTensor;
 
 { Helpers API for matrix (rank-2 tensor) --------------------------------------}
 function GetRange(T: TTensor; RowIndex, ColumnIndex, Height, Width: longint): TTensor;
@@ -399,6 +405,11 @@ begin
     self.FShape[i] := ShapeVals[i];
 end;
 
+function TTensor.MatMul(Other: TTensor): TTensor;
+begin
+  Result := noe.Math.MatMul(self, Other);
+end;
+
 function CopyTensor(A: TTensor): TTensor;
 begin
   Result := TTensor.Create;
@@ -483,6 +494,31 @@ begin
   Result := Range(0, n, 1);
 end;
 
+function Squeeze(T: TTensor): TTensor;
+var
+  i, offset: longint;
+  tmpShape: TIntVector;
+begin
+  Result := CopyTensor(T);
+  SetLength(tmpShape, Length(T.Shape));
+
+  offset := 0;
+  for i in T.Shape do
+  begin
+    if i > 1 then
+    begin
+      tmpShape[offset] := i;
+      Inc(offset);
+    end;
+  end;
+  SetLength(tmpShape, offset);
+
+  if Length(tmpShape) = 0 then
+    Result.Reshape([1])
+  else
+    Result.Reshape(tmpShape);
+end;
+
 function GetRange(T: TTensor; RowIndex, ColumnIndex, Height, Width: longint): TTensor;
 var
   i, j, offset: longint;
@@ -505,12 +541,12 @@ end;
 
 function GetColumn(T: TTensor; ColumnIndex: longint): TTensor;
 begin
-  Result := GetRange(T, 0, ColumnIndex, T.Shape[1], 1);
+  Result := GetRange(T, 0, ColumnIndex, T.Shape[0], 1);
 end;
 
 function GetRow(T: TTensor; RowIndex: longint): TTensor;
 begin
-  Result := GetRange(T, RowIndex, 0, 1, T.Shape[0]);
+  Result := GetRange(T, RowIndex, 0, 1, T.Shape[1]);
 end;
 
 procedure IterateTensor(T: TTensor; Callback: TCallback);
