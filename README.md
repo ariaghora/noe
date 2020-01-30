@@ -4,6 +4,13 @@
 
 ***
 
+<div align="center">
+  
+[![Generic badge](https://img.shields.io/badge/license-MIT-blue.svg)](https://shields.io/)
+[![made-for-VSCode](https://img.shields.io/badge/Made%20for-free%20pascal-e3f171.svg)](https://code.visualstudio.com/)
+
+</div>
+
 Noe is a framework for an easier scientific computation in object pascal, especially to build neural networks (and thus, the name — *noe (Korean:뇌) means brain*). It supports the creation of arbitrary rank tensor and its arithmetical operations. Some of the key features:
 - Automatic gradient computation
 - Numpy-style broadcasting
