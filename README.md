@@ -12,4 +12,4 @@ Noe is a framework for neural networks for object pascal. Some of its features:
 
 Check out [the wiki](https://github.com/ariaghora/noe/wiki) for more documentation.
 
-> *This is my experimental project to understand the mechanism behind n-dimensional array: how is its layout in memory, how to do indexing, etc. Furthermore, I am also learning what happens under the hood of the automatic differentiation for a neural network in near future. That said, noe is developed towards the implementation of neural networks (therefore the name). So, this project might be a good basis for it.*
+> **A blatant disclaimer -** *This is my experimental project to understand the mechanism behind n-dimensional array: how is its layout in memory, how to do indexing, etc. Furthermore, I am also learning what happens under the hood of the automatic differentiation for a neural network in near future. That said, the use for production is not encouraged at this moment.*
