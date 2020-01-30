@@ -2,10 +2,8 @@
 <img src="assets/noe-txt.png" alt="logo" width="200px"></img>
 </div>
 
-Noe is a framework for an easier scientific computation in object pascal, especially the creation of neural networks. Some of its key features:
-- Creation of arbitrary rank tensors
+Noe is a framework for an easier scientific computation in object pascal, especially to build neural networks. It supports the creation of arbitrary rank tensor and its arithmetical operations. Some of its key features:
 - Automatic gradient computation
-- Support of some matrix and tensor operations
 - Numpy-style broadcasting
 - Interface with *OpenBLAS* for some heavy-lifting
 - Interface with *GNU plot* for plotting
