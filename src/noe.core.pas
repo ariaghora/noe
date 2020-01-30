@@ -471,8 +471,8 @@ var
   offset: longint;
 begin
   Result := TTensor.Create;
-  Result.Reshape([floor((stop - start) / step)]);
-  SetLength(Result.Val, floor((stop - start) / step));
+  Result.Reshape([Ceil((stop - start) / step)]);
+  SetLength(Result.Val, Ceil((stop - start) / step));
 
   i := start;
   offset := 0;
