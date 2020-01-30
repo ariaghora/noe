@@ -213,6 +213,7 @@ var
 begin
   s := '' + sLineBreak;
   s := s + 'set terminal %s title ''%s'';' + sLineBreak;
+  s := s + 'set key right top;' + sLineBreak;
   s := s + 'set xlabel ''' + self.XLabel + ''';' + sLineBreak;
   s := s + 'set ylabel ''' + self.YLabel + ''';' + sLineBreak;
   s := s + 'do for [i=1:64] {set style line i linewidth 2};' + sLineBreak;
