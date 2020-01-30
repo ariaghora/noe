@@ -1,3 +1,11 @@
+{
+ This file is part of "noe" library.
+
+ Noe library. Copyright (C) 2020 Aria Ghora Prabono.
+
+ This unit provides implementation for neural network optimization algorithms.
+}
+
 unit noe.optimizer;
 
 {$mode objfpc}{$H+}
@@ -9,27 +17,25 @@ uses
 
 type
 
-  { TBaseOptimizer }
-
+  { The base class for optimizer. All optimizers should extend this class. }
   TBaseOptimizer = class
   private
     FLearningRate: double;
-    FLoss: TVariable;
   public
     constructor Create(ALearningRate: double);
     procedure UpdateParams(params: array of TVariable); overload; virtual; abstract;
     property LearningRate: double read FLearningRate write FLearningRate;
-    property Loss: TVariable read FLoss write FLoss;
   end;
 
-  { TGradientDescentOptimizer }
-
-  TGradientDescentOptimizer = class(TBaseOptimizer)
+  { The implementation of stochastic gradient descent. It is the most basic
+    optimizer among available ones. }
+  TSGDOptimizer = class(TBaseOptimizer)
     procedure UpdateParams(ModelParams: array of TVariable); override;
   end;
 
-  { TAdamOptimizer }
-
+  { The implementation of adam optimizer. It was proposed by Kingma & Ba (2014).
+    Please check the paper, "Adam: A Method for Stochastic Optimization", here:
+    https://arxiv.org/abs/1412.6980. }
   TAdamOptimizer = class(TBaseOptimizer)
   private
     iteration: longint;
@@ -60,8 +66,7 @@ end;
 
 procedure TAdamOptimizer.UpdateParams(ModelParams: array of TVariable);
 var
-  param: TVariable;
-  mHat, vHat, it: TTensor;
+  mHat, vHat: TTensor;
   i: longint;
 begin
   { initialize elements in M and V once with zeros }
@@ -87,7 +92,7 @@ begin
     mHat := self.M[i] / (1 - (self.Beta1 ** (self.iteration)));
     vHat := self.V[i] / (1 - (self.Beta2 ** (self.iteration)));
 
-    { Model update }
+    { Model parameter update }
     ModelParams[i].Data := ModelParams[i].Data - self.LearningRate *
       mHat / ((vHat ** 0.5) + self.Epsilon);
 
@@ -104,9 +109,9 @@ begin
   self.LearningRate := ALearningRate;
 end;
 
-{ TGradientDescentOptimizer }
+{ TSGDOptimizer }
 
-procedure TGradientDescentOptimizer.UpdateParams(ModelParams: array of TVariable);
+procedure TSGDOptimizer.UpdateParams(ModelParams: array of TVariable);
 var
   param: TVariable;
 begin
