@@ -164,13 +164,10 @@ procedure TPlot.SetDataPoints(x: TTensor);
 var
   x_: TTensor;
 begin
-  if (x.Shape[0] = 1) or (x.Shape[1] = 1) then
-  begin
-    x_ := CopyTensor(x);
-    if x.Shape[1] > 1 then
-      x_ := x_.T;
-    self.Values := x_;
-  end;
+  x_ := CopyTensor(x);
+  x_.Reshape([x_.Shape[0], 1]);
+
+  self.Values := x_;
 end;
 
 procedure TPlot.SetDataPoints(x, y: TTensor);
