@@ -27,6 +27,7 @@ function Multiply(A, B: TVariable): TVariable;
 function MultiplyC(A: TVariable; x: double): TVariable;
 function MatMul(A, B: TVariable): TVariable;
 
+function Negate(A: TVariable): TVariable;
 function Cosh(A: TVariable): TVariable;
 function Sinh(A: TVariable): TVariable;
 function Sqr(A: TVariable): TVariable;
@@ -50,6 +51,7 @@ procedure BwMatmul(arr: TVariableArr; ADy: TTensor);
 procedure BwCosh(arr: TVariableArr; ADy: TTensor);
 procedure BwExp(arr: TVariableArr; ADy: TTensor);
 procedure BwMean(arr: TVariableArr; ADy: TTensor);
+procedure BwNegate(arr: TVariableArr; ADy: TTensor);
 procedure BwReLU(arr: TVariableArr; ADy: TTensor);
 procedure BwSinh(arr: TVariableArr; ADy: TTensor);
 procedure BwSqr(arr: TVariableArr; ADy: TTensor);
@@ -66,6 +68,7 @@ function ReduceTo(Target, Other: TTensor): TTensor;
 operator := (Val: double) V: TVariable;
 operator +(A, B: TVariable) C: TVariable;
 operator -(A, B: TVariable) C: TVariable;
+operator -(A: TVariable) B: TVariable;
 operator * (A, B: TVariable) C: TVariable;
 
 
@@ -131,6 +134,15 @@ begin
   SetLength(Result.FPrev, 2);
   Result.Prev[0] := A;
   Result.Prev[1] := B;
+end;
+
+function Negate(A: TVariable): TVariable;
+begin
+  Result := TVariable.Create(-A.Data, 'Negate', @BwNegate);
+  Result.RequiresGrad := True;
+
+  SetLength(Result.FPrev, 1);
+  Result.Prev[0] := A;
 end;
 
 function Cosh(A: TVariable): TVariable;
@@ -235,9 +247,9 @@ end;
 procedure BwAdd(arr: TVariableArr; ADy: TTensor);
 begin
   if arr[0].RequiresGrad then
-    arr[0].Grad := arr[0].Grad + ADy;
+    arr[0].Grad := arr[0].Grad + ReduceTo(ADy, arr[0].Data);
   if arr[1].RequiresGrad then
-    arr[1].Grad := arr[1].Grad + ADy;
+    arr[1].Grad := arr[1].Grad + ReduceTo(ADy, arr[1].Data);
 end;
 
 function SoftMax(A: TVariable; axis: byte): TVariable;
@@ -282,17 +294,25 @@ end;
 procedure BwSubtract(arr: TVariableArr; ADy: TTensor);
 begin
   if arr[0].RequiresGrad then
-    arr[0].Grad := arr[0].Grad + ADy;
+    arr[0].Grad := arr[0].Grad + ReduceTo(ADy, arr[0].Data);
   if arr[1].RequiresGrad then
-    arr[1].Grad := arr[1].Grad - ADy;
+    arr[1].Grad := arr[1].Grad - ReduceTo(ADy, arr[1].Data);
 end;
 
 procedure BwMultiply(arr: TVariableArr; ADy: TTensor);
+var
+  B, A: TTensor;
 begin
   if arr[0].RequiresGrad then
-    arr[0].Grad := arr[0].Grad + noe.Math.Multiply(ADy, arr[1].Data);
+  begin
+    A := noe.Math.Multiply(ADy, arr[1].Data);
+    arr[0].Grad := arr[0].Grad + ReduceTo(A, arr[0].Data);
+  end;
   if arr[1].RequiresGrad then
-    arr[1].Grad := arr[1].Grad + noe.Math.Multiply(ADy, arr[0].Data);
+  begin
+    B := noe.Math.Multiply(ADy, arr[0].Data);
+    arr[1].Grad := arr[1].Grad + ReduceTo(B, arr[1].Data);
+  end;
 end;
 
 procedure BwMultiplyC(arr: TVariableArr; ADy: TTensor);
@@ -337,6 +357,12 @@ procedure BwSqrt(arr: TVariableArr; ADy: TTensor);
 begin
   if arr[0].RequiresGrad then
     arr[0].Grad := arr[0].Grad + (ADy * 0.5 * 1 / (arr[0].Data ** 0.5));
+end;
+
+procedure BwNegate(arr: TVariableArr; ADy: TTensor);
+begin
+  if arr[0].RequiresGrad then
+    arr[0].Grad := arr[0].Grad - ADy;
 end;
 
 procedure BwReLU(arr: TVariableArr; ADy: TTensor);
@@ -392,6 +418,11 @@ end;
 operator -(A, B: TVariable)C: TVariable;
 begin
   C := Subtract(A, B);
+end;
+
+operator -(A: TVariable)B: TVariable;
+begin
+  B := Negate(A);
 end;
 
 operator * (A, B: TVariable)C: TVariable;
