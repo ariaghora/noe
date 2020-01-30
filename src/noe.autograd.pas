@@ -54,6 +54,9 @@ type
     property Prev: TVariableArr read FPrev write FPrev;
     property RequiresGrad: boolean read FRequiresGrad write FRequiresGrad;
     property Tensor: TTensor read FTensor write FTensor;
+
+    { Math helpers }
+    function MatMul(Other: TVariable): TVariable;
   end;
 
 function TopologicalSort(T: TVariable): TVariableArr;
@@ -62,6 +65,9 @@ procedure BackwardGraph(const T: TVariable);
 operator in (T: TVariable; arr: array of TVariable) b: boolean;
 
 implementation
+
+uses
+  noe.op.base;
 
 function TopologicalSort(T: TVariable): TVariableArr;
 var
@@ -179,6 +185,11 @@ end;
 procedure TVariable.ZeroGrad;
 begin
   self.Grad := Zeros(self.Tensor.Shape);
+end;
+
+function TVariable.MatMul(Other: TVariable): TVariable;
+begin
+  Result := noe.op.base.MatMul(self, Other);
 end;
 
 
