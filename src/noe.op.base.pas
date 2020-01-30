@@ -5,6 +5,9 @@
 
  This unit contains required basic operations for automatic gradient
  computation.
+
+ To do:
+  - Apply ReduceTo on the op that involves broadcasting
 }
 
 unit noe.op.base;
@@ -18,6 +21,7 @@ uses
 
 { forward functions -----------------------------------------------------------}
 function Add(A, B: TVariable): TVariable;
+function Divide(A, B: TVariable): TVariable;
 function Subtract(A, B: TVariable): TVariable;
 function Multiply(A, B: TVariable): TVariable;
 function MultiplyC(A: TVariable; x: double): TVariable;
@@ -37,6 +41,7 @@ function Sum(A: TVariable): TVariable; overload;
 
 { backward functions ----------------------------------------------------------}
 procedure BwAdd(arr: TVariableArr; ADy: TTensor);
+procedure BwDivide(arr: TVariableArr; ADy: TTensor);
 procedure BwSubtract(arr: TVariableArr; ADy: TTensor);
 procedure BwMultiply(arr: TVariableArr; ADy: TTensor);
 procedure BwMultiplyC(arr: TVariableArr; ADy: TTensor);
@@ -52,6 +57,12 @@ procedure BwSqrt(arr: TVariableArr; ADy: TTensor);
 procedure BwSum(arr: TVariableArr; ADy: TTensor);
 procedure BwTanh(arr: TVariableArr; ADy: TTensor);
 
+{ aggregate functions, derived from above functions ---------------------------}
+function SoftMax(A: TVariable; axis: byte): TVariable;
+
+{ If target is the result of broadcasting, reduce to its original shape }
+function ReduceTo(Target, Other: TTensor): TTensor;
+
 operator := (Val: double) V: TVariable;
 operator +(A, B: TVariable) C: TVariable;
 operator -(A, B: TVariable) C: TVariable;
@@ -63,6 +74,16 @@ implementation
 function Add(A, B: TVariable): TVariable;
 begin
   Result := TVariable.Create(A.Data + B.Data, 'Add', @BwAdd);
+  Result.RequiresGrad := True;
+
+  SetLength(Result.FPrev, 2);
+  Result.Prev[0] := A;
+  Result.Prev[1] := B;
+end;
+
+function Divide(A, B: TVariable): TVariable;
+begin
+  Result := TVariable.Create(A.Data / B.Data, 'Divide', @BwDivide);
   Result.RequiresGrad := True;
 
   SetLength(Result.FPrev, 2);
@@ -217,6 +238,45 @@ begin
     arr[0].Grad := arr[0].Grad + ADy;
   if arr[1].RequiresGrad then
     arr[1].Grad := arr[1].Grad + ADy;
+end;
+
+function SoftMax(A: TVariable; axis: byte): TVariable;
+var
+  X, Y: TVariable;
+begin
+  X := exp(A);
+  Y := Divide(exp(A), sum(X, axis));
+  Result := Y;
+end;
+
+function ReduceTo(Target, Other: TTensor): TTensor;
+var
+  ax, i: longint;
+begin
+  Result := Target;
+  ax := -1;
+  for i := 0 to Length(Target.Shape) - 1 do
+    if Target.Shape[i] > Other.Shape[i] then
+      ax := i;
+  if ax > -1 then
+    Result := Sum(Target, ax);
+end;
+
+procedure BwDivide(arr: TVariableArr; ADy: TTensor);
+var
+  A, B: TTensor;
+  i: longint;
+begin
+  if arr[0].RequiresGrad then
+  begin
+    A := ADy / arr[1].Data;
+    arr[0].Grad := arr[0].Grad + ReduceTo(A, arr[0].Data);
+  end;
+  if arr[1].RequiresGrad then
+  begin
+    B := -ADy * arr[0].Data / arr[1].Data ** 2;
+    arr[1].Grad := arr[1].Grad + ReduceTo(B, arr[1].Data);
+  end;
 end;
 
 procedure BwSubtract(arr: TVariableArr; ADy: TTensor);
