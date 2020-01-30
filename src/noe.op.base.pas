@@ -368,14 +368,14 @@ begin
   szArr := ShapeToSize(arr[0].Data.Shape);
   szDy := ShapeToSize(ADy.Shape);
   if arr[0].RequiresGrad then
-    arr[0].Grad := arr[0].Grad + FullTensor(arr[0].Data.Shape,
+    arr[0].Grad := arr[0].Grad + CreateTensor(arr[0].Data.Shape,
       ADy.Val[0] / (szArr / szDy));
 end;
 
 procedure BwSum(arr: TVariableArr; ADy: TTensor);
 begin
   if arr[0].RequiresGrad then
-    arr[0].Grad := arr[0].Grad + FullTensor(arr[0].Data.Shape, ADy.Val[0]);
+    arr[0].Grad := arr[0].Grad + CreateTensor(arr[0].Data.Shape, ADy.Val[0]);
 end;
 
 operator := (Val: double)V: TVariable;

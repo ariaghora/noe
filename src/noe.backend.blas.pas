@@ -68,12 +68,12 @@ end;
 
 function MeanCol_BLAS(A: TTensor): TTensor;
 begin
-  Result := MatMul_BLAS(FullTensor([1, A.Shape[0]], 1 / A.Shape[0]), A);
+  Result := MatMul_BLAS(CreateTensor([1, A.Shape[0]], 1 / A.Shape[0]), A);
 end;
 
 function MeanRow_BLAS(A: TTensor): TTensor;
 begin
-  Result := MatMul_BLAS(A, FullTensor([A.Shape[1], 1], 1 / A.Shape[1]));
+  Result := MatMul_BLAS(A, CreateTensor([A.Shape[1], 1], 1 / A.Shape[1]));
 end;
 
 function SumCol_BLAS(A: TTensor): TTensor;

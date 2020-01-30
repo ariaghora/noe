@@ -476,7 +476,7 @@ begin
       combos := combo(combinations);
       broadcastCombos := combo(broadcastDims);
 
-      Result := FullTensor(broadcastDims, 0.0);
+      Result := CreateTensor(broadcastDims, 0.0);
 
       for bcomb in broadcastCombos do
       begin

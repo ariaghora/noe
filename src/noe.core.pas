@@ -138,9 +138,9 @@ procedure IterateTensor(T: TTensor; Callback: TCallback);
 
 { Tensor creation ------------------------------------------------------------ }
 function CopyTensor(A: TTensor): TTensor;
-function FullTensor(Shape: array of longint): TTensor; overload;
-function FullTensor(Shape: array of longint; Val: float): TTensor; overload;
-function FullTensor(Shape: array of longint; Vals: array of float): TTensor; overload;
+function CreateTensor(Shape: array of longint): TTensor; overload;
+function CreateTensor(Shape: array of longint; Val: float): TTensor; overload;
+function CreateTensor(Shape: array of longint; Vals: array of float): TTensor; overload;
 function Zeros(Shape: array of longint): TTensor;
 function Ones(Shape: array of longint): TTensor;
 
@@ -157,7 +157,7 @@ uses
 
 operator := (Val: float) M: TTensor;
 begin
-  M := FullTensor([1], Val);
+  M := CreateTensor([1], Val);
 end;
 
 operator +(A, B: TTensor) C: TTensor;
@@ -417,7 +417,7 @@ begin
   Result.Reshape(A.Shape);
 end;
 
-function FullTensor(Shape: array of longint): TTensor;
+function CreateTensor(Shape: array of longint): TTensor;
 var
   i, size: longint;
 begin
@@ -429,7 +429,7 @@ begin
   Result.Reshape(shape);
 end;
 
-function FullTensor(Shape: array of longint; Val: float): TTensor;
+function CreateTensor(Shape: array of longint; Val: float): TTensor;
 var
   i, size: longint;
 begin
@@ -441,7 +441,7 @@ begin
   Result.Reshape(shape);
 end;
 
-function FullTensor(Shape: array of longint; Vals: array of float): TTensor;
+function CreateTensor(Shape: array of longint; Vals: array of float): TTensor;
 var
   i, size: longint;
 begin
@@ -457,12 +457,12 @@ end;
 
 function Zeros(Shape: array of longint): TTensor;
 begin
-  Result := FullTensor(Shape, 0);
+  Result := CreateTensor(Shape, 0);
 end;
 
 function Ones(Shape: array of longint): TTensor;
 begin
-  Result := FullTensor(Shape, 1.0);
+  Result := CreateTensor(Shape, 1.0);
 end;
 
 function Range(start, stop, step: double): TTensor;
