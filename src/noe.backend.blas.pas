@@ -20,7 +20,7 @@ unit noe.backend.blas;
 interface
 
 uses
-  Classes, SysUtils, dynlibs, noe.core;
+  Classes, SysUtils, dynlibs, noe;
 
 type
   CBLAS_ORDER     = (CblasRowMajor = 101, CblasColMajor = 102);

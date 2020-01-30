@@ -10,7 +10,7 @@
   - implement broadcasting mechanism
   - implement a function to get string from tensor values
 }
-unit noe.core;
+unit noe;
 
 {$mode objfpc}{$H+}
 
@@ -101,7 +101,6 @@ operator / (A, B: TTensor) C: TTensor;
 operator * (A, B: TTensor) C: TTensor;
 operator ** (A: TTensor; expo: double) B: TTensor; inline;
 operator ** (A, B: TTensor) C: TTensor; inline;
-
 
 { Helpers ---------------------------------------------------------------------}
 

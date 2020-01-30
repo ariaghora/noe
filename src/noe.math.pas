@@ -19,7 +19,7 @@ unit noe.Math;
 interface
 
 uses
-  Classes, SysUtils, strutils, Math, RegExpr, fgl, noe.core, noe.utils,
+  Classes, SysUtils, strutils, Math, RegExpr, fgl, noe, noe.utils,
   noe.backend.blas, noe.backend.native;
 
 type
@@ -142,7 +142,7 @@ begin
     'Tensor dimension must be <= 2.');
 
   { calculates matrix multiplication according to the backend }
-  if noe.core.NoeConfig.useBLAS then
+  if noe.NoeConfig.useBLAS then
     Result := MatMul_BLAS(A, B)
   else
     Result := MatMul_Native(A, B);
@@ -164,14 +164,14 @@ begin
   Assert(axis <= 1, MSG_ASSERTION_INVALID_AXIS);
   if axis = 0 then
   begin
-    if noe.core.NoeConfig.useBLAS then
+    if noe.NoeConfig.useBLAS then
       Result := MeanCol_BLAS(M)
     else
       Result := MeanCol_Native(M);
   end
   else
   begin
-    if noe.core.NoeConfig.useBLAS then
+    if noe.NoeConfig.useBLAS then
       Result := MeanRow_BLAS(M)
     else
       Result := MeanRow_Native(M);
@@ -196,14 +196,14 @@ begin
   Assert(axis <= 1, MSG_ASSERTION_INVALID_AXIS);
   if axis = 0 then
   begin
-    if noe.core.NoeConfig.useBLAS then
+    if noe.NoeConfig.useBLAS then
       Result := SumCol_BLAS(M)
     else
       Result := SumCol_Native(M);
   end
   else
   begin
-    if noe.core.NoeConfig.useBLAS then
+    if noe.NoeConfig.useBLAS then
       Result := SumRow_BLAS(M)
     else
       Result := SumRow_Native(M);

@@ -5,7 +5,7 @@ unit noe.autograd;
 interface
 
 uses
-  Classes, SysUtils, noe.core;
+  Classes, SysUtils, noe;
 
 var
   GLOBAL_NODE_COUNT: integer;
@@ -61,13 +61,20 @@ type
 
 function TopologicalSort(T: TVariable): TVariableArr;
 procedure BackwardGraph(const T: TVariable);
+procedure SetRequiresGrad(arr: array of TVariable; val: boolean);
+
+operator := (Val: double) V: TVariable;
+operator +(A, B: TVariable) C: TVariable;
+operator -(A, B: TVariable) C: TVariable;
+operator -(A: TVariable) B: TVariable;
+operator * (A, B: TVariable) C: TVariable;
 
 operator in (T: TVariable; arr: array of TVariable) b: boolean;
 
 implementation
 
 uses
-  noe.op.base;
+  noe.Math.autograd;
 
 function TopologicalSort(T: TVariable): TVariableArr;
 var
@@ -189,8 +196,44 @@ end;
 
 function TVariable.MatMul(Other: TVariable): TVariable;
 begin
-  Result := noe.op.base.MatMul(self, Other);
+  Result := noe.Math.autograd.MatMul(self, Other);
 end;
+
+procedure SetRequiresGrad(arr: array of TVariable; val: boolean);
+var
+  V: TVariable;
+begin
+  for V in arr do
+    V.RequiresGrad := val;
+end;
+
+
+operator := (Val: double)V: TVariable;
+begin
+  V := TVariable.Create(Val);
+  V.RequiresGrad := False;
+end;
+
+operator +(A, B: TVariable)C: TVariable;
+begin
+  C := Add(A, B);
+end;
+
+operator -(A, B: TVariable)C: TVariable;
+begin
+  C := Subtract(A, B);
+end;
+
+operator -(A: TVariable)B: TVariable;
+begin
+  B := Negate(A);
+end;
+
+operator * (A, B: TVariable)C: TVariable;
+begin
+  C := Multiply(A, B);
+end;
+
 
 
 initialization

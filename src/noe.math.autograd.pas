@@ -10,14 +10,14 @@
   - Apply ReduceTo on the op that involves broadcasting
 }
 
-unit noe.op.base;
+unit noe.math.autograd;
 
 {$mode objfpc}
 
 interface
 
 uses
-  Classes, SysUtils, noe.core, noe.Math, noe.autograd;
+  Classes, SysUtils, noe, noe.Math, noe.autograd;
 
 { forward functions -----------------------------------------------------------}
 function Add(A, B: TVariable): TVariable;
@@ -64,13 +64,6 @@ function SoftMax(A: TVariable; axis: byte): TVariable;
 
 { If target is the result of broadcasting, reduce to its original shape }
 function ReduceTo(Target, Other: TTensor): TTensor;
-
-operator := (Val: double) V: TVariable;
-operator +(A, B: TVariable) C: TVariable;
-operator -(A, B: TVariable) C: TVariable;
-operator -(A: TVariable) B: TVariable;
-operator * (A, B: TVariable) C: TVariable;
-
 
 implementation
 
@@ -402,32 +395,6 @@ procedure BwSum(arr: TVariableArr; ADy: TTensor);
 begin
   if arr[0].RequiresGrad then
     arr[0].Grad := arr[0].Grad + CreateTensor(arr[0].Data.Shape, ADy.Val[0]);
-end;
-
-operator := (Val: double)V: TVariable;
-begin
-  V := TVariable.Create(Val);
-  V.RequiresGrad := False;
-end;
-
-operator +(A, B: TVariable)C: TVariable;
-begin
-  C := Add(A, B);
-end;
-
-operator -(A, B: TVariable)C: TVariable;
-begin
-  C := Subtract(A, B);
-end;
-
-operator -(A: TVariable)B: TVariable;
-begin
-  B := Negate(A);
-end;
-
-operator * (A, B: TVariable)C: TVariable;
-begin
-  C := Multiply(A, B);
 end;
 
 end.

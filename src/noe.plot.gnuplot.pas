@@ -12,7 +12,7 @@ unit noe.plot.gnuplot;
 interface
 
 uses
-  Classes, SysUtils, noe.core;
+  Classes, SysUtils, noe;
 
 var
   { Hold global count of created plots }

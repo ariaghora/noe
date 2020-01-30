@@ -14,7 +14,7 @@ unit noe.utils;
 interface
 
 uses
-  SysUtils, strutils, fgl, Classes, noe.core;
+  SysUtils, strutils, fgl, Classes, noe;
 
 type
   TIntVector = array of longint;
@@ -176,7 +176,7 @@ end;
 
 procedure NoeLog(tag, msg: string);
 begin
-  if noe.core.NoeConfig.debug and IsConsole then
+  if noe.NoeConfig.debug and IsConsole then
   begin
     WriteLn(tag + ': ' + msg);
   end;
