@@ -34,6 +34,7 @@ type
     function DumpCSV(Sep: string = ','): string;
     function GetShape: TIntVector;
     function GetAt(Index: array of longint): TTensor;
+    procedure WriteToCSV(FileName: string);
 
     { transpose for matrix, reverse index for tensors }
     function T: TTensor;
@@ -93,6 +94,8 @@ type
   PVariableArr  = array of ^TVariable;
   TBackwardFunc = procedure(arr: TVariableArr; ADy: TTensor);
 
+  { TVariable }
+
   TVariable = class
     FTensor: TTensor;
     FTensorPtr: PTensor;
@@ -101,9 +104,11 @@ type
     FIsLeaf: boolean;
     FRequiresGrad: boolean;
     FPrev:   TVariableArr;
+    FShape:  TIntVector;
   private
     FBackwardFunc: TBackwardFunc;
     FName: string;
+    function GetShape: TIntVector;
     procedure SetData(AValue: TTensor);
   public
     constructor Create; overload;
@@ -125,6 +130,7 @@ type
     property Name: string read FName write FName;
     property Prev: TVariableArr read FPrev write FPrev;
     property RequiresGrad: boolean read FRequiresGrad write FRequiresGrad;
+    property Shape: TIntVector read GetShape;
     property Tensor: TTensor read FTensor write FTensor;
 
     { Math helpers }
@@ -248,7 +254,7 @@ begin
   C := noe.Math.Divide(A, B);
 end;
 
-operator/(A, B: TVariable)C: TVariable;
+operator / (A, B: TVariable)C: TVariable;
 begin
   C := Divide(A, B);
 end;
@@ -296,7 +302,7 @@ end;
 
 operator in(T: TVariable; arr: array of TVariable)b: boolean;
 var
-  Tmp:TVariable;
+  Tmp: TVariable;
 begin
   result := false;
   for Tmp in arr do
@@ -491,6 +497,19 @@ begin
     Result.Val[i] := self.Val[i + offset];
 end;
 
+procedure TTensor.WriteToCSV(FileName: string);
+var
+  F: TextFile;
+begin
+  AssignFile(F, FileName);
+  try
+    ReWrite(F);
+    Write(F, self.DumpCSV());
+  finally
+    CloseFile(F);
+  end;
+end;
+
 function TTensor.T: TTensor;
 begin
   Result := noe.Math.Transpose(Self);
@@ -542,6 +561,11 @@ begin
   FTensor := AValue;
 end;
 
+function TVariable.GetShape: TIntVector;
+begin
+  Result := self.Data.Shape;
+end;
+
 constructor TVariable.Create;
 begin
   self.Create(nil, '', nil, True);
@@ -578,7 +602,7 @@ begin
   self.IsLeaf := AIsLeaf;
 
   { always true on creation unless specified otherwise }
-  self.RequiresGrad:= False;
+  self.RequiresGrad := False;
 
   self.ZeroGrad;
 
@@ -681,7 +705,7 @@ begin
 
   i := start;
   offset := 0;
-  while offset < Ceil((stop - start) / step)  do
+  while offset < Ceil((stop - start) / step) do
   begin
     Result.Val[offset] := i;
     i := i + step;
@@ -706,7 +730,7 @@ var
 
   procedure TopoHelper(v: TVariable);
   begin
-    if (not(v in Seen)) and (not(v.IsLeaf)) then
+    if (not (v in Seen)) and (not (v.IsLeaf)) then
     begin
       SetLength(Seen, Length(seen) + 1);
       Seen[Length(Seen) - 1] := v;
@@ -720,6 +744,7 @@ var
       end;
     end;
   end;
+
 begin
   TopoHelper(T);
   Result := Sorted;
@@ -728,7 +753,7 @@ end;
 procedure BackwardGraph(const T: TVariable);
 var
   Sorted: TVariableArr;
-  i:longint;
+  i: longint;
 begin
   Sorted := TopologicalSort(T);
 

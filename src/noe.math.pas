@@ -11,6 +11,7 @@
   - implement iterate() that accepts callback to iterate over dimensions
   - provide backends for matrix transposition
   - Apply ReduceTo on the op that involves broadcasting
+  - Fix broadcast guard :(( Shape[1000, 10] + [1, 11] passed :'(
 }
 
 unit noe.Math;
@@ -677,7 +678,9 @@ begin
   if arr[0].RequiresGrad then
     arr[0].Grad := arr[0].Grad + ReduceTo(ADy, arr[0].Data);
   if arr[1].RequiresGrad then
+  begin
     arr[1].Grad := arr[1].Grad + ReduceTo(ADy, arr[1].Data);
+  end;
 end;
 
 function SoftMax(A: TVariable; axis: byte): TVariable;

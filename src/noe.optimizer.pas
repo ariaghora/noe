@@ -38,7 +38,6 @@ type
     https://arxiv.org/abs/1412.6980. }
   TAdamOptimizer = class(TBaseOptimizer)
   private
-    iteration: longint;
     M: array of TTensor;
     V: array of TTensor;
     MVPopulated: boolean;
@@ -46,6 +45,7 @@ type
     Epsilon: double;
     Beta1:   double;
     Beta2:   double;
+    iteration: longint;
     constructor Create;
     procedure UpdateParams(ModelParams: array of TVariable); override;
   end;
