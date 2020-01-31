@@ -44,6 +44,9 @@ function Divide(A, B: TTensor): TTensor;
 function Multiply(A, B: TTensor): TTensor;
 function MatMul(A, B: TTensor): TTensor;
 
+{ unary functions for tensors }
+function Max(M: TTensor): TTensor;
+function Max(M: TTensor; axis: byte): TTensor; overload;
 function Mean(M: TTensor): TTensor;
 function Mean(M: TTensor; axis: byte): TTensor; overload;
 function Sum(M: TTensor): TTensor;
@@ -67,13 +70,15 @@ function RadToDeg(A: TTensor): TTensor; inline;
 { Logarithm functions }
 function Log10(A: TTensor): TTensor;
 function Log2(A: TTensor): TTensor;
+function Ln(A: TTensor): TTensor;
 
 { Some of functions belong to system unit are in different format. Hence, they
   need to be wrapped to make them compatible. They are given suffix "F"
   (indicating double-valued function) to avoid confusion. }
-function SinF(x: double): double;
-function CosF(x: double): double;
-function ExpF(x: double): double;
+function Sin_F(x: double): double;
+function Cos_F(x: double): double;
+function Exp_F(x: double): double;
+function Ln_F(x: double): double;
 
 { Trigonometric functions }
 function Sin(A: TTensor): TTensor;
@@ -106,12 +111,15 @@ function MatMul(A, B: TVariable): TVariable;
 
 function Negate(A: TVariable): TVariable;
 function Cosh(A: TVariable): TVariable;
+function Ln(A: TVariable): TVariable;
 function Sinh(A: TVariable): TVariable;
 function Sqr(A: TVariable): TVariable;
 function Sqrt(A: TVariable): TVariable;
 function ReLU(A: TVariable): TVariable;
 function Tanh(A: TVariable): TVariable;
 function Exp(A: TVariable): TVariable;
+function Max(A: TVariable): TVariable;
+function Max(A: TVariable; axis: byte): TVariable; overload;
 function Mean(A: TVariable; axis: byte): TVariable;
 function Mean(A: TVariable): TVariable; overload;
 function Sum(A: TVariable; axis: byte): TVariable;
@@ -126,7 +134,9 @@ procedure BwMultiplyC(arr: TVariableArr; ADy: TTensor);
 procedure BwMatmul(arr: TVariableArr; ADy: TTensor);
 
 procedure BwCosh(arr: TVariableArr; ADy: TTensor);
+procedure BwLn(arr: TVariableArr; ADy: TTensor);
 procedure BwExp(arr: TVariableArr; ADy: TTensor);
+procedure BwMax(arr: TVariableArr; ADy: TTensor);
 procedure BwMean(arr: TVariableArr; ADy: TTensor);
 procedure BwNegate(arr: TVariableArr; ADy: TTensor);
 procedure BwReLU(arr: TVariableArr; ADy: TTensor);
@@ -195,6 +205,37 @@ begin
     Result := MatMul_BLAS(A, B)
   else
     Result := MatMul_Native(A, B);
+end;
+
+function Max(M: TTensor): TTensor;
+begin
+  Result := TTensor.Create;
+  SetLength(Result.Val, 1);
+  Result.Val[0] := MaxValue(M.Val);
+  Result.Reshape([1]);
+end;
+
+function Max(M: TTensor; axis: byte): TTensor;
+var
+  i: longint;
+begin
+  Assert(Length(M.Shape) = 2, MSG_ASSERTION_RANK_2_TENSORS_ONLY);
+  Assert(axis in [0, 1], MSG_ASSERTION_INVALID_AXIS);
+  Result := TTensor.Create;
+  if axis = 0 then
+  begin
+    SetLength(Result.Val, M.Shape[1]);
+    Result.Reshape([1, M.Shape[1]]);
+    for i := 0 to M.Shape[1] - 1 do
+      Result.Val[i] := MaxValue(GetColumn(M, i).Val);
+  end
+  else
+  begin
+    SetLength(Result.Val, M.Shape[0]);
+    Result.Reshape([M.Shape[0], 1]);
+    for i := 0 to M.Shape[0] - 1 do
+      Result.Val[i] := MaxValue(GetRow(M, i).Val);
+  end;
 end;
 
 function Mean(M: TTensor): TTensor;
@@ -277,6 +318,11 @@ begin
   Result := ApplyUfunc(A, @Math.log2);
 end;
 
+function Ln(A: TTensor): TTensor;
+begin
+  Result := ApplyUfunc(A, @Ln_F);
+end;
+
 function Transpose2D(T: TTensor): TTensor;
 var
   i, j: longint;
@@ -331,24 +377,29 @@ begin
     Result.Val[i] := Max(0, T.Val[i]);
 end;
 
-function SinF(x: double): double;
+function Sin_F(x: double): double;
 begin
   Result := System.Sin(x);
 end;
 
-function CosF(x: double): double;
+function Cos_F(x: double): double;
 begin
   Result := System.Cos(x);
 end;
 
-function ExpF(x: double): double;
+function Exp_F(x: double): double;
 begin
   Result := System.exp(x);
 end;
 
+function Ln_F(x: double): double;
+begin
+  Result := system.ln(x);
+end;
+
 function Sin(A: TTensor): TTensor;
 begin
-  Result := ApplyUfunc(A, @SinF);
+  Result := ApplyUfunc(A, @Sin_F);
 end;
 
 function Sinh(A: TTensor): TTensor;
@@ -358,7 +409,7 @@ end;
 
 function Cos(A: TTensor): TTensor;
 begin
-  Result := ApplyUfunc(A, @CosF);
+  Result := ApplyUfunc(A, @Cos_F);
 end;
 
 function Cosh(A: TTensor): TTensor;
@@ -388,7 +439,7 @@ end;
 
 function Exp(A: TTensor): TTensor;
 begin
-  Result := ApplyUfunc(A, @ExpF);
+  Result := ApplyUfunc(A, @Exp_F);
 end;
 
 function Add(A, B: TVariable): TVariable;
@@ -471,6 +522,15 @@ begin
   Result.Prev[0] := A;
 end;
 
+function Ln(A: TVariable): TVariable;
+begin
+  Result := TVariable.Create(noe.Math.Ln(A.Data), 'Ln', @BwLn);
+  Result.RequiresGrad := True;
+
+  SetLength(Result.FPrev, 1);
+  Result.Prev[0] := A;
+end;
+
 function Sinh(A: TVariable): TVariable;
 begin
   Result := TVariable.Create(noe.Math.Sinh(A.Data), 'Sinh', @BwSinh);
@@ -525,9 +585,24 @@ begin
   Result.Prev[0] := A;
 end;
 
+function Max(A: TVariable): TVariable;
+begin
+  Result := TVariable.Create(Max(A.Data), 'Max', @BwMax);
+  Result.RequiresGrad := True;
+
+  SetLength(Result.FPrev, 1);
+  Result.Prev[0] := A;
+end;
+
+function Max(A: TVariable; axis: byte): TVariable;
+begin
+  { Max along axis has no gradient (?) }
+  Result := TVariable.Create(Max(A.Data, axis), 'Max');
+end;
+
 function Mean(A: TVariable; axis: byte): TVariable;
 begin
-  Result := TVariable.Create(noe.Math.Mean(A.Data, axis), 'Mean', @BwMean);
+  Result := TVariable.Create(Mean(A.Data, axis), 'Mean', @BwMean);
   Result.RequiresGrad := True;
 
   SetLength(Result.FPrev, 1);
@@ -573,9 +648,9 @@ function SoftMax(A: TVariable; axis: byte): TVariable;
 var
   X, Y: TVariable;
 begin
-  X := exp(A);
-  Y := Divide(exp(A), sum(X, axis));
-  Result := Y;
+  X := A - Max(A, axis);
+  Y := Exp(X);
+  Result := Y / sum(Y, axis);
 end;
 
 function ReduceTo(Target, Other: TTensor): TTensor;
@@ -691,6 +766,12 @@ begin
         arr[0].Grad.Val[i] := arr[0].Grad.Val[i] + ADy.Val[i];
 end;
 
+procedure BwLn(arr: TVariableArr; ADy: TTensor);
+begin
+  if arr[0].RequiresGrad then
+    arr[0].Grad := arr[0].Grad + (ADy / arr[0].Data);
+end;
+
 procedure BwExp(arr: TVariableArr; ADy: TTensor);
 begin
   if arr[0].RequiresGrad then
@@ -701,6 +782,23 @@ procedure BwTanh(arr: TVariableArr; ADy: TTensor);
 begin
   if arr[0].RequiresGrad then
     arr[0].Grad := arr[0].Grad + (ADy / noe.Math.Cosh(arr[0].Data) ** 2);
+end;
+
+procedure BwMax(arr: TVariableArr; ADy: TTensor);
+var
+  maxval: double;
+  A: TTensor;
+  i: integer;
+begin
+  if arr[0].RequiresGrad then
+  begin
+    A := Zeros(Arr[0].Data.Shape);
+    maxval := MaxValue(arr[0].Data.Val);
+    for i := 0 to length(arr[0].Data.Val) - 1 do
+      if arr[0].Data.Val[i] = maxval then
+        A.Val[i] := 1;
+    arr[0].Grad := arr[0].Grad + A;
+  end;
 end;
 
 procedure BwMean(arr: TVariableArr; ADy: TTensor);

@@ -152,6 +152,7 @@ operator -(A: TVariable) B: TVariable;
 operator -(A, B: TTensor) C: TTensor;
 operator -(A, B: TVariable) C: TVariable;
 operator / (A, B: TTensor) C: TTensor;
+operator / (A, B: TVariable) C: TVariable;
 operator * (A, B: TTensor) C: TTensor;
 operator * (A, B: TVariable) C: TVariable;
 operator ** (A: TTensor; expo: double) B: TTensor; inline;
@@ -245,9 +246,14 @@ begin
   C := noe.Math.Divide(A, B);
 end;
 
+operator/(A, B: TVariable)C: TVariable;
+begin
+  C := Divide(A, B);
+end;
+
 operator * (A, B: TTensor)C: TTensor;
 begin
-  C := noe.Math.Multiply(A, B);
+  C := Multiply(A, B);
 end;
 
 operator ** (A: TTensor; expo: double)B: TTensor;
@@ -657,7 +663,7 @@ begin
 
   i := start;
   offset := 0;
-  while i < stop do
+  while offset < Ceil((stop - start) / step)  do
   begin
     Result.Val[offset] := i;
     i := i + step;
