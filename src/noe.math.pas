@@ -30,12 +30,15 @@ type
   { Wrapping FPC's f:RxR->R binary functions in math unit }
   TBFunc = function(v1, v2: double): double;
 
-{ TTensor math ----------------------------------------------------------------}
+{ basic math functions --------------------------------------------------------}
+
 { basic binary functions }
 function AddF(v1, v2: double): double;
 function SubtractF(v1, v2: double): double;
 function DivideF(v1, v2: double): double;
 function MultiplyF(v1, v2: double): double;
+
+{ TTensor math ----------------------------------------------------------------}
 
 { binary functions for tensors }
 function Add(A, B: TTensor): TTensor;
@@ -45,6 +48,8 @@ function Multiply(A, B: TTensor): TTensor;
 function MatMul(A, B: TTensor): TTensor;
 
 { unary functions for tensors }
+function ArgMax(M: TTensor): TTensor; overload;
+function ArgMax(M: TTensor; axis: byte): TTensor; overload;
 function Max(M: TTensor): TTensor;
 function Max(M: TTensor; axis: byte): TTensor; overload;
 function Mean(M: TTensor): TTensor;
@@ -205,6 +210,37 @@ begin
     Result := MatMul_BLAS(A, B)
   else
     Result := MatMul_Native(A, B);
+end;
+
+function ArgMax(M: TTensor): TTensor;
+begin
+  Result := TTensor.Create;
+  SetLength(Result.Val, 1);
+  Result.Val[0] := ArgMax(M.Val);
+  Result.Reshape([1]);
+end;
+
+function ArgMax(M: TTensor; axis: byte): TTensor;
+var
+  i: integer;
+begin
+  Assert(Length(M.Shape) = 2, MSG_ASSERTION_RANK_2_TENSORS_ONLY);
+  Assert(axis in [0, 1], MSG_ASSERTION_INVALID_AXIS);
+  Result := TTensor.Create;
+  if axis = 0 then
+  begin
+    SetLength(Result.Val, M.Shape[1]);
+    Result.Reshape([1, M.Shape[1]]);
+    for i := 0 to M.Shape[1] - 1 do
+      Result.Val[i] := ArgMax(GetColumn(M, i).Val);
+  end
+  else
+  begin
+    SetLength(Result.Val, M.Shape[0]);
+    Result.Reshape([M.Shape[0], 1]);
+    for i := 0 to M.Shape[0] - 1 do
+      Result.Val[i] := ArgMax(GetRow(M, i).Val);
+  end;
 end;
 
 function Max(M: TTensor): TTensor;

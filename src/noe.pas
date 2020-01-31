@@ -163,6 +163,8 @@ operator in (T: TVariable; arr: array of TVariable) b: boolean;
 
 { Helpers ---------------------------------------------------------------------}
 
+function ArgMax(V: TFloatVector): longint;
+
 { Check if all corresponding elements in two tensor are equal }
 function Equals(A, B: TTensor): boolean;
 
@@ -303,6 +305,22 @@ begin
       result := true;
       exit;
     end;
+end;
+
+function ArgMax(V: TFloatVector): longint;
+var
+  i: longint;
+  CurMax: double;
+begin
+  CurMax := -Infinity;
+  for i := 0 to Length(V) - 1 do
+  begin
+    if V[i] > CurMax then
+    begin
+      CurMax := V[i];
+      Result := i;
+    end;
+  end;
 end;
 
 function Equals(A, B: TTensor): boolean;
