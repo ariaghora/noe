@@ -17,6 +17,6 @@ Noe is a framework for an easier scientific computation in object pascal, especi
 - Interface with *OpenBLAS* for some heavy-lifting
 - Interface with *GNU plot* for plotting
 
-Check out [the wiki](https://github.com/ariaghora/noe/wiki) for more documentation.
+Check out [the wiki](https://github.com/ariaghora/noe/wiki) for more documentation. Please note that this framework is developed and heavily tested using fpc 3.0.4, with object pascal syntax mode, on a windows machine. Portability is not really my first concern right now, but any helps are sincerely welcome.
 
 > **A blatant disclaimer -** *This is my learning and experimental project. The development is still early and active. That said, the use for production is not encouraged at this moment.*
