@@ -18,6 +18,18 @@ uses
 
 type
   TIntVector = array of longint;
+  TDoubleList = specialize TFPGList<double>;
+  TDoubleIntMap = specialize TFPGMap<double, longint>;
+
+  { TOneHotEncoder }
+
+  TOneHotEncoder = class
+    unique: TDoubleList;
+    function Encode(T: TTensor): TTensor;
+    function Decode(T: TTensor): TTensor;
+  private
+    LabelToIndexMap: TDoubleIntMap;
+  end;
 
 function ReverseIntArr(A: array of longint): TIntVector;
 
@@ -139,31 +151,6 @@ begin
     Result := 1;
 end;
 
-function OneHotEncode(T: TTensor): TTensor;
-type
-  TDoubleList = specialize TFPGList<double>;
-var
-  unique: TDoubleList;
-  i: double;
-  row: longint;
-begin
-  Assert(Length(T.Shape) <= 1, MSG_ASSERTION_RANK_1_TENSORS_ONLY);
-
-  { get unique labels }
-  unique := TDoubleList.Create;
-  for i in T.Val do
-    if (unique.IndexOf(i) < 0) then
-      unique.Add(i);
-  unique.Sort(@CompareDouble);
-
-  { Create zeros as the placeholder }
-  Result := Zeros([Length(T.Val), unique.Count]);
-
-  { Actual data handling }
-  for row := 0 to Result.Shape[0] - 1 do
-    Result.Val[row * Result.Shape[1] + unique.IndexOf(T.Val[row])] := 1;
-end;
-
 function StandardScaler(X: TTensor): TTensor;
 var
   mu, std: TTensor;
@@ -226,5 +213,50 @@ begin
       exit;
     end;
 end;
+
+{ TOneHotEncoder }
+
+function TOneHotEncoder.Encode(T: TTensor): TTensor;
+var
+  i: double;
+  j, row: longint;
+begin
+  Assert(T.NDims = 1, MSG_ASSERTION_RANK_1_TENSORS_ONLY);
+
+  { get unique labels }
+  unique := TDoubleList.Create;
+  for i in T.Val do
+    if (unique.IndexOf(i) < 0) then
+      unique.Add(i);
+  unique.Sort(@CompareDouble);
+
+  { Create zeros as the placeholder }
+  Result := Zeros([T.Size, unique.Count]);
+
+  LabelToIndexMap := TDoubleIntMap.Create;
+  for j := 0 to unique.Count - 1 do
+    LabelToIndexMap.Add(unique.Items[j], j);
+
+  { Actual data handling }
+  for row := 0 to Result.Shape[0] - 1 do
+    Result.SetAt(row, LabelToIndexMap.KeyData[T.Val[row]], 1.0);
+end;
+
+function TOneHotEncoder.Decode(T: TTensor): TTensor;
+var
+  Indices: TTensor;
+  i: longint;
+begin
+  Assert(T.NDims = 2, MSG_ASSERTION_RANK_2_TENSORS_ONLY);
+  Indices := Squeeze(ArgMax(T, 1));
+
+  Result := TTensor.Create;
+  Result.Reshape([Indices.Size]);
+  SetLength(Result.Val, Indices.Size);
+  for i := 0 to Indices.Size - 1 do
+  begin
+    Result.SetAt(i, unique[Round(Indices.GetAt(i))]);
+end;
+
 
 end.
