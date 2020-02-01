@@ -76,7 +76,7 @@ function RadToDeg(A: TTensor): TTensor; inline;
 { Logarithm functions }
 function Log10(A: TTensor): TTensor;
 function Log2(A: TTensor): TTensor;
-function Ln(A: TTensor): TTensor;
+function Log(A: TTensor): TTensor;
 
 { Some of functions belong to system unit are in different format. Hence, they
   need to be wrapped to make them compatible. They are given suffix "F"
@@ -117,7 +117,7 @@ function MatMul(A, B: TVariable): TVariable;
 
 function Negate(A: TVariable): TVariable;
 function Cosh(A: TVariable): TVariable;
-function Ln(A: TVariable): TVariable;
+function Log(A: TVariable): TVariable;
 function Sinh(A: TVariable): TVariable;
 function Sqr(A: TVariable): TVariable;
 function Sqrt(A: TVariable): TVariable;
@@ -355,7 +355,7 @@ begin
   Result := ApplyUfunc(A, @Math.log2);
 end;
 
-function Ln(A: TTensor): TTensor;
+function Log(A: TTensor): TTensor;
 begin
   Result := ApplyUfunc(A, @Ln_F);
 end;
@@ -484,7 +484,7 @@ begin
   Result := TVariable.Create(A.Data + B.Data, 'Add', @BwAdd);
   Result.RequiresGrad := True;
 
-  SetLength(Result.FPrev, 2);
+  SetLength(Result.Prev, 2);
   Result.Prev[0] := A;
   Result.Prev[1] := B;
 end;
@@ -494,7 +494,7 @@ begin
   Result := TVariable.Create(A.Data / B.Data, 'Divide', @BwDivide);
   Result.RequiresGrad := True;
 
-  SetLength(Result.FPrev, 2);
+  SetLength(Result.Prev, 2);
   Result.Prev[0] := A;
   Result.Prev[1] := B;
 end;
@@ -504,7 +504,7 @@ begin
   Result := TVariable.Create(A.Data - B.Data, 'Subtract', @BwSubtract);
   Result.RequiresGrad := True;
 
-  SetLength(Result.FPrev, 2);
+  SetLength(Result.Prev, 2);
   Result.Prev[0] := A;
   Result.Prev[1] := B;
 end;
@@ -515,7 +515,7 @@ begin
     'Multiply', @BwMultiply);
   Result.RequiresGrad := True;
 
-  SetLength(Result.FPrev, 2);
+  SetLength(Result.Prev, 2);
   Result.Prev[0] := A;
   Result.Prev[1] := B;
 end;
@@ -525,7 +525,7 @@ begin
   Result := TVariable.Create(noe.Math.Multiply(A.Data, x), 'MultiplyC', @BwMultiplyC);
   Result.RequiresGrad := True;
 
-  SetLength(Result.FPrev, 2);
+  SetLength(Result.Prev, 2);
   Result.Prev[0] := A;
   Result.Prev[1] := TVariable.Create(x, '');
   Result.Prev[1].RequiresGrad := False;
@@ -536,7 +536,7 @@ begin
   Result := TVariable.Create(noe.Math.MatMul(A.Data, B.Data), 'MatMul', @BwMatmul);
   Result.RequiresGrad := True;
 
-  SetLength(Result.FPrev, 2);
+  SetLength(Result.Prev, 2);
   Result.Prev[0] := A;
   Result.Prev[1] := B;
 end;
@@ -546,7 +546,7 @@ begin
   Result := TVariable.Create(-A.Data, 'Negate', @BwNegate);
   Result.RequiresGrad := True;
 
-  SetLength(Result.FPrev, 1);
+  SetLength(Result.Prev, 1);
   Result.Prev[0] := A;
 end;
 
@@ -555,16 +555,16 @@ begin
   Result := TVariable.Create(noe.Math.Cosh(A.Data), 'Cosh', @BwCosh);
   Result.RequiresGrad := True;
 
-  SetLength(Result.FPrev, 1);
+  SetLength(Result.Prev, 1);
   Result.Prev[0] := A;
 end;
 
-function Ln(A: TVariable): TVariable;
+function Log(A: TVariable): TVariable;
 begin
-  Result := TVariable.Create(noe.Math.Ln(A.Data), 'Ln', @BwLn);
+  Result := TVariable.Create(Log(A.Data), 'Ln', @BwLn);
   Result.RequiresGrad := True;
 
-  SetLength(Result.FPrev, 1);
+  SetLength(Result.Prev, 1);
   Result.Prev[0] := A;
 end;
 
@@ -573,7 +573,7 @@ begin
   Result := TVariable.Create(noe.Math.Sinh(A.Data), 'Sinh', @BwSinh);
   Result.RequiresGrad := True;
 
-  SetLength(Result.FPrev, 1);
+  SetLength(Result.Prev, 1);
   Result.Prev[0] := A;
 end;
 
@@ -582,7 +582,7 @@ begin
   Result := TVariable.Create(A.Data ** 2, 'Sqr', @BwSqr);
   Result.RequiresGrad := True;
 
-  SetLength(Result.FPrev, 1);
+  SetLength(Result.Prev, 1);
   Result.Prev[0] := A;
 end;
 
@@ -591,7 +591,7 @@ begin
   Result := TVariable.Create(A.Data ** 0.5, 'Sqrt', @BwSqrt);
   Result.RequiresGrad := True;
 
-  SetLength(Result.FPrev, 1);
+  SetLength(Result.Prev, 1);
   Result.Prev[0] := A;
 end;
 
@@ -600,7 +600,7 @@ begin
   Result := TVariable.Create(noe.Math.ReLU(A.Data), 'ReLU', @BwReLU);
   Result.RequiresGrad := True;
 
-  SetLength(Result.FPrev, 1);
+  SetLength(Result.Prev, 1);
   Result.Prev[0] := A;
 end;
 
@@ -609,7 +609,7 @@ begin
   Result := TVariable.Create(noe.Math.Tanh(A.Data), 'Tanh', @BwTanh);
   Result.RequiresGrad := True;
 
-  SetLength(Result.FPrev, 1);
+  SetLength(Result.Prev, 1);
   Result.Prev[0] := A;
 end;
 
@@ -618,7 +618,7 @@ begin
   Result := TVariable.Create(noe.Math.Exp(A.Data), 'Exp', @BwExp);
   Result.RequiresGrad := True;
 
-  SetLength(Result.FPrev, 1);
+  SetLength(Result.Prev, 1);
   Result.Prev[0] := A;
 end;
 
@@ -627,7 +627,7 @@ begin
   Result := TVariable.Create(Max(A.Data), 'Max', @BwMax);
   Result.RequiresGrad := True;
 
-  SetLength(Result.FPrev, 1);
+  SetLength(Result.Prev, 1);
   Result.Prev[0] := A;
 end;
 
@@ -642,7 +642,7 @@ begin
   Result := TVariable.Create(Mean(A.Data, axis), 'Mean', @BwMean);
   Result.RequiresGrad := True;
 
-  SetLength(Result.FPrev, 1);
+  SetLength(Result.Prev, 1);
   Result.Prev[0] := A;
 end;
 
@@ -651,7 +651,7 @@ begin
   Result := TVariable.Create(noe.Math.Mean(A.Data), 'Mean', @BwMean);
   Result.RequiresGrad := True;
 
-  SetLength(Result.FPrev, 1);
+  SetLength(Result.Prev, 1);
   Result.Prev[0] := A;
 end;
 
@@ -660,7 +660,7 @@ begin
   Result := TVariable.Create(noe.Math.sum(A.Data, axis), 'Sum', @BwSum);
   Result.RequiresGrad := True;
 
-  SetLength(Result.FPrev, 1);
+  SetLength(Result.Prev, 1);
   Result.Prev[0] := A;
 end;
 
@@ -669,7 +669,7 @@ begin
   Result := TVariable.Create(noe.Math.sum(A.Data), 'Sum', @BwSum);
   Result.RequiresGrad := True;
 
-  SetLength(Result.FPrev, 1);
+  SetLength(Result.Prev, 1);
   Result.Prev[0] := A;
 end;
 

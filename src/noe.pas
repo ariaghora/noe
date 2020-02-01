@@ -30,16 +30,26 @@ type
   TTensor = class
     Val:    TFloatVector;
     FShape: array of longint;
+    FSize:  longint;
+  private
+    function GetNDims: longint;
+    function GetSize: longint;
   public
     function DumpCSV(Sep: string = ','): string;
-    function GetShape: TIntVector;
+    function GetAt(i: longint): Double; overload;
+    function GetAt(i, j: longint): Double; overload;
     function GetAt(Index: array of longint): TTensor;
-    procedure WriteToCSV(FileName: string);
-
+    function GetShape: TIntVector;
     { transpose for matrix, reverse index for tensors }
     function T: TTensor;
+    procedure SetAt(i: longint; x: double);
+    procedure SetAt(i, j: longint; x: double);
+    procedure SetAt(Index: array of longint; x: double);
+    procedure WriteToCSV(FileName: string);
     procedure Reshape(ShapeVals: array of longint);
+    property NDims: longint read GetNDims;
     property Shape: TIntVector read FShape;
+    property Size: longint read GetSize;
 
     { Math helpers }
     function MatMul(Other: TTensor): TTensor;
@@ -97,19 +107,18 @@ type
   { TVariable }
 
   TVariable = class
+    Prev:   TVariableArr;
+  private
     FTensor: TTensor;
-    FTensorPtr: PTensor;
     FGrad:   TTensor;
     FID:     longint;
     FIsLeaf: boolean;
     FRequiresGrad: boolean;
-    FPrev:   TVariableArr;
-    FShape:  TIntVector;
-  private
     FBackwardFunc: TBackwardFunc;
     FName: string;
     function GetNDims: longint;
     function GetShape: TIntVector;
+    function GetSize: longint;
     procedure SetData(AValue: TTensor);
   public
     constructor Create; overload;
@@ -130,9 +139,9 @@ type
     property IsLeaf: boolean read FIsLeaf write FIsLeaf;
     property Name: string read FName write FName;
     property NDims: longint read GetNDims;
-    property Prev: TVariableArr read FPrev write FPrev;
     property RequiresGrad: boolean read FRequiresGrad write FRequiresGrad;
     property Shape: TIntVector read GetShape;
+    property Size: longint read GetSize;
     property Tensor: TTensor read FTensor write FTensor;
 
     { Math helpers }
@@ -499,6 +508,23 @@ begin
     Result.Val[i] := self.Val[i + offset];
 end;
 
+procedure TTensor.SetAt(i: longint; x: double);
+begin
+  assert(self.NDims = 1, MSG_ASSERTION_RANK_1_TENSORS_ONLY);
+  self.Val[IndexToOffset([i], self.Shape)] := x;
+end;
+
+procedure TTensor.SetAt(i, j: longint; x: double);
+begin
+  assert(self.NDims = 2, MSG_ASSERTION_RANK_1_TENSORS_ONLY);
+  self.Val[IndexToOffset([i, j], Self.Shape)] := x;
+end;
+
+procedure TTensor.SetAt(Index: array of longint; x: double);
+begin
+  self.Val[IndexToOffset(Index, Self.Shape)] := x;
+end;
+
 procedure TTensor.WriteToCSV(FileName: string);
 var
   F: TextFile;
@@ -515,6 +541,28 @@ end;
 function TTensor.T: TTensor;
 begin
   Result := noe.Math.Transpose(Self);
+end;
+
+function TTensor.GetAt(i: longint): Double;
+begin
+  assert(self.NDims = 1, MSG_ASSERTION_RANK_1_TENSORS_ONLY);
+  Result := self.GetAt([i]).Val[0];
+end;
+
+function TTensor.GetAt(i, j: longint): Double;
+begin
+  assert(self.NDims = 2, MSG_ASSERTION_RANK_2_TENSORS_ONLY);
+  Result := self.GetAt([i, j]).Val[0];
+end;
+
+function TTensor.GetNDims: longint;
+begin
+  Result := length(self.Val);
+end;
+
+function TTensor.GetSize: longint;
+begin
+  Result := Length(self.Val);
 end;
 
 function TTensor.DumpCSV(Sep: string = ','): string;
@@ -566,6 +614,11 @@ end;
 function TVariable.GetShape: TIntVector;
 begin
   Result := self.Data.Shape;
+end;
+
+function TVariable.GetSize: longint;
+begin
+  Result := Self.Data.Size;
 end;
 
 function TVariable.GetNDims: longint;
