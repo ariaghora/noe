@@ -21,8 +21,7 @@ type
   TDoubleList = specialize TFPGList<double>;
   TDoubleIntMap = specialize TFPGMap<double, longint>;
 
-  { TOneHotEncoder }
-
+  { One-hot encode categorical labels }
   TOneHotEncoder = class
     unique: TDoubleList;
     function Encode(T: TTensor): TTensor;
@@ -32,15 +31,13 @@ type
   end;
 
 function ReverseIntArr(A: array of longint): TIntVector;
+function ReverseFloatArr(A: array of Double): TFloatVector;
 
 { Sorting chars in a string using bubble sort. Not for big strings. }
 function SortStr(s: string; ascending: boolean = True): string; inline;
 
 { Create a rank-2 tensor (a matrix) from a CSV file }
 function ReadCSV(fileName: string): TTensor;
-
-{ One-hot encode categorical labels }
-function OneHotEncode(T: TTensor): TTensor;
 
 function StandardScaler(X:TTensor): TTensor;
 
@@ -57,6 +54,15 @@ uses
   noe.Math;
 
 function ReverseIntArr(A: array of longint): TIntVector;
+var
+  i: longint;
+begin
+  SetLength(Result, Length(A));
+  for i := Length(A) - 1 downto 0 do
+    Result[Length(A) - i - 1] := A[i];
+end;
+
+function ReverseFloatArr(A: array of Double): TFloatVector;
 var
   i: longint;
 begin
@@ -254,7 +260,6 @@ begin
   Result.Reshape([Indices.Size]);
   SetLength(Result.Val, Indices.Size);
   for i := 0 to Indices.Size - 1 do
-  begin
     Result.SetAt(i, unique[Round(Indices.GetAt(i))]);
 end;
 

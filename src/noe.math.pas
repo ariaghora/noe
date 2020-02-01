@@ -55,6 +55,7 @@ function Max(M: TTensor): TTensor;
 function Max(M: TTensor; axis: byte): TTensor; overload;
 function Mean(M: TTensor): TTensor;
 function Mean(M: TTensor; axis: byte): TTensor; overload;
+function SoftMax(A: TTensor; axis: byte): TTensor;
 function Sum(M: TTensor): TTensor;
 function Sum(M: TTensor; axis: byte): TTensor; overload;
 
@@ -303,6 +304,15 @@ begin
     else
       Result := MeanRow_Native(M);
   end;
+end;
+
+function SoftMax(A: TTensor; axis: byte): TTensor;
+var
+  X, Y: TTensor;
+begin
+  X := A - Max(A, axis);
+  Y := Exp(X);
+  Result := Y / sum(Y, axis);
 end;
 
 function Sum(M: TTensor): TTensor;

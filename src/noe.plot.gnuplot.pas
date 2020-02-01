@@ -19,7 +19,7 @@ var
   GlobalPlotCount: integer;
 
 type
-  TPlotType = (ptBoxes, ptLines, ptPoints, ptHistogram);
+  TPlotType = (ptBoxes, ptLines, ptPoints, ptHistogram, ptImage);
 
   { @abstract(A record containing plot style) }
   TPlotStyle = record
@@ -37,7 +37,7 @@ type
     PlotType:  TPlotType;
     OverrideDefaultStyle: boolean;
   public
-    Values:   TTensor;
+    Values: TTensor;
     constructor Create;
     { Set the data points to plot
       @param(x only accepts TDTMatrix with size of 1 by m or m by 1) }
@@ -53,9 +53,10 @@ type
 
   { @abstract(A class that holds information of a single figure) }
   TFigure = class(TObject)
-    Title:  string;
-    XLabel: string;
-    YLabel: string;
+    Title:   string;
+    XLabel:  string;
+    YLabel:  string;
+    Palette: string;
   public
     constructor Create;
     procedure AddPlot(Plot: TPlot);
@@ -83,7 +84,7 @@ begin
   AssignFile(F, fn);
   try
     ReWrite(F);
-    Write(F, X.DumpCSV());
+    Write(F, X.DumpCSV(' '));
   finally
     CloseFile(F);
   end;
@@ -137,24 +138,29 @@ end;
 
 function TPlot.GenerateScript: string;
 var
-  s, style, PlotTypeStr: string;
+  s, style, PlotTypeStr, Modifier: string;
 begin
   case PlotType of
     ptLines: PlotTypeStr := 'lines';
     ptPoints: PlotTypeStr := 'points';
     ptHistogram: PlotTypeStr := 'histogram';
     ptBoxes: PlotTypeStr := 'boxes';
+    ptImage: PlotTypeStr := 'image';
   end;
+
+  if PlotType = ptImage then
+    Modifier := 'matrix';
 
   if not OverrideDefaultStyle then
     style := ''
   else
   begin
-    style := Format('linetype %d linecolor ''%s'' linewidth %d pointtype %d pointsize %d',
+    style := Format(' linetype %d linecolor ''%s'' linewidth %d pointtype %d pointsize %d',
       [PlotStyle.LineType, PlotStyle.LineColor, PlotStyle.LineWidth,
       PlotStyle.PointType, PlotStyle.PointSize]);
   end;
-  s := Format('''%s'' title ''%s'' with %s %s', [FileName, Title, PlotTypeStr, style]);
+  s := Format('''%s'' %s title ''%s'' with %s%s',
+    [FileName, Modifier, Title, PlotTypeStr, style]);
   Result := s;
 end;
 
@@ -163,7 +169,9 @@ var
   x_: TTensor;
 begin
   x_ := CopyTensor(x);
-  x_.Reshape([x_.Shape[0], 1]);
+
+  if self.PlotType <> ptImage then
+    x_.Reshape([x_.Shape[0], 1]);
 
   self.Values := x_;
 end;
@@ -186,7 +194,8 @@ end;
 
 constructor TFigure.Create;
 begin
-  PlotList := TList.Create;
+  self.PlotList := TList.Create;
+  self.Palette := 'rgbformulae 7,5,15';
 end;
 
 function TFigure.GenerateScript: string;
@@ -199,6 +208,8 @@ begin
   s := s + 'set key right top;' + sLineBreak;
   s := s + 'set xlabel ''' + self.XLabel + ''';' + sLineBreak;
   s := s + 'set ylabel ''' + self.YLabel + ''';' + sLineBreak;
+  s := s + 'set palette ' + self.Palette + ';' + sLineBreak;
+
   s := s + 'do for [i=1:64] {set style line i linewidth 2};' + sLineBreak;
 
   s := s + 'plot ';
@@ -235,8 +246,8 @@ begin
   end;
 
   { do cleanup (temp files removal) }
-  for i := 0 to PlotList.Count - 1 do
-    TPlot(PlotList.Items[i]).RemoveDataStringTableFile;
+  //for i := 0 to PlotList.Count - 1 do
+  //  TPlot(PlotList.Items[i]).RemoveDataStringTableFile;
 
 end;
 
@@ -244,4 +255,3 @@ initialization
   GlobalPlotCount := 0;
 
 end.
-

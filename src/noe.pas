@@ -52,7 +52,7 @@ type
     property Size: longint read GetSize;
 
     { Math helpers }
-    function MatMul(Other: TTensor): TTensor;
+    function Dot(Other: TTensor): TTensor;
   end;
 
   PTensor    = ^TTensor;
@@ -197,6 +197,8 @@ function OffsetToIndex(offset: longint; Shape: array of longint): TIntVector;
 function ShapeToSize(Shape: array of longint): longint;
 
 function Squeeze(T: TTensor): TTensor;
+
+function VFlip(T: TTensor): TTensor;
 
 { Helpers API for matrix (rank-2 tensor) --------------------------------------}
 function GetRange(T: TTensor; RowIndex, ColumnIndex, Height, Width: longint): TTensor;
@@ -598,8 +600,9 @@ begin
     self.FShape[i] := ShapeVals[i];
 end;
 
-function TTensor.MatMul(Other: TTensor): TTensor;
+function TTensor.Dot(Other: TTensor): TTensor;
 begin
+  Assert((Self.NDims <= 2) and (Other.NDims <= 2), MSG_ASSERTION_RANK_2_TENSORS_ONLY);
   Result := noe.Math.MatMul(self, Other);
 end;
 
@@ -846,6 +849,17 @@ begin
     Result.Reshape([1])
   else
     Result.Reshape(tmpShape);
+end;
+
+function VFlip(T: TTensor): TTensor;
+var
+  i, j: longint;
+begin
+  Assert(T.NDims = 2, MSG_ASSERTION_RANK_2_TENSORS_ONLY);
+  Result := CreateTensor(T.Shape);
+  for i := 0 to T.Shape[0] - 1 do
+    for j := 0 to T.Shape[1] - 1 do
+      Result.SetAt(i, j, T.GetAt(T.Shape[0] - i - 1, j));
 end;
 
 function GetRange(T: TTensor; RowIndex, ColumnIndex, Height, Width: longint): TTensor;
