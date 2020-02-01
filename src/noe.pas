@@ -108,6 +108,7 @@ type
   private
     FBackwardFunc: TBackwardFunc;
     FName: string;
+    function GetNDims: longint;
     function GetShape: TIntVector;
     procedure SetData(AValue: TTensor);
   public
@@ -128,13 +129,14 @@ type
     property ID: longint read FID write FID;
     property IsLeaf: boolean read FIsLeaf write FIsLeaf;
     property Name: string read FName write FName;
+    property NDims: longint read GetNDims;
     property Prev: TVariableArr read FPrev write FPrev;
     property RequiresGrad: boolean read FRequiresGrad write FRequiresGrad;
     property Shape: TIntVector read GetShape;
     property Tensor: TTensor read FTensor write FTensor;
 
     { Math helpers }
-    function MatMul(Other: TVariable): TVariable;
+    function Dot(Other: TVariable): TVariable;
   end;
 
 const
@@ -566,6 +568,11 @@ begin
   Result := self.Data.Shape;
 end;
 
+function TVariable.GetNDims: longint;
+begin
+  Result := Length(self.Shape);
+end;
+
 constructor TVariable.Create;
 begin
   self.Create(nil, '', nil, True);
@@ -626,8 +633,9 @@ begin
   self.Grad := Zeros(self.Tensor.Shape);
 end;
 
-function TVariable.MatMul(Other: TVariable): TVariable;
+function TVariable.Dot(Other: TVariable): TVariable;
 begin
+  Assert((Self.NDims <= 2) and (Other.NDims <= 2), MSG_ASSERTION_RANK_2_TENSORS_ONLY);
   Result := noe.Math.MatMul(self, Other);
 end;
 
