@@ -90,7 +90,7 @@ begin
   NoeConfig.useBLAS := False;
 
   { Load the DatasetTrain from CSV. Noe has a built-in function to do so. }
-  DatasetTrain := ReadCSV('optdigits-train.csv');
+  DatasetTrain := ReadCSV('../datasets/optdigits-train.csv');
 
   M := DatasetTrain.Shape[0]; // The number of samples
 
@@ -208,3 +208,4 @@ begin
 
   ReadLn;
 end.
+
