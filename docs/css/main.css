@@ -1,0 +1,14 @@
+body {
+    background-color: #e6e6e6;
+}
+
+.hljs {
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.codesnippet {
+    display: block;
+    width: 700px;
+    margin: 0 auto;
+}
