@@ -543,6 +543,7 @@ end;
 
 function MatMul(A, B: TVariable): TVariable;
 begin
+  Assert(A.Shape[1] = B.Shape[0], MSG_ASSERTION_DIM_MISMATCH);
   Result := TVariable.Create(noe.Math.MatMul(A.Data, B.Data), 'MatMul', @BwMatmul);
   Result.RequiresGrad := True;
 

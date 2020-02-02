@@ -13,7 +13,7 @@ unit noe.optimizer;
 interface
 
 uses
-  Classes, SysUtils, noe;
+  Classes, noe, SysUtils;
 
 type
 
@@ -22,14 +22,18 @@ type
   private
     FLearningRate: double;
   public
-    constructor Create(ALearningRate: double);
-    procedure UpdateParams(params: array of TVariable); overload; virtual; abstract;
+    constructor Create; virtual; abstract;
+    procedure UpdateParams(params: array of TVariable); virtual; abstract;
     property LearningRate: double read FLearningRate write FLearningRate;
   end;
 
   { The implementation of stochastic gradient descent. It is the most basic
     optimizer among available ones. }
+
+  { TSGDOptimizer }
+
   TSGDOptimizer = class(TBaseOptimizer)
+    constructor Create; override;
     procedure UpdateParams(ModelParams: array of TVariable); override;
   end;
 
@@ -42,9 +46,9 @@ type
     V: array of TTensor;
     MVPopulated: boolean;
   public
-    Epsilon: double;
-    Beta1:   double;
-    Beta2:   double;
+    Epsilon:   double;
+    Beta1:     double;
+    Beta2:     double;
     iteration: longint;
     constructor Create;
     procedure UpdateParams(ModelParams: array of TVariable); override;
@@ -101,15 +105,12 @@ begin
   Inc(self.iteration);
 end;
 
-
-{ TBaseOptimizer }
-
-constructor TBaseOptimizer.Create(ALearningRate: double);
-begin
-  self.LearningRate := ALearningRate;
-end;
-
 { TSGDOptimizer }
+
+constructor TSGDOptimizer.Create;
+begin
+  self.LearningRate := 0.01;
+end;
 
 procedure TSGDOptimizer.UpdateParams(ModelParams: array of TVariable);
 var
