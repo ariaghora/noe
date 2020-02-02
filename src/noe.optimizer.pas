@@ -56,8 +56,14 @@ type
   { TSGDMomentumOptimizer }
 
   TSGDMomentumOptimizer = class(TBaseOptimizer)
+  private
+    FGamma: double;
+    V:      array of TTensor;
+    VPopulated: boolean;
+  public
     constructor Create;
     procedure UpdateParams(Loss: TVariable; ModelParams: array of TVariable);
+    property Gamma: double read FGamma write FGamma;
   end;
 
   { The implementation of adam optimizer. It was proposed by Kingma & Ba (2014).
@@ -110,12 +116,32 @@ end;
 constructor TSGDMomentumOptimizer.Create;
 begin
   inherited;
+  self.LearningRate := 0.01;
+  self.VPopulated   := False;
 end;
 
 procedure TSGDMomentumOptimizer.UpdateParams(Loss: TVariable;
   ModelParams: array of TVariable);
+var
+  i: integer;
 begin
   inherited;
+
+  if not self.VPopulated then
+  begin
+    SetLength(self.V, Length(ModelParams));
+    for i := 0 to Length(ModelParams) - 1 do
+      self.V[i]     := Zeros(ModelParams[i].Data.Shape);
+    self.VPopulated := True;
+  end;
+
+  for i := 0 to Length(ModelParams) - 1 do
+  begin
+    self.V[i] := self.Gamma * self.V[i] + self.LearningRate * ModelParams[i].Grad;
+    ModelParams[i].Data := ModelParams[i].Data - self.V[i];
+
+    ModelParams[i].ZeroGrad;
+  end;
 end;
 
 { TAdamOptimizer }

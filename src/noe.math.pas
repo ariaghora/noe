@@ -21,8 +21,8 @@ unit noe.Math;
 interface
 
 uses
-  Classes, SysUtils, strutils, Math, RegExpr, fgl, noe, noe.utils,
-  noe.backend.blas, noe.backend.native;
+  Classes, fgl, Math, noe, noe.backend.blas, noe.backend.native, noe.utils,
+  RegExpr, strutils, SysUtils;
 
 type
   { Wrapping FPC's f:R->R unary functions in math unit }
@@ -34,30 +34,30 @@ type
 { basic math functions --------------------------------------------------------}
 
 { basic binary functions }
-function AddF(v1, v2: double): double;
-function SubtractF(v1, v2: double): double;
-function DivideF(v1, v2: double): double;
-function MultiplyF(v1, v2: double): double;
+function AddF(v1, v2: double): double; inline;
+function SubtractF(v1, v2: double): double; inline;
+function DivideF(v1, v2: double): double; inline;
+function MultiplyF(v1, v2: double): double; inline;
 
 { TTensor math ----------------------------------------------------------------}
 
 { binary functions for tensors }
-function Add(A, B: TTensor): TTensor;
-function Subtract(A, B: TTensor): TTensor;
-function Divide(A, B: TTensor): TTensor;
-function Multiply(A, B: TTensor): TTensor;
-function MatMul(A, B: TTensor): TTensor;
+function Add(A, B: TTensor): TTensor; inline;
+function Subtract(A, B: TTensor): TTensor; inline;
+function Divide(A, B: TTensor): TTensor; inline;
+function Multiply(A, B: TTensor): TTensor; inline;
+function MatMul(A, B: TTensor): TTensor; inline;
 
 { unary functions for tensors }
-function ArgMax(M: TTensor): TTensor; overload;
-function ArgMax(M: TTensor; axis: byte): TTensor; overload;
-function Max(M: TTensor): TTensor;
-function Max(M: TTensor; axis: byte): TTensor; overload;
-function Mean(M: TTensor): TTensor;
-function Mean(M: TTensor; axis: byte): TTensor; overload;
-function SoftMax(A: TTensor; axis: byte): TTensor;
-function Sum(M: TTensor): TTensor;
-function Sum(M: TTensor; axis: byte): TTensor; overload;
+function ArgMax(M: TTensor): TTensor; inline; overload;
+function ArgMax(M: TTensor; axis: byte): TTensor; inline; overload;
+function Max(M: TTensor): TTensor; inline;
+function Max(M: TTensor; axis: byte): TTensor; inline; overload;
+function Mean(M: TTensor): TTensor; inline;
+function Mean(M: TTensor; axis: byte): TTensor; inline; overload;
+function SoftMax(A: TTensor; axis: byte): TTensor; inline;
+function Sum(M: TTensor): TTensor; inline;
+function Sum(M: TTensor; axis: byte): TTensor; inline; overload;
 
 { Evaluates the Einstein summation convention on the operands. Very slow now.
   The initial implementation is heavily inspired from Kyle Hundman's attempt to
@@ -71,8 +71,8 @@ function ApplyBfunc(A: TTensor; v: double; Func: TBFunc): TTensor; overload;
 function ApplyBfunc(A, B: TTensor; Func: TBFunc): TTensor; overload;
 
 { Angle conversion }
-function DegToRad(A: TTensor): TTensor; inline;
-function RadToDeg(A: TTensor): TTensor; inline;
+function DegToRad(A: TTensor): TTensor;
+function RadToDeg(A: TTensor): TTensor;
 
 { Logarithm functions }
 function Log10(A: TTensor): TTensor;
@@ -107,8 +107,8 @@ function Transpose(T: TTensor): TTensor;
 { Nonlinear activation functions }
 function ReLU(T: TTensor): TTensor;
 
-{ TVariable math --------------------------------------------------------------}
-{ forward mode }
+ { TVariable math --------------------------------------------------------------}
+ { forward mode }
 function Add(A, B: TVariable): TVariable;
 function Divide(A, B: TVariable): TVariable;
 function Subtract(A, B: TVariable): TVariable;
@@ -283,7 +283,7 @@ var
 begin
   tot := 0;
   for i := 0 to length(M.Val) - 1 do
-    tot := tot + M.val[i];
+    tot  := tot + M.val[i];
   Result := tot / Length(M.Val);
 end;
 
@@ -298,20 +298,18 @@ begin
       Result := MeanCol_Native(M);
   end
   else
-  begin
-    if noe.NoeConfig.useBLAS then
-      Result := MeanRow_BLAS(M)
-    else
-      Result := MeanRow_Native(M);
-  end;
+  if noe.NoeConfig.useBLAS then
+    Result := MeanRow_BLAS(M)
+  else
+    Result := MeanRow_Native(M);
 end;
 
 function SoftMax(A: TTensor; axis: byte): TTensor;
 var
   X, Y: TTensor;
 begin
-  X := A - Max(A, axis);
-  Y := Exp(X);
+  X      := A - Max(A, axis);
+  Y      := Exp(X);
   Result := Y / sum(Y, axis);
 end;
 
@@ -322,7 +320,7 @@ var
 begin
   tot := 0;
   for i := 0 to length(M.Val) - 1 do
-    tot := tot + M.val[i];
+    tot  := tot + M.val[i];
   Result := tot;
 end;
 
@@ -337,12 +335,10 @@ begin
       Result := SumCol_Native(M);
   end
   else
-  begin
-    if noe.NoeConfig.useBLAS then
-      Result := SumRow_BLAS(M)
-    else
-      Result := SumRow_Native(M);
-  end;
+  if noe.NoeConfig.useBLAS then
+    Result := SumRow_BLAS(M)
+  else
+    Result := SumRow_Native(M);
 end;
 
 function DegToRad(A: TTensor): TTensor;
@@ -380,9 +376,7 @@ begin
   SetLength(Result.Val, Length(T.Val));
   for i := 0 to T.Shape[0] - 1 do
     for j := 0 to T.Shape[1] - 1 do
-    begin
       Result.Val[j * T.Shape[0] + i] := T.Val[i * T.Shape[1] + j];
-    end;
 end;
 
 function Transpose(T: TTensor; dims: array of longint): TTensor;
@@ -403,14 +397,10 @@ function Transpose(T: TTensor): TTensor;
 begin
   // attempt with 2d transpose first
   if (Length(T.Shape) = 2) then
-  begin
-    Result := Transpose2D(T);
-  end
+    Result := Transpose2D(T)
   else
-  begin
     Result := Einsum(DimsToLetter(T.Shape) + '->' +
       ReverseString(DimsToLetter(T.Shape)), [T]);
-  end;
 end;
 
 function ReLU(T: TTensor): TTensor;
@@ -689,17 +679,15 @@ begin
   if arr[0].RequiresGrad then
     arr[0].Grad := arr[0].Grad + ReduceTo(ADy, arr[0].Data);
   if arr[1].RequiresGrad then
-  begin
     arr[1].Grad := arr[1].Grad + ReduceTo(ADy, arr[1].Data);
-  end;
 end;
 
 function SoftMax(A: TVariable; axis: byte): TVariable;
 var
   X, Y: TVariable;
 begin
-  X := A - Max(A, axis);
-  Y := Exp(X);
+  X      := A - Max(A, axis);
+  Y      := Exp(X);
   Result := Y / sum(Y, axis);
 end;
 
@@ -708,7 +696,7 @@ var
   ax, i: longint;
 begin
   Result := Target;
-  ax := -1;
+  ax     := -1;
   for i := 0 to Length(Target.Shape) - 1 do
     if Target.Shape[i] > Other.Shape[i] then
       ax := i;
@@ -842,12 +830,12 @@ var
 begin
   if arr[0].RequiresGrad then
   begin
-    A := Zeros(Arr[0].Data.Shape);
+    A      := Zeros(Arr[0].Data.Shape);
     maxval := MaxValue(arr[0].Data.Val);
     for i := 0 to length(arr[0].Data.Val) - 1 do
       if arr[0].Data.Val[i] = maxval then
         A.Val[i] := 1;
-    arr[0].Grad := arr[0].Grad + A;
+    arr[0].Grad  := arr[0].Grad + A;
   end;
 end;
 
@@ -856,7 +844,7 @@ var
   szArr, szDy: longint;
 begin
   szArr := ShapeToSize(arr[0].Data.Shape);
-  szDy := ShapeToSize(ADy.Shape);
+  szDy  := ShapeToSize(ADy.Shape);
   if arr[0].RequiresGrad then
     arr[0].Grad := arr[0].Grad + CreateTensor(arr[0].Data.Shape,
       ADy.Val[0] / (szArr / szDy));
@@ -924,7 +912,7 @@ var
 begin
   if '->' in Subscripts then
   begin
-    re := TRegExpr.Create('(.)\1');
+    re    := TRegExpr.Create('(.)\1');
     match := re.Exec(Subscripts);
     { there are repeated letters, return diagonal }
     if match then
@@ -933,7 +921,7 @@ begin
         re.Match[0].Chars[0]);
 
       Result := TTensor.Create;
-      len := Pots[0].Shape[0];
+      len    := Pots[0].Shape[0];
       SetLength(Result.Val, len);
       Result.Reshape([len]);
       for i := 0 to len - 1 do
@@ -943,7 +931,7 @@ begin
     { tensor dot multiplication and specific dimension broadcasting }
     else
     begin
-      split := Subscripts.Split('->');
+      split  := Subscripts.Split('->');
       tables := split[0].Split(',');
       broadcastList := split[2];
 
@@ -956,7 +944,7 @@ begin
       end;
 
       SetLength(flatDims, 0);
-      flatTables := '';
+      flatTables     := '';
       originalTables := '';
       for i := 0 to Length(dims) - 1 do
       begin
@@ -1021,9 +1009,7 @@ begin
             begin
               setlength(indices, Length(tables[i]));
               for j := 0 to length(tables[i]) - 1 do
-              begin
                 indices[j] := comb[uniqueTables.IndexOf(tables[i].Chars[j])];
-              end;
 
               forMultiPlying[i] := (Pots[i].GetAt(indices).Val[0]);
             end;
@@ -1042,9 +1028,23 @@ begin
 
   { there are repeated letters but no '->', return sum of diagonal }
   else
-  begin
     Result := Math.sum(Einsum(Subscripts + '->', Pots).Val);
-  end;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 end;
 

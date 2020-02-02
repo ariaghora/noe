@@ -7,12 +7,17 @@ interface
 uses
   Classes, fgl, noe, noe.Math, noe.utils, SysUtils;
 
+ //var
+ //  ActivationTypes: array[0..3] of string = ('sigmoid', 'relu', 'tanh', 'identity');
+
 type
   TLayer = class;
   TModel = class;
 
   TVariableList = specialize TFPGList<TVariable>;
   TLayerList    = specialize TFPGList<TLayer>;
+
+  TActivationTypes = (atSigmoid, atReLU, atTanh, atNone);
 
   { TLayer }
 
@@ -28,11 +33,11 @@ type
 
   TDenseLayer = class(TLayer)
   private
-    FActivation: string;
+    FActivation: TActivationTypes;
   public
-    constructor Create(InSize, OutSize: longint; AActivation: string);
+    constructor Create(InSize, OutSize: longint; AActivation: TActivationTypes);
     function Eval(X: TVariable): TVariable; override;
-    property Activation: string read FActivation write FActivation;
+    property Activation: TActivationTypes read FActivation write FActivation;
   end;
 
   { TSoftMaxLayer }
@@ -108,13 +113,12 @@ end;
 
 { TDenseLayer }
 
-constructor TDenseLayer.Create(InSize, OutSize: longint; AActivation: string);
+constructor TDenseLayer.Create(InSize, OutSize: longint; AActivation: TActivationTypes);
+
 var
   W, b: TVariable;
-  ActivationTypes: array[0..3] of string = ('sigmoid', 'relu', 'tanh', 'identity');
 begin
   inherited Create;
-  Assert(AActivation in ActivationTypes, 'Unknown activation function: ' + Activation);
   Self.Activation := AActivation;
 
   { Xavier weight initialization }
@@ -132,8 +136,9 @@ begin
   Result := X.Dot(self.Params[0]) + self.Params[1];
 
   case self.Activation of
-    'relu': Result := ReLU(Result);
-    'sigmoid', 'tanh': raise ENotImplemented.Create(
+    atReLU: Result := ReLU(Result);
+    atTanh: Result := Tanh(Result);
+    atSigmoid: raise ENotImplemented.Create(
         'Activation is not implemented yet.');
   end;
 end;
