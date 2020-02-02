@@ -13,18 +13,31 @@ unit noe.optimizer;
 interface
 
 uses
-  Classes, noe, SysUtils;
+  Classes, noe, noe.utils, sysutils;
+
+procedure DefaultOptimizerCallback(Loss: TVariable; iteration: longint;
+  Params: array of TVariable);
 
 type
+  TOptimizerCallbackProc = procedure(Loss: TVariable; iteration: longint;
+    Params: array of TVariable);
 
   { The base class for optimizer. All optimizers should extend this class. }
+
+  { TBaseOptimizer }
+
   TBaseOptimizer = class
   private
+    FCallback:     TOptimizerCallbackProc;
     FLearningRate: double;
+    FIteration:    longint;
+    FVerbose:      boolean;
   public
-    constructor Create; virtual; abstract;
-    procedure UpdateParams(params: array of TVariable); virtual; abstract;
+    constructor Create;
+    procedure UpdateParams(Loss: TVariable; ModelParams: array of TVariable);
     property LearningRate: double read FLearningRate write FLearningRate;
+    property Iteration: longint read FIteration write FIteration;
+    property Verbose: boolean read FVerbose write FVerbose;
   end;
 
   { The implementation of stochastic gradient descent. It is the most basic
@@ -33,34 +46,85 @@ type
   { TSGDOptimizer }
 
   TSGDOptimizer = class(TBaseOptimizer)
-    constructor Create; override;
-    procedure UpdateParams(ModelParams: array of TVariable); override;
+    constructor Create;
+    procedure UpdateParams(Loss: TVariable; ModelParams: array of TVariable);
+
+  end;
+
+  { The implementation of stochastic gradient descent with momentum }
+
+  { TSGDMomentumOptimizer }
+
+  TSGDMomentumOptimizer = class(TBaseOptimizer)
+    constructor Create;
+    procedure UpdateParams(Loss: TVariable; ModelParams: array of TVariable);
   end;
 
   { The implementation of adam optimizer. It was proposed by Kingma & Ba (2014).
     Please check the paper, "Adam: A Method for Stochastic Optimization", here:
     https://arxiv.org/abs/1412.6980. }
+
   TAdamOptimizer = class(TBaseOptimizer)
   private
     M: array of TTensor;
     V: array of TTensor;
     MVPopulated: boolean;
   public
-    Epsilon:   double;
-    Beta1:     double;
-    Beta2:     double;
-    iteration: longint;
+    Epsilon: double;
+    Beta1:   double;
+    Beta2:   double;
     constructor Create;
-    procedure UpdateParams(ModelParams: array of TVariable); override;
+    procedure UpdateParams(Loss: TVariable; ModelParams: array of TVariable);
+
   end;
 
 implementation
+
+procedure DefaultOptimizerCallback(Loss: TVariable; iteration: longint;
+  Params: array of TVariable);
+begin
+  NoeLog('Debug', 'Epoch ' + IntToStr(iteration) + ': loss = ' +
+    FloatToStrF(Loss.Data.GetAt(0), ffFixed, 2, 5));
+end;
+
+{ TBaseOptimizer }
+
+constructor TBaseOptimizer.Create;
+begin
+  Self.Verbose   := True;
+  Self.FCallback := @DefaultOptimizerCallback;
+end;
+
+procedure TBaseOptimizer.UpdateParams(Loss: TVariable; ModelParams: array of TVariable);
+begin
+  Loss.Backpropagate;
+
+  if self.Verbose then
+    self.FCallback(Loss, self.FIteration, ModelParams);
+
+  Inc(FIteration);
+end;
+
+{ TSGDMomentumOptimizer }
+
+constructor TSGDMomentumOptimizer.Create;
+begin
+  inherited;
+end;
+
+procedure TSGDMomentumOptimizer.UpdateParams(Loss: TVariable;
+  ModelParams: array of TVariable);
+begin
+  inherited;
+end;
 
 { TAdamOptimizer }
 
 constructor TAdamOptimizer.Create;
 begin
-  self.iteration := 1;
+  inherited;
+
+  self.FIteration := 1;
   self.LearningRate := 0.001;
   self.Epsilon := 10E-8;
   self.Beta1 := 0.9;
@@ -68,11 +132,13 @@ begin
   self.MVPopulated := False;
 end;
 
-procedure TAdamOptimizer.UpdateParams(ModelParams: array of TVariable);
+procedure TAdamOptimizer.UpdateParams(Loss: TVariable; ModelParams: array of TVariable);
 var
   mHat, vHat: TTensor;
   i: longint;
 begin
+  inherited;
+
   { initialize elements in M and V once with zeros }
   if not self.MVPopulated then
   begin
@@ -93,8 +159,8 @@ begin
     self.V[i] := self.Beta2 * self.V[i] + (1 - Self.Beta2) * (ModelParams[i].Grad ** 2);
 
     { Bias correction }
-    mHat := self.M[i] / (1 - (self.Beta1 ** (self.iteration)));
-    vHat := self.V[i] / (1 - (self.Beta2 ** (self.iteration)));
+    mHat := self.M[i] / (1 - (self.Beta1 ** (self.Iteration)));
+    vHat := self.V[i] / (1 - (self.Beta2 ** (self.Iteration)));
 
     { Model parameter update }
     ModelParams[i].Data := ModelParams[i].Data - self.LearningRate *
@@ -102,24 +168,27 @@ begin
 
     ModelParams[i].ZeroGrad;
   end;
-  Inc(self.iteration);
 end;
 
 { TSGDOptimizer }
 
 constructor TSGDOptimizer.Create;
 begin
+  inherited;
+
   self.LearningRate := 0.01;
 end;
 
-procedure TSGDOptimizer.UpdateParams(ModelParams: array of TVariable);
+procedure TSGDOptimizer.UpdateParams(Loss: TVariable; ModelParams: array of TVariable);
+
 var
   param: TVariable;
 begin
+  inherited;
+
   for param in ModelParams do
   begin
     param.Data := param.Data - self.LearningRate * param.Grad;
-
     param.ZeroGrad;
   end;
 end;

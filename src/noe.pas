@@ -26,6 +26,10 @@ type
   TIntVector   = array of longint;
   TFloatVector = array of double;
 
+  TTensor = class;
+  TTensorProxy = class;
+  TVariable = class;
+
   { TTensor }
   TTensor = class
     Val:    TFloatVector;
@@ -42,6 +46,7 @@ type
     function GetShape: TIntVector;
     { transpose for matrix, reverse index for tensors }
     function T: TTensor;
+    function ToVariable(RequiresGrad: boolean = false): TVariable;
     procedure SetAt(i: longint; x: double);
     procedure SetAt(i, j: longint; x: double);
     procedure SetAt(Index: array of longint; x: double);
@@ -99,7 +104,6 @@ type
   { The wrapper of TTensor that also acts as a single node in a computaional graph }
   PVariable = ^TVariable;
 
-  TVariable     = class;
   TVariableArr  = array of TVariable;
   PVariableArr  = array of ^TVariable;
   TBackwardFunc = procedure(arr: TVariableArr; ADy: TTensor);
@@ -544,6 +548,12 @@ end;
 function TTensor.T: TTensor;
 begin
   Result := noe.Math.Transpose(Self);
+end;
+
+function TTensor.ToVariable(RequiresGrad: boolean): TVariable;
+begin
+  Result := TVariable.Create(self);
+  Result.RequiresGrad := RequiresGrad;
 end;
 
 function TTensor.GetAt(i: longint): Double;
