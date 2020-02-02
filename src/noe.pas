@@ -17,7 +17,7 @@ unit noe;
 interface
 
 uses
-  Classes, SysUtils, strutils, Math;
+  Classes, Math, strutils, SysUtils;
 
 var
   GLOBAL_NODE_COUNT: integer;
@@ -26,9 +26,9 @@ type
   TIntVector   = array of longint;
   TFloatVector = array of double;
 
-  TTensor = class;
+  TTensor      = class;
   TTensorProxy = class;
-  TVariable = class;
+  TVariable    = class;
 
   { TTensor }
   TTensor = class
@@ -40,13 +40,13 @@ type
     function GetSize: longint;
   public
     function DumpCSV(Sep: string = ','): string;
-    function GetAt(i: longint): Double; overload;
-    function GetAt(i, j: longint): Double; overload;
+    function GetAt(i: longint): double; overload;
+    function GetAt(i, j: longint): double; overload;
     function GetAt(Index: array of longint): TTensor;
     function GetShape: TIntVector;
     { transpose for matrix, reverse index for tensors }
     function T: TTensor;
-    function ToVariable(RequiresGrad: boolean = false): TVariable;
+    function ToVariable(RequiresGrad: boolean = False): TVariable;
     procedure SetAt(i: longint; x: double);
     procedure SetAt(i, j: longint; x: double);
     procedure SetAt(Index: array of longint; x: double);
@@ -111,7 +111,7 @@ type
   { TVariable }
 
   TVariable = class
-    Prev:   TVariableArr;
+    Prev: TVariableArr;
   private
     FTensor: TTensor;
     FGrad:   TTensor;
@@ -119,7 +119,7 @@ type
     FIsLeaf: boolean;
     FRequiresGrad: boolean;
     FBackwardFunc: TBackwardFunc;
-    FName: string;
+    FName:   string;
     function GetNDims: longint;
     function GetShape: TIntVector;
     function GetSize: longint;
@@ -178,7 +178,6 @@ operator * (A, B: TTensor) C: TTensor;
 operator * (A, B: TVariable) C: TVariable;
 operator ** (A: TTensor; expo: double) B: TTensor; inline;
 operator ** (A, B: TTensor) C: TTensor; inline;
-
 operator in (T: TVariable; arr: array of TVariable) b: boolean;
 
 
@@ -207,6 +206,7 @@ function VFlip(T: TTensor): TTensor;
 { Helpers API for matrix (rank-2 tensor) --------------------------------------}
 function GetRange(T: TTensor; RowIndex, ColumnIndex, Height, Width: longint): TTensor;
 function GetColumn(T: TTensor; ColumnIndex: longint): TTensor;
+function GetColumnRange(T: TTensor; ColumnIndex, Amount: longint): TTensor;
 function GetRow(T: TTensor; RowIndex: longint): TTensor;
 
 { Broadcasting ----------------------------------------------------------------}
@@ -338,13 +338,11 @@ var
 begin
   CurMax := -Infinity;
   for i := 0 to Length(V) - 1 do
-  begin
     if V[i] > CurMax then
     begin
       CurMax := V[i];
       Result := i;
     end;
-  end;
 end;
 
 function Equals(A, B: TTensor): boolean;
@@ -373,10 +371,8 @@ begin
   begin
     ProdRes := 1;
     for j := i + 1 to d - 1 do
-    begin
       ProdRes := ProdRes * (Shape[j]);
-    end;
-    SumRes := SumRes + ProdRes * Index[i];
+    SumRes    := SumRes + ProdRes * Index[i];
   end;
   Result := SumRes;
 end;
@@ -422,7 +418,7 @@ begin
     FRefShape[i] := 1;
   for i := 0 to length(ref.Shape) - 1 do
     FRefShape[i] := ReverseIntArr(ref.Shape)[i];
-  FRefShape := ReverseIntArr(FRefShape);
+  FRefShape      := ReverseIntArr(FRefShape);
 end;
 
 function TTensorProxy.GetValByOffset(offset: longint): double;
@@ -436,14 +432,10 @@ begin
 
   { map expected index to the proper index }
   for i := 0 to Length(expectedIndex) - 1 do
-  begin
     if expectedIndex[i] > FRefShape[i] - 1 then
-    begin
-      mappedIndex[i] := 0;
-    end
+      mappedIndex[i] := 0
     else
       mappedIndex[i] := expectedIndex[i];
-  end;
 
   Result := FRef.Val[IndexToOffset(mappedIndex, FRefShape)];
 end;
@@ -459,14 +451,10 @@ begin
 
   { map expected index to the proper index }
   for i := 0 to Length(expectedIndex) - 1 do
-  begin
     if expectedIndex[i] > FRefShape[i] - 1 then
-    begin
-      mappedIndex[i] := 0;
-    end
+      mappedIndex[i] := 0
     else
       mappedIndex[i] := expectedIndex[i];
-  end;
 
   Result := IndexToOffset(mappedIndex, FRefShape);
 end;
@@ -556,13 +544,13 @@ begin
   Result.RequiresGrad := RequiresGrad;
 end;
 
-function TTensor.GetAt(i: longint): Double;
+function TTensor.GetAt(i: longint): double;
 begin
   assert(self.NDims = 1, MSG_ASSERTION_RANK_1_TENSORS_ONLY);
   Result := self.GetAt([i]).Val[0];
 end;
 
-function TTensor.GetAt(i, j: longint): Double;
+function TTensor.GetAt(i, j: longint): double;
 begin
   assert(self.NDims = 2, MSG_ASSERTION_RANK_2_TENSORS_ONLY);
   Result := self.GetAt([i, j]).Val[0];
@@ -670,8 +658,8 @@ end;
 constructor TVariable.Create(ATensor: TTensor; AName: string;
   ABackwardFunc: TBackwardFunc; AIsLeaf: boolean);
 begin
-  self.Data := ATensor;
-  self.Name := AName;
+  self.Data   := ATensor;
+  self.Name   := AName;
   self.BackwardFunc := ABackwardFunc;
   self.IsLeaf := AIsLeaf;
 
@@ -716,7 +704,7 @@ end;
 
 function CopyTensor(A: TTensor): TTensor;
 begin
-  Result := TTensor.Create;
+  Result     := TTensor.Create;
   Result.val := copy(A.val);
   Result.Reshape(A.Shape);
 end;
@@ -725,7 +713,7 @@ function RandomTensorG(Shape: array of longint): TTensor;
 var
   i, size: longint;
 begin
-  size := ShapeToSize(Shape);
+  size   := ShapeToSize(Shape);
   Result := TTensor.Create;
   SetLength(Result.Val, size);
   for i := 0 to size - 1 do
@@ -737,7 +725,7 @@ function CreateTensor(Shape: array of longint): TTensor;
 var
   i, size: longint;
 begin
-  size := ShapeToSize(Shape);
+  size   := ShapeToSize(Shape);
   Result := TTensor.Create;
   SetLength(Result.Val, size);
   for i := 0 to size - 1 do
@@ -749,7 +737,7 @@ function CreateTensor(Shape: array of longint; Val: float): TTensor;
 var
   i, size: longint;
 begin
-  size := ShapeToSize(Shape);
+  size   := ShapeToSize(Shape);
   Result := TTensor.Create;
   SetLength(Result.Val, size);
   for i := 0 to size - 1 do
@@ -790,7 +778,7 @@ begin
   Result.Reshape([Ceil((stop - start) / step)]);
   SetLength(Result.Val, Ceil((stop - start) / step));
 
-  i := start;
+  i      := start;
   offset := 0;
   while offset < Ceil((stop - start) / step) do
   begin
@@ -859,13 +847,11 @@ begin
 
   offset := 0;
   for i in T.Shape do
-  begin
     if i > 1 then
     begin
       tmpShape[offset] := i;
       Inc(offset);
     end;
-  end;
   SetLength(tmpShape, offset);
 
   if Length(tmpShape) = 0 then
@@ -896,18 +882,22 @@ begin
   SetLength(Result.Val, Height * Width);
   offset := 0;
   for i := RowIndex to RowIndex + Height - 1 do
-  begin
     for j := ColumnIndex to ColumnIndex + Width - 1 do
     begin
       Result.Val[offset] := T.Val[i * T.Shape[1] + j];
       Inc(offset);
     end;
-  end;
 end;
 
 function GetColumn(T: TTensor; ColumnIndex: longint): TTensor;
 begin
   Result := GetRange(T, 0, ColumnIndex, T.Shape[0], 1);
+end;
+
+function GetColumnRange(T: TTensor; ColumnIndex, Amount: longint): TTensor;
+begin
+  Assert(T.NDims = 2, MSG_ASSERTION_RANK_2_TENSORS_ONLY);
+  Result := GetRange(T, 0, ColumnIndex, T.Shape[0], Amount);
 end;
 
 function GetRow(T: TTensor; RowIndex: longint): TTensor;
@@ -927,7 +917,6 @@ var
     if d >= n then
     begin
       for j := Length(res) - 1 downto 0 do
-      begin
         if dimTracker[j] <> res[j] then
         begin
           dimTracker[j] := res[j];
@@ -935,7 +924,6 @@ var
           //NewlineNum := n - j - 1;
           ithDimChanged := j; // in which dimension there is a change?
         end;
-      end;
 
       Callback(T.Val[offset], res, ithDimChanged, T);
       Inc(offset);
@@ -951,7 +939,7 @@ var
 
 begin
   offset := 0;
-  n := Length(T.Shape);
+  n      := Length(T.Shape);
   SetLength(res, n);
   n := Length(T.shape);
   SetLength(dimTracker, n);
@@ -967,17 +955,13 @@ var
 begin
   { counting the violation of broadcasting rule }
   violated := 0;
-  Result := False;
-  revA := ReverseIntArr(A.Shape);
-  revB := ReverseIntArr(B.Shape);
+  Result   := False;
+  revA     := ReverseIntArr(A.Shape);
+  revB     := ReverseIntArr(B.Shape);
   for i := 0 to Min(Length(A.Shape), Length(B.Shape)) - 1 do
-  begin
     if (revA[i] <> revB[i]) then
       if ((revA[i] <> 1) and (revB[i] <> 1)) then
-      begin
         Inc(violated);
-      end;
-  end;
   Result := violated = 0;
 end;
 
@@ -1014,7 +998,7 @@ function Broadcast(A, B: TTensor): TBroadcastResult;
 var
   outDim: TIntVector;
 begin
-  outDim := GetBroadcastDims(A, B);
+  outDim   := GetBroadcastDims(A, B);
   Result.A := TTensorProxy.Create(A, outDim);
   Result.B := TTensorProxy.Create(B, outDim);
   Result.broadcastShape := copy(outDim);
@@ -1034,15 +1018,13 @@ var
     NewlineNum := 0;
 
     for i := Length(res) - 1 downto 0 do
-    begin
       if dimTracker[i] <> res[i] then
       begin
         dimTracker[i] := res[i];
 
-        NewlineNum := n - i - 1;
+        NewlineNum    := n - i - 1;
         ithDimChanged := i; // in which dimension there is a change?
       end;
-    end;
 
     if ithDimChanged < n - 1 then
       outstr := outstr + (DupeString(']', NewlineNum));
@@ -1091,7 +1073,7 @@ var
   end;
 
 begin
-  digitMax := Math.ceil(Math.log10(abs(MaxAbs(T.Val)) + 0.01));
+  digitMax     := Math.ceil(Math.log10(abs(MaxAbs(T.Val)) + 0.01));
   decimalPlace := 2;
 
   if Length(T.Val) = 1 then { it is a scalar }
@@ -1099,7 +1081,7 @@ begin
   else { it is a higher rank tensor }
   begin
     offset := 0;
-    n := Length(T.Shape);
+    n      := Length(T.Shape);
 
     SetLength(dimTracker, n);
     for dtIter := 0 to n - 1 do
@@ -1116,7 +1098,8 @@ begin
 end;
 
 initialization
-  NoeConfig.debug := True;
+  NoeConfig.debug   := True;
+
   NoeConfig.backend := 'BLAS';
   NoeConfig.BLASFileName := BLAS_FILENAME;
   NoeConfig.useBLAS := True;
