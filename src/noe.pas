@@ -225,6 +225,8 @@ function CreateTensor(Shape: array of longint): TTensor; overload;
 function CreateTensor(Shape: array of longint; Val: float): TTensor; overload;
 function CreateTensor(Shape: array of longint; Vals: array of float): TTensor; overload;
 function RandomTensorG(Shape: array of longint): TTensor;
+function ReadCSV(fileName: string): TTensor;
+
 function Zeros(Shape: array of longint): TTensor;
 function Ones(Shape: array of longint): TTensor;
 
@@ -719,6 +721,54 @@ begin
   for i := 0 to size - 1 do
     Result.Val[i] := Math.randg(0, 1);
   Result.Reshape(shape);
+end;
+
+function ReadCSV(fileName: string): TTensor;
+var
+  s, number: string;
+  sl: TStringList;
+  InFile: Text;
+  RowCount, ColCount, offset: longint;
+begin
+  Assign(InFile, fileName);
+  Reset(InFile);
+
+  sl := TStringList.Create;
+  sl.StrictDelimiter := True;
+
+  { first run: estimate the RowCount & ColCount }
+  ReadLn(InFile, s);
+  sl.CommaText := s;
+  ColCount := sl.Count;
+
+  RowCount := 1;
+  while not EOF(InFile) do
+  begin
+    Inc(RowCount);
+    ReadLn(InFile);
+  end;
+
+  { actual data handle }
+  Result := TTensor.Create;
+  Result.Reshape([RowCount, ColCount]);
+  SetLength(Result.Val, RowCount * ColCount);
+
+  offset := 0;
+  Reset(InFile);
+  while not EOF(InFile) do
+  begin
+    ReadLn(InFile, s);
+    sl.CommaText := s;
+
+    for number in sl do
+    begin
+      Result.Val[offset] := StrToFloat(number);
+      Inc(offset);
+    end;
+  end;
+
+  Close(InFile);
+  sl.Free;
 end;
 
 function CreateTensor(Shape: array of longint): TTensor;

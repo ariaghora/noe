@@ -7,9 +7,6 @@ interface
 uses
   Classes, fgl, noe, noe.Math, noe.utils, SysUtils;
 
- //var
- //  ActivationTypes: array[0..3] of string = ('sigmoid', 'relu', 'tanh', 'identity');
-
 type
   TLayer = class;
   TModel = class;

@@ -35,10 +35,6 @@ function ReverseFloatArr(A: array of Double): TFloatVector;
 
 { Sorting chars in a string using bubble sort. Not for big strings. }
 function SortStr(s: string; ascending: boolean = True): string; inline;
-
-{ Create a rank-2 tensor (a matrix) from a CSV file }
-function ReadCSV(fileName: string): TTensor;
-
 function StandardScaler(X:TTensor): TTensor;
 
 procedure NoeLog(tag, msg: string);
@@ -97,54 +93,6 @@ begin
     end;
   end;
   Result := tmpstr;
-end;
-
-function ReadCSV(fileName: string): TTensor;
-var
-  s, number: string;
-  sl: TStringList;
-  InFile: Text;
-  RowCount, ColCount, offset: longint;
-begin
-  Assign(InFile, fileName);
-  Reset(InFile);
-
-  sl := TStringList.Create;
-  sl.StrictDelimiter := True;
-
-  { first run: estimate the RowCount & ColCount }
-  ReadLn(InFile, s);
-  sl.CommaText := s;
-  ColCount := sl.Count;
-
-  RowCount := 1;
-  while not EOF(InFile) do
-  begin
-    Inc(RowCount);
-    ReadLn(InFile);
-  end;
-
-  { actual data handle }
-  Result := TTensor.Create;
-  Result.Reshape([RowCount, ColCount]);
-  SetLength(Result.Val, RowCount * ColCount);
-
-  offset := 0;
-  Reset(InFile);
-  while not EOF(InFile) do
-  begin
-    ReadLn(InFile, s);
-    sl.CommaText := s;
-
-    for number in sl do
-    begin
-      Result.Val[offset] := StrToFloat(number);
-      Inc(offset);
-    end;
-  end;
-
-  Close(InFile);
-  sl.Free;
 end;
 
 function CompareDouble(const x, y: double): integer;
