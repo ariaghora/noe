@@ -60,7 +60,7 @@ var
       { check if the sample is correctly classified (i.e., predicted = actual) }
       if predicted.GetAt(i) = actual.GetAt(i) then
         tot := tot + 1;
-    Result := tot / predicted.Size;
+    Result  := tot / predicted.Size;
   end;
 
   { A procedure to display figure using noe's interface to GNU plot. }
@@ -86,6 +86,8 @@ var
   end;
 
 begin
+  RandSeed := 1;
+
   { Comment this if you have BLAS configured. }
   NoeConfig.useBLAS := False;
 
@@ -110,7 +112,7 @@ begin
   Xtrain := TVariable.Create(FeatsTrain);
   ytrain := TVariable.Create(EncodedLabelsTrain);
 
-  NInputNeuron := Xtrain.Shape[1]; // The number of features (columns)
+  NInputNeuron  := Xtrain.Shape[1]; // The number of features (columns)
   NHiddenNeuron := 32; // Feel free to experiment with the value.
   NOutputNeuron := ytrain.Shape[1]; // The number of unique class in the LabelsTrain
 
@@ -118,8 +120,8 @@ begin
     are set to a particular value. Typically the value is small in the beginning.
     Some implementations just use 1/n_of_layer_neuron for the initial bias
     value. }
-  W1 := TVariable.Create(CreateTensor([NInputNeuron, NHiddenNeuron]));
-  W2 := TVariable.Create(CreateTensor([NHiddenNeuron, NOutputNeuron]));
+  W1 := TVariable.Create(RandomTensorG([NInputNeuron, NHiddenNeuron]));
+  W2 := TVariable.Create(RandomTensorG([NHiddenNeuron, NOutputNeuron]));
   b1 := TVariable.Create(CreateTensor([1, NHiddenNeuron], 1 / NHiddenNeuron));
   b2 := TVariable.Create(CreateTensor([1, NOutputNeuron], 1 / NOutputNeuron));
 
@@ -170,9 +172,9 @@ begin
 
   WriteLn('Traning completed. Now evaluating the model on the testing set...');
 
-  DatasetTest := ReadCSV('optdigits-test.csv');
-  FeatsTest := GetRange(DatasetTest, 0, 0, DatasetTest.Shape[0], 64) / 16;
-  LabelsTest := Squeeze(GetColumn(DatasetTest, 64));
+  DatasetTest := ReadCSV('../datasets/optdigits-test.csv');
+  FeatsTest   := GetRange(DatasetTest, 0, 0, DatasetTest.Shape[0], 64) / 16;
+  LabelsTest  := Squeeze(GetColumn(DatasetTest, 64));
 
   { Note that we do not need to wrap the test data in a variable, since we only
     need to evaluate the trained model. Thus, there is no need to create another
@@ -190,9 +192,9 @@ begin
 
   { Pick one sample from the test set. Let's try to visualize and predict the
     label }
-  SampleIdx := 400;
+  SampleIdx   := 400;
   ImageSample := GetRow(FeatsTest, SampleIdx);
-  ypredTest := SoftMax(ReLU(ImageSample.Dot(W1.Data) + b1.Data).Dot(W2.Data) +
+  ypredTest   := SoftMax(ReLU(ImageSample.Dot(W1.Data) + b1.Data).Dot(W2.Data) +
     b2.Data, 1);
 
   { Reshape it first for display. }
@@ -200,7 +202,7 @@ begin
 
   { transform the probability into the discrete label }
   PredictedLabel := Round(LabelEncoder.Decode(ypredTest).Val[0]);
-  ActualLabel := Round(GetRow(LabelsTest, SampleIdx).Val[0]);
+  ActualLabel    := Round(GetRow(LabelsTest, SampleIdx).Val[0]);
 
   { I don't know why the image is vertically flipped. So We should flip it back. }
   ShowFigure(VFlip(ImageSample), 'Predicted: ' + IntToStr(PredictedLabel) +
