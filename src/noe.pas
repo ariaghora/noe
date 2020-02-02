@@ -220,6 +220,7 @@ function CopyTensor(A: TTensor): TTensor;
 function CreateTensor(Shape: array of longint): TTensor; overload;
 function CreateTensor(Shape: array of longint; Val: float): TTensor; overload;
 function CreateTensor(Shape: array of longint; Vals: array of float): TTensor; overload;
+function RandomTensorG(Shape: array of longint): TTensor;
 function Zeros(Shape: array of longint): TTensor;
 function Ones(Shape: array of longint): TTensor;
 
@@ -559,7 +560,7 @@ end;
 
 function TTensor.GetNDims: longint;
 begin
-  Result := length(self.Val);
+  Result := length(self.Shape);
 end;
 
 function TTensor.GetSize: longint;
@@ -708,6 +709,18 @@ begin
   Result := TTensor.Create;
   Result.val := copy(A.val);
   Result.Reshape(A.Shape);
+end;
+
+function RandomTensorG(Shape: array of longint): TTensor;
+var
+  i, size: longint;
+begin
+  size := ShapeToSize(Shape);
+  Result := TTensor.Create;
+  SetLength(Result.Val, size);
+  for i := 0 to size - 1 do
+    Result.Val[i] := Math.randg(0, 1);
+  Result.Reshape(shape);
 end;
 
 function CreateTensor(Shape: array of longint): TTensor;
