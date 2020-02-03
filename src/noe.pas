@@ -855,7 +855,8 @@ var
 
   procedure TopoHelper(v: TVariable);
   begin
-    if (not (v in Seen)) and (not (v.IsLeaf)) then
+    //if (not (v in Seen)) and (not (v.IsLeaf)) then
+    if (not (v in Seen)) then
     begin
       SetLength(Seen, Length(seen) + 1);
       Seen[Length(Seen) - 1] := v;
@@ -884,6 +885,7 @@ begin
 
   T.Grad := Ones(T.Data.Shape);
   for i := length(Sorted) - 1 downto 0 do
+    if Assigned(Sorted[i].BackwardFunc) then
     Sorted[i].BackwardFunc(Sorted[i].Prev, Sorted[i].FGrad);
 end;
 
