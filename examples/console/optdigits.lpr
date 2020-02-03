@@ -159,15 +159,8 @@ begin
 
     TrainingAcc := AccuracyScore(LabelEncoder.Decode(ypred.Data), LabelsTrain);
 
-    WriteLn('Epoch ', i + 1, ': loss = ', TotalLoss.Data.GetAt(0): 5: 2,
-      '; training accuracy = ', TrainingAcc: 2: 2);
-
-    { Backpropagate the loss to compute the gradient of all parameters requiring
-      gradient. }
-    TotalLoss.Backpropagate;
-
     { Update the network weight }
-    Optimizer.UpdateParams([W1, W2, b1, b2]);
+    Optimizer.UpdateParams(TotalLoss, [W1, W2, b1, b2]);
   end;
 
   WriteLn('Traning completed. Now evaluating the model on the testing set...');
