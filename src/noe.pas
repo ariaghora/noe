@@ -192,22 +192,18 @@ function DimsToLetter(dims: array of longint): string;
 
 { Determine the offset based on given multidimensional index }
 function IndexToOffset(Index, Shape: array of longint): longint;
-
 { Determine the multidimensional index based on given offset }
 function OffsetToIndex(offset: longint; Shape: array of longint): TIntVector;
-
 { Determine the required 1-d array size based on a tensor shape }
 function ShapeToSize(Shape: array of longint): longint;
-
 function Squeeze(T: TTensor): TTensor;
-
-function VFlip(T: TTensor): TTensor;
 
 { Helpers API for matrix (rank-2 tensor) --------------------------------------}
 function GetRange(T: TTensor; RowIndex, ColumnIndex, Height, Width: longint): TTensor;
 function GetColumn(T: TTensor; ColumnIndex: longint): TTensor;
 function GetColumnRange(T: TTensor; ColumnIndex, Amount: longint): TTensor;
 function GetRow(T: TTensor; RowIndex: longint): TTensor;
+function VFlip(T: TTensor): TTensor;
 
 { Broadcasting ----------------------------------------------------------------}
 
@@ -239,6 +235,7 @@ function Range(n: longint): TTensor; overload;
 function TopologicalSort(T: TVariable): TVariableArr;
 procedure BackwardGraph(const T: TVariable);
 procedure SetRequiresGrad(arr: array of TVariable; val: boolean);
+procedure ZeroGradGraph(const T: TVariable);
 
 implementation
 
@@ -686,8 +683,14 @@ begin
 end;
 
 procedure TVariable.ZeroGrad;
+var
+  i: longint;
 begin
-  self.Grad := Zeros(self.Tensor.Shape);
+  if not Assigned(self.Grad) then
+    self.Grad := Zeros(self.Shape)
+  else
+  for i := 0 to self.Grad.Size - 1 do
+    self.Grad.Val[i] := 0;
 end;
 
 function TVariable.Dot(Other: TVariable): TVariable;
@@ -702,6 +705,14 @@ var
 begin
   for V in arr do
     V.RequiresGrad := val;
+end;
+
+procedure ZeroGradGraph(const T: TVariable);
+var
+  tmp: TVariable;
+begin
+  for tmp in TopologicalSort(T) do
+    tmp.ZeroGrad;
 end;
 
 function CopyTensor(A: TTensor): TTensor;

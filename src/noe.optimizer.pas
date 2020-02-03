@@ -139,9 +139,9 @@ begin
   begin
     self.V[i] := self.Gamma * self.V[i] + self.LearningRate * ModelParams[i].Grad;
     ModelParams[i].Data := ModelParams[i].Data - self.V[i];
-
-    ModelParams[i].ZeroGrad;
   end;
+
+  ZeroGradGraph(Loss);
 end;
 
 { TAdamOptimizer }
@@ -191,9 +191,9 @@ begin
     { Model parameter update }
     ModelParams[i].Data := ModelParams[i].Data - self.LearningRate *
       mHat / ((vHat ** 0.5) + self.Epsilon);
-
-    ModelParams[i].ZeroGrad;
   end;
+
+  ZeroGradGraph(Loss);
 end;
 
 { TSGDOptimizer }
@@ -206,7 +206,6 @@ begin
 end;
 
 procedure TSGDOptimizer.UpdateParams(Loss: TVariable; ModelParams: array of TVariable);
-
 var
   param: TVariable;
 begin
@@ -215,8 +214,9 @@ begin
   for param in ModelParams do
   begin
     param.Data := param.Data - self.LearningRate * param.Grad;
-    param.ZeroGrad;
   end;
+
+  ZeroGradGraph(Loss);
 end;
 
 end.
