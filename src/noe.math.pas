@@ -1014,8 +1014,21 @@ begin
     Assert(IsBroadcastable(A, B), 'Cannot perform broadcasting');
 
     { If either one is a scalar, i.e., A.Size=1 or B.Size=1 }
-    //if (A.Size = 1) or (B.Size = 1) then
-    //  Writeln('tensor-scalar broadcast bfunc');
+    if (B.Size = 1) then
+    begin
+      Result := CreateTensor(A.Shape);
+      for i := 0 to Length(A.Val) - 1 do
+        Result.Val[i] := Func(A.Val[i], B.Val[0]);
+      exit;
+    end;
+
+    if (A.Size = 1) then
+    begin
+      Result := CreateTensor(B.Shape);
+      for i := 0 to Length(B.Val) - 1 do
+        Result.Val[i] := Func(B.Val[i], B.Val[0]);
+      exit;
+    end;
 
     { Current general broadcasting implementation seems slow. At least, for a
       specific rank-2 tensor case, i.e., A.Ndims = B.Ndims = 2 go for hand-crafted
