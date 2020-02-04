@@ -11,7 +11,7 @@
 
 </div>
 
-Noe is a framework for an easier scientific computation in object pascal, especially to build neural networks, and hence the name — *noe (Korean:뇌) means brain*. It supports the creation of arbitrary rank tensor and its arithmetical operations. Some of the key features:
+Noe is a framework for an easier scientific computation in object pascal, especially to build neural networks, and hence the name — *noe (Korean:뇌) means brain (🧠)*. It supports the creation of arbitrary rank tensor and its arithmetical operations. Some of the key features:
 - Automatic gradient computation
 - Numpy-style broadcasting
 - Interface with *OpenBLAS* for some heavy-lifting
