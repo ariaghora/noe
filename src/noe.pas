@@ -778,7 +778,7 @@ var
 begin
   Result := CreateEmptyTensor(Shape);
   for i := 0 to Result.Size - 1 do
-    Result.Val[i] := ifthen(random > p, 1, 0);
+    Result.Val[i] := ifthen(random > p, 0, 1);
 end;
 
 function ReadCSV(fileName: string): TTensor;

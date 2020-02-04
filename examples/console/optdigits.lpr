@@ -26,6 +26,7 @@ program optdigits;
 
 uses
   SysUtils,
+  Math,
   noe,
   noe.Math,
   noe.utils,
@@ -118,12 +119,12 @@ begin
 
   { Initialize weights and biases. The weights are randomized, and the biases
     are set to a particular value. Typically the value is small in the beginning.
-    Some implementations just use 1/n_of_layer_neuron for the initial bias
+    Some implementations just use 1/sqrt(n_of_layer_neuron) for the initial bias
     value. }
-  W1 := TVariable.Create(RandomTensorG([NInputNeuron, NHiddenNeuron]));
-  W2 := TVariable.Create(RandomTensorG([NHiddenNeuron, NOutputNeuron]));
-  b1 := TVariable.Create(CreateTensor([1, NHiddenNeuron], 1 / NHiddenNeuron));
-  b2 := TVariable.Create(CreateTensor([1, NOutputNeuron], 1 / NOutputNeuron));
+  W1 := TVariable.Create(RandomTensorNormal([NInputNeuron, NHiddenNeuron]));
+  W2 := TVariable.Create(RandomTensorNormal([NHiddenNeuron, NOutputNeuron]));
+  b1 := TVariable.Create(CreateTensor([1, NHiddenNeuron], 1 / NHiddenNeuron ** 0.5));
+  b2 := TVariable.Create(CreateTensor([1, NOutputNeuron], 1 / NOutputNeuron ** 0.5));
 
   { Since we need the gradient of weights and biases, it is mandatory to set
     RequiresGrad property to True. We can also set the parameter individually
@@ -157,10 +158,11 @@ begin
     TotalLoss := CrossEntropyLoss + (Lambda / (2 * M)) * L2Reg;
     Losses.SetAt(i, TotalLoss.Data.GetAt(0));
 
-    TrainingAcc := AccuracyScore(LabelEncoder.Decode(ypred.Data), LabelsTrain);
-
     { Update the network weight }
     Optimizer.UpdateParams(TotalLoss, [W1, W2, b1, b2]);
+
+    TrainingAcc := AccuracyScore(LabelEncoder.Decode(ypred.Data), LabelsTrain);
+    Writeln('Epoch ', i + 1, ' training accuracy: ', TrainingAcc);
   end;
 
   WriteLn('Traning completed. Now evaluating the model on the testing set...');
@@ -195,7 +197,7 @@ begin
 
   { transform the probability into the discrete label }
   PredictedLabel := Round(LabelEncoder.Decode(ypredTest).Val[0]);
-  ActualLabel    := Round(GetRow(LabelsTest, SampleIdx).Val[0]);
+  ActualLabel    := Round(LabelsTest.GetAt(SampleIdx));
 
   { I don't know why the image is vertically flipped. So We should flip it back. }
   ShowFigure(VFlip(ImageSample), 'Predicted: ' + IntToStr(PredictedLabel) +

@@ -34,13 +34,12 @@ uses
   noe.utils;
 
 const
-  MAX_EPOCH = 50;
+  MAX_EPOCH = 100;
 
 var
   i, M, NInputNeuron, NOutputNeuron, PredictedLabel, ActualLabel,
   NHiddenNeuron, SampleIdx: longint;
-  DatasetTrain, FeatsTrain, LabelsTrain, EncodedLabelsTrain, DatasetTest,
-  LabelsTest, FeatsTest, ImageSample: TTensor;
+  DatasetTrain, DatasetTest, LabelsTest, FeatsTest, ImageSample: TTensor;
   Xtrain, ytrain, ypred, Loss, ypredTest: TVariable;
   LabelEncoder: TOneHotEncoder;
   NNModel: TModel;
@@ -49,8 +48,6 @@ var
 
 begin
   RandSeed := 1;
-
-  PrintTensor(RandomTensorBinomial([4,4], 0.1));
 
   { Data preparation ----------------------------------------------------------}
   DatasetTrain := ReadCSV('../datasets/optdigits-train.csv');
@@ -70,7 +67,8 @@ begin
     TDenseLayer.Create(NInputNeuron, NHiddenNeuron, atReLU),
     TDenseLayer.Create(NHiddenNeuron, NOutputNeuron, atNone),
     TSoftMaxLayer.Create(1)
-    ]);
+  ]);
+
 
   { Training phase ------------------------------------------------------------}
   optimizer := TAdamOptimizer.Create;
@@ -78,7 +76,7 @@ begin
   for i := 0 to MAX_EPOCH - 1 do
   begin
     ypred := NNModel.Eval(Xtrain);
-    Loss  := CrossEntropyLoss(ypred, ytrain) + L2Regularization(NNModel);
+    Loss  := CrossEntropyLoss(ypred, ytrain) {+ L2Regularization(NNModel)};
 
     optimizer.UpdateParams(Loss, NNModel.Params);
 

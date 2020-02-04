@@ -24,8 +24,6 @@ type
 
   { The base class for optimizer. All optimizers should extend this class. }
 
-  { TBaseOptimizer }
-
   TBaseOptimizer = class
   private
     FCallback:     TOptimizerCallbackProc;
@@ -43,8 +41,6 @@ type
   { The implementation of stochastic gradient descent. It is the most basic
     optimizer among available ones. }
 
-  { TSGDOptimizer }
-
   TSGDOptimizer = class(TBaseOptimizer)
     constructor Create;
     procedure UpdateParams(Loss: TVariable; ModelParams: array of TVariable);
@@ -52,8 +48,6 @@ type
   end;
 
   { The implementation of stochastic gradient descent with momentum }
-
-  { TSGDMomentumOptimizer }
 
   TSGDMomentumOptimizer = class(TBaseOptimizer)
   private
