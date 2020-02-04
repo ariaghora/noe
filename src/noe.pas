@@ -43,6 +43,7 @@ type
     function GetShape: TIntVector;
     function T: TTensor;
     function ToVariable(RequiresGrad: boolean = False): TVariable;
+    procedure Free;
     procedure SetAt(i: longint; x: double);
     procedure SetAt(i, j: longint; x: double);
     procedure SetAt(Index: array of longint; x: double);
@@ -129,6 +130,7 @@ type
     procedure AddPrev(AVariable: TVariable);
     procedure AddPrev(arr: array of TVariable);
     procedure Backpropagate;
+    procedure Free;
     procedure Step(LearningRate: double);
     procedure ZeroGrad;
     property BackwardFunc: TBackwardFunc read FBackwardFunc write FBackwardFunc;
@@ -244,7 +246,7 @@ function Range(n: longint): TTensor; overload;
 function TopologicalSort(T: TVariable): TVariableArr;
 procedure BackwardGraph(const T: TVariable);
 procedure SetRequiresGrad(arr: array of TVariable; val: boolean);
-procedure ZeroGradGraph(const T: TVariable);
+procedure ZeroGradGraph(const T: TVariable; RetainGraph: boolean = False);
 
 implementation
 
@@ -567,6 +569,12 @@ begin
   Result.RequiresGrad := RequiresGrad;
 end;
 
+procedure TTensor.Free;
+begin
+  SetLength(self.Val, 0);
+  SetLength(self.FShape, 0);
+end;
+
 function TTensor.GetAt(i: longint): double;
 begin
   assert(self.NDims = 1, MSG_ASSERTION_RANK_1_TENSORS_ONLY);
@@ -717,6 +725,12 @@ begin
   BackwardGraph(self);
 end;
 
+procedure TVariable.Free;
+begin
+  self.Data.Free;
+  self.Grad.Free;
+end;
+
 procedure TVariable.Step(LearningRate: double);
 begin
   if Self.RequiresGrad then
@@ -748,12 +762,23 @@ begin
     V.RequiresGrad := val;
 end;
 
-procedure ZeroGradGraph(const T: TVariable);
+procedure ZeroGradGraph(const T: TVariable; RetainGraph: boolean);
 var
   tmp: TVariable;
+  i: longint;
 begin
   for tmp in TopologicalSort(T) do
+  begin
     tmp.ZeroGrad;
+
+    { HACK: my intention is to clear all nodes that is not a leaf node AND not
+      a model parameter. In other words, the remaining nodes are those from math
+      operations, that has 'Forward' prefix in their name. So I use this property
+      as the criteria for node freeing. }
+    if tmp.Name.StartsWith('Forward') then
+      if not (RetainGraph) then
+        tmp.Free;
+  end;
 end;
 
 function CopyTensor(A: TTensor): TTensor;

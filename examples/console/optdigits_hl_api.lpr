@@ -82,7 +82,7 @@ begin
 
     TrainingAcc := AccuracyScore(LabelEncoder.Decode(ypred.Data),
       LabelEncoder.Decode(ytrain.Data));
-    //WriteLn('Training accuracy: ', TrainingAcc: 2: 4);
+    WriteLn('Training accuracy: ', TrainingAcc: 2: 4);
   end;
 
   { Testing Phase -------------------------------------------------------------}

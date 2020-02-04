@@ -466,21 +466,21 @@ end;
 
 function Add(A, B: TVariable): TVariable;
 begin
-  Result := TVariable.Create(A.Data + B.Data, 'Add', @BackwardAdd);
+  Result := TVariable.Create(A.Data + B.Data, 'ForwardAdd', @BackwardAdd);
   Result.RequiresGrad := True;
   Result.AddPrev([A, B]);
 end;
 
 function Divide(A, B: TVariable): TVariable;
 begin
-  Result := TVariable.Create(A.Data / B.Data, 'Divide', @BackwardDivide);
+  Result := TVariable.Create(A.Data / B.Data, 'ForwardDivide', @BackwardDivide);
   Result.RequiresGrad := True;
   Result.AddPrev([A, B]);
 end;
 
 function Subtract(A, B: TVariable): TVariable;
 begin
-  Result := TVariable.Create(A.Data - B.Data, 'Subtract', @BackwardSubtract);
+  Result := TVariable.Create(A.Data - B.Data, 'ForwardSubtract', @BackwardSubtract);
   Result.RequiresGrad := True;
   Result.AddPrev([A, B]);
 end;
@@ -488,14 +488,14 @@ end;
 function Multiply(A, B: TVariable): TVariable;
 begin
   Result := TVariable.Create(noe.Math.Multiply(A.Data, B.Data),
-    'Multiply', @BackwardMultiply);
+    'ForwardMultiply', @BackwardMultiply);
   Result.RequiresGrad := True;
   Result.AddPrev([A, B]);
 end;
 
 function MultiplyC(A: TVariable; x: double): TVariable;
 begin
-  Result := TVariable.Create(noe.Math.Multiply(A.Data, x), 'MultiplyC',
+  Result := TVariable.Create(noe.Math.Multiply(A.Data, x), 'ForwardMultiplyC',
     @BackwardMultiplyC);
   Result.RequiresGrad := True;
 
@@ -508,21 +508,21 @@ end;
 function MatMul(A, B: TVariable): TVariable;
 begin
   Assert(A.Shape[1] = B.Shape[0], MSG_ASSERTION_DIM_MISMATCH);
-  Result := TVariable.Create(noe.Math.MatMul(A.Data, B.Data), 'MatMul', @BackwardMatmul);
+  Result := TVariable.Create(noe.Math.MatMul(A.Data, B.Data), 'ForwardMatMul', @BackwardMatmul);
   Result.RequiresGrad := True;
   Result.AddPrev([A, B]);
 end;
 
 function Negate(A: TVariable): TVariable;
 begin
-  Result := TVariable.Create(-A.Data, 'Negate', @BackwardNegate);
+  Result := TVariable.Create(-A.Data, 'ForwardNegate', @BackwardNegate);
   Result.RequiresGrad := True;
   Result.AddPrev(A);
 end;
 
 function Cosh(A: TVariable): TVariable;
 begin
-  Result := TVariable.Create(noe.Math.Cosh(A.Data), 'Cosh', @BackwardCosh);
+  Result := TVariable.Create(noe.Math.Cosh(A.Data), 'ForwardCosh', @BackwardCosh);
   Result.RequiresGrad := True;
 
   Result.AddPrev(A);
@@ -530,7 +530,7 @@ end;
 
 function Log(A: TVariable): TVariable;
 begin
-  Result := TVariable.Create(Log(A.Data), 'Ln', @BackwardLn);
+  Result := TVariable.Create(Log(A.Data), 'ForwardLn', @BackwardLn);
   Result.RequiresGrad := True;
 
   Result.AddPrev(A);
@@ -538,7 +538,7 @@ end;
 
 function Sinh(A: TVariable): TVariable;
 begin
-  Result := TVariable.Create(noe.Math.Sinh(A.Data), 'Sinh', @BackwardSinh);
+  Result := TVariable.Create(noe.Math.Sinh(A.Data), 'ForwardSinh', @BackwardSinh);
   Result.RequiresGrad := True;
 
   Result.AddPrev(A);
@@ -546,7 +546,7 @@ end;
 
 function Sqr(A: TVariable): TVariable;
 begin
-  Result := TVariable.Create(A.Data ** 2, 'Sqr', @BackwardSqr);
+  Result := TVariable.Create(A.Data ** 2, 'ForwardSqr', @BackwardSqr);
   Result.RequiresGrad := True;
 
   Result.AddPrev(A);
@@ -554,35 +554,35 @@ end;
 
 function Sqrt(A: TVariable): TVariable;
 begin
-  Result := TVariable.Create(A.Data ** 0.5, 'Sqrt', @BackwardSqrt);
+  Result := TVariable.Create(A.Data ** 0.5, 'ForwardSqrt', @BackwardSqrt);
   Result.RequiresGrad := True;
   Result.AddPrev(A);
 end;
 
 function ReLU(A: TVariable): TVariable;
 begin
-  Result := TVariable.Create(noe.Math.ReLU(A.Data), 'ReLU', @BackwardReLU);
+  Result := TVariable.Create(noe.Math.ReLU(A.Data), 'ForwardReLU', @BackwardReLU);
   Result.RequiresGrad := True;
   Result.AddPrev(A);
 end;
 
 function Tanh(A: TVariable): TVariable;
 begin
-  Result := TVariable.Create(noe.Math.Tanh(A.Data), 'Tanh', @BackwardTanh);
+  Result := TVariable.Create(noe.Math.Tanh(A.Data), 'ForwardTanh', @BackwardTanh);
   Result.RequiresGrad := True;
   Result.AddPrev(A);
 end;
 
 function Exp(A: TVariable): TVariable;
 begin
-  Result := TVariable.Create(noe.Math.Exp(A.Data), 'Exp', @BackwardExp);
+  Result := TVariable.Create(noe.Math.Exp(A.Data), 'ForwardExp', @BackwardExp);
   Result.RequiresGrad := True;
   Result.AddPrev(A);
 end;
 
 function Max(A: TVariable): TVariable;
 begin
-  Result := TVariable.Create(Max(A.Data), 'Max', @BackwardMax);
+  Result := TVariable.Create(Max(A.Data), 'ForwardMax', @BackwardMax);
   Result.RequiresGrad := True;
   Result.AddPrev(A);
 end;
@@ -590,33 +590,33 @@ end;
 function Max(A: TVariable; axis: byte): TVariable;
 begin
   { Max along axis has no gradient (?) }
-  Result := TVariable.Create(Max(A.Data, axis), 'Max');
+  Result := TVariable.Create(Max(A.Data, axis), 'ForwardMax');
 end;
 
 function Mean(A: TVariable; axis: byte): TVariable;
 begin
-  Result := TVariable.Create(Mean(A.Data, axis), 'Mean', @BackwardMean);
+  Result := TVariable.Create(Mean(A.Data, axis), 'ForwardMean', @BackwardMean);
   Result.RequiresGrad := True;
   Result.AddPrev(A);
 end;
 
 function Mean(A: TVariable): TVariable;
 begin
-  Result := TVariable.Create(noe.Math.Mean(A.Data), 'Mean', @BackwardMean);
+  Result := TVariable.Create(noe.Math.Mean(A.Data), 'ForwardMean', @BackwardMean);
   Result.RequiresGrad := True;
   Result.AddPrev(A);
 end;
 
 function Sum(A: TVariable; axis: byte): TVariable;
 begin
-  Result := TVariable.Create(noe.Math.sum(A.Data, axis), 'Sum', @BackwardSum);
+  Result := TVariable.Create(noe.Math.sum(A.Data, axis), 'ForwardSum', @BackwardSum);
   Result.RequiresGrad := True;
   Result.AddPrev(A);
 end;
 
 function Sum(A: TVariable): TVariable;
 begin
-  Result := TVariable.Create(noe.Math.sum(A.Data), 'Sum', @BackwardSum);
+  Result := TVariable.Create(noe.Math.sum(A.Data), 'ForwardSum', @BackwardSum);
   Result.RequiresGrad := True;
   Result.AddPrev(A);
 end;
