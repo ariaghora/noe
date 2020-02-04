@@ -11,7 +11,7 @@
 
 </div>
 
-Noe is a framework for an easier scientific computation in object pascal, especially to build neural networks, and hence the name — *noe (Korean:뇌) means brain*. It supports the creation of arbitrary rank tensor and its arithmetical operations. Some of the key features:
+Noe is a framework for an easier scientific computation in object pascal, especially to build neural networks, and hence the name — *noe (Korean:뇌) means brain (🧠)*. It supports the creation of arbitrary rank tensor and its arithmetical operations. Some of the key features:
 - Automatic gradient computation
 - Numpy-style broadcasting
 - Interface with *OpenBLAS* for some heavy-lifting
@@ -21,7 +21,7 @@ Noe also provides several tensor creation and preprocessing helper functionaliti
 
 ```delphi
 { Load and prepare the data. }
-Dataset := ReadCSV('iris.csv');
+Dataset := ReadCSV('data.csv');
 X       := GetColumnRange(Dataset, 0, 4);
 X       := StandardScaler(X);
 
@@ -34,7 +34,8 @@ XVar := X.ToVariable();
 yVar := y.ToVariable();
 ```
 
-With autograd, it is possible to make of neural networks in various degree of abstraction. You can control the flow of of the network, even design a custom fancy loss function. For the high level API, there are several implementation of neural network layers, optimzier, along with TModel class helper, so you can prototype your network quickly.
+## High-level neural network API
+With autograd, it is possible to make of neural networks in various degree of abstraction. You can control the flow of of the network, even design a custom fancy loss function. For the high level API, there are several implementation of neural network layers, optimizer, along with TModel class helper, so you can prototype your network quickly.
 ```delphi
 NNModel := TModel.Create([
   TDenseLayer.Create(NInputNeuron, 32, atReLU),
@@ -57,6 +58,61 @@ begin
   optimizer.UpdateParams(Loss, NNModel.Params);
 end;
 ```
+With this you are good to go. More layers are coming soon (including convolutional layers).
+
+## Touching the bare metal
+If you want more control and are okay get your hand dirty, you can skip TModel and TLayer creation and define your own network from scratch.
+```delphi
+{ weights and biases }
+W1 := TVariable.Create(RandomTensorNormal([NInputNeuron, NHiddenNeuron]));
+W2 := TVariable.Create(RandomTensorNormal([NHiddenNeuron, NOutputNeuron]));
+b1 := TVariable.Create(CreateTensor([1, NHiddenNeuron], 1 / NHiddenNeuron ** 0.5));
+b2 := TVariable.Create(CreateTensor([1, NOutputNeuron], 1 / NOutputNeuron ** 0.5));
+
+{ Since we need the gradient of weights and biases, it is mandatory to set
+  RequiresGrad property to True. We can also set the parameter individually
+  for each parameter, e.g., `W1.RequiresGrad := True;`. }
+SetRequiresGrad([W1, W2, b1, b2], True);
+
+Optimizer := TAdamOptimizer.Create;
+Optimizer.LearningRate := 0.003;
+
+for i := 0 to MAX_EPOCH - 1 do
+begin
+  { Our neural network -> ŷ = softmax(σ(XW₁ + b₁)W₂ + b₂). }
+  ypred := SoftMax(ReLU(XVar.Dot(W1) + b1).Dot(W2) + b2, 1);
+
+  { Compute the cross-entropy loss. }
+  CrossEntropyLoss := -Sum(yVar * Log(ypred)) / M;
+
+  { Compute L2 regularization term. Later it is added to the total loss to
+    prevent model overfitting. }
+  L2Reg := Sum(W1 * W1) + Sum(W2 * W2);
+
+  TotalLoss := CrossEntropyLoss + Lambda * L2Reg;
+
+  { Update the network weight }
+  Optimizer.UpdateParams(TotalLoss, [W1, W2, b1, b2]);
+end;
+```
+
+Of course you can go even more lower-level by ditching predefined optimizer and replacing `Optimizer.UpdateParams()` by your own weight update rule, like the good ol' day:
+```delphi
+{ Compute all gradients by simply triggering `Backpropagate` method in the 
+  `TotalLoss`. }
+TotalLoss.Backpropagate;
+
+{ And zero the gradient of all parameters before stepping to the next 
+  iteration. }
+ZeroGradGraph(TotalLoss);
+
+{ Vanilla gradient descent update rule. }
+W1.Data := W1.Data - LearningRate * W1.Grad;
+W2.Data := W2.Data - LearningRate * W2.Grad;
+b1.Data := b1.Data - LearningRate * b1.Grad;
+b2.Data := b2.Data - LearningRate * b2.Grad;
+```
+You can also compute the loss function derivative with respect to all parameters to obtain the gradients... by your hands... But just stop there. Stop hurting yourself. Use more autograd.
 
 Check out [the wiki](https://github.com/ariaghora/noe/wiki) for more documentation. Please note that this framework is developed and heavily tested using fpc 3.0.4, with object pascal syntax mode, on a windows machine. Portability is not really my first concern right now, but any helps are sincerely welcome.
 
