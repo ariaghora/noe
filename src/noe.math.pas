@@ -16,7 +16,7 @@
 
 unit noe.Math;
 
-{$mode objfpc}{$H+}
+{$mode objfpc}{$H+}//{$INLINE ON}
 
 interface
 
@@ -34,6 +34,7 @@ type
 { Helper to apply a function on each tensor's element }
 function ApplyUfunc(A: TTensor; Func: TUFunc): TTensor; inline;
 function ApplyBfunc(A, B: TTensor; Func: TBFunc): TTensor; inline;
+//function ApplyBfunc(A: TTensor; v: double; Func: TBFunc): TTensor; inline;
 
 { Some of functions belong to system unit are in different format. Hence, they
   need to be wrapped to make them compatible. They are given suffix "F"
@@ -993,10 +994,13 @@ function ApplyBfunc(A, B: TTensor; Func: TBFunc): TTensor;
 var
   i: longint;
   br: TBroadcastResult;
+  A_bcast, B_bcast: TTensor;
+  outdim: TIntVector;
 begin
   { if the dimensions are the same, perform usual element-wise operation }
   if IntVectorEquals(A.Shape, B.Shape) then
   begin
+    //Writeln('regular broadcast bfunc');
     Result := TTensor.Create;
     Result.Reshape(A.Shape);
 
@@ -1009,20 +1013,68 @@ begin
     { first, check if broadcastable }
     Assert(IsBroadcastable(A, B), 'Cannot perform broadcasting');
 
+    { If either one is a scalar, i.e., A.Size=1 or B.Size=1 }
+    //if (A.Size = 1) or (B.Size = 1) then
+    //  Writeln('tensor-scalar broadcast bfunc');
+
     { Current general broadcasting implementation seems slow. At least, for a
-      specific rank-2 tensor case, go for optimization. The workaround is to
-      make a copy of orginal tensor, then "tile" it to match the output shape.
-      The trade-off is storage complexity. }
+      specific rank-2 tensor case, i.e., A.Ndims = B.Ndims = 2 go for hand-crafted
+      optimization. The workaround is to make a copy of orginal tensor, then
+      "tile" it to match the output shape. The trade-off is storage complexity. }
+    if (A.NDims = 2) and (B.NDims = 2) then
+    begin
+      //Writeln('2-tensor-2-tenspr tensor broadcast bfunc.');
+      //Writeln('Correcting...');
 
-    br := Broadcast(A, B);
+      outdim := GetBroadcastDims(a, b);
+      //handle A
+      if A.Shape[0] < outdim[0] then
+        A_bcast := TileRow(A, outdim[0])
+      else if A.Shape[1] < outdim[1] then
+        A_bcast := TileColumn(A, outdim[1])
+      else
+        A_bcast := A;
 
-    Result := TTensor.Create;
-    Result.Reshape(br.broadcastShape);
-    SetLength(Result.Val, ShapeToSize(br.broadcastShape));
-    { apply binary function }
-    for i := 0 to ShapeToSize(br.broadcastShape) - 1 do
-      Result.Val[i] := Func(br.A.Val[i], br.B.Val[i]);
+      //handle B
+      if B.Shape[0] < outdim[0] then
+        B_bcast := TileRow(B, outdim[0])
+      else if B.Shape[1] < outdim[1] then
+        B_bcast := TileColumn(B, outdim[1])
+      else
+        B_bcast := B;
+      exit(ApplyBfunc(A_bcast, B_bcast, Func));
+      FreeAndNil(A_bcast);
+      FreeAndNil(B_bcast);
+    end
+    else
+    begin
+      //Writeln('General tensor broadcast bfunc');
+
+      { Otherwise, perform general broadcasting with any dimension }
+      br := Broadcast(A, B);
+
+      Result := TTensor.Create;
+      Result.Reshape(br.broadcastShape);
+      SetLength(Result.Val, ShapeToSize(br.broadcastShape));
+
+      { apply binary function }
+      for i := 0 to ShapeToSize(br.broadcastShape) - 1 do
+        Result.Val[i] := Func(br.A.Val[i], br.B.Val[i]);
+    end;
+
   end;
 end;
+
+//function ApplyBfunc(A: TTensor; v: double; Func: TBFunc): TTensor;
+//var
+//  i: longint;
+//begin
+//  //Result := TTensor.Create;
+//  //Result.Reshape(A.Shape);
+//  //SetLength(Result.val, Length(A.val));
+//  Result := CreateEmptyTensor(A.Shape);
+//  for i := 0 to length(A.val) - 1 do
+//    Result.val[i] := func(A.val[i], v);
+//end;
 
 end.

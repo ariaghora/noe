@@ -5,10 +5,6 @@
 
  This unit contains the interface for TTensor to perform multidimensional array
  operations. The dimension can be of any arbitrary nonnegative integer.
-
- To do:
-  - implement broadcasting mechanism
-  - implement a function to get string from tensor values
 }
 unit noe;
 
@@ -215,6 +211,14 @@ function IsBroadcastable(A, B: TTensor): boolean;
 function GetBroadcastDims(A, B: TTensor): TIntVector;
 function Broadcast(A, B: TTensor): TBroadcastResult;
 
+{ Tile column tensor A n times to the right }
+{ HACK: it works, but certainly can be improved }
+function TileColumn(A: TTensor; n: longint): TTensor;
+
+{ Tile row tensor A n times to bottom }
+{ HACK: it works, but certainly can be improved }
+function TileRow(A: TTensor; n: longint): TTensor;
+
 procedure PrintTensor(T: TTensor);
 procedure IterateTensor(T: TTensor; Callback: TCallback);
 
@@ -224,12 +228,12 @@ function CreateEmptyTensor(Shape: array of longint): TTensor;
 function CreateTensor(Shape: array of longint): TTensor; overload;
 function CreateTensor(Shape: array of longint; Val: float): TTensor; overload;
 function CreateTensor(Shape: array of longint; Vals: array of float): TTensor; overload;
+function Ones(Shape: array of longint): TTensor;
 function RandomTensorNormal(Shape: array of longint): TTensor;
 function RandomTensorBinomial(Shape: array of longint; p: double): TTensor;
 function ReadCSV(fileName: string): TTensor;
-
 function Zeros(Shape: array of longint): TTensor;
-function Ones(Shape: array of longint): TTensor;
+
 
 { Generates an array of float within range of (0, n] }
 function Range(start, stop, step: double): TTensor;
@@ -1120,6 +1124,32 @@ begin
   Result.B := TTensorProxy.Create(B, outDim);
   Result.broadcastShape := copy(outDim);
 
+end;
+
+function TileColumn(A: TTensor; n: longint): TTensor;
+var
+  i, j, OutSize: longint;
+begin
+  OutSize := A.Size * n;
+  Result := CreateEmptyTensor([A.Shape[0], n]);
+  for i := 0 to A.Shape[0] - 1 do
+    for j := 0 to n-1 do
+      result.Val[i * n + j] := A.val[i];
+end;
+
+function TileRow(A: TTensor; n: longint): TTensor;
+var
+  i, j, OutSize: longint;
+begin
+  OutSize := A.Size * n;
+  Result := CreateEmptyTensor([n, A.Shape[1]]);
+  i := 0;
+  while i < OutSize do
+  begin
+    for j := 0 to A.Shape[1] - 1 do
+      result.Val[i + j] := A.Val[j];
+    i := i + A.Shape[1];
+  end;
 end;
 
 procedure PrintTensor(T: TTensor);

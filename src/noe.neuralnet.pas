@@ -1,3 +1,11 @@
+{
+ This file is part of "noe" library.
+
+ Noe library. Copyright (C) 2020 Aria Ghora Prabono.
+
+ This unit contains the interface for high-level neural network API. Specifically,
+ it contains the implementation of layers, optimizers, and loss functions.
+}
 unit noe.neuralnet;
 
 {$mode objfpc}{$H+}
@@ -14,13 +22,18 @@ type
   TVariableList = specialize TFPGList<TVariable>;
   TLayerList    = specialize TFPGList<TLayer>;
 
-  TActivationTypes = (atSigmoid, atReLU, atTanh, atNone);
+  TActivationTypes = (
+    atNone,    // linear layer (no activation);
+    atSigmoid, // Sigmoid activation;
+    atReLU,    // ReLU activation;
+    atTanh     // Hyperbolic tangent activation;
+    );
 
   TDenseLayer   = class;
   TDropoutLayer = class;
   TSoftMaxLayer = class;
 
-  { TLayer }
+  { TLayer Base class }
 
   TLayer = class
   private
@@ -30,7 +43,7 @@ type
     function GetParams: TVariableArr;
   end;
 
-  { TDenseLayer }
+  { TDenseLayer, or fully-connected layer }
 
   TDenseLayer = class(TLayer)
   private

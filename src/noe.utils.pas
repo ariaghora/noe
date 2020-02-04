@@ -55,8 +55,8 @@ function IntVectorEquals(v1, v2: TIntVector): boolean;
 var
   i: longint;
 begin
-  Assert(length(v1) = length(v2), MSG_ASSERTION_DIFFERENT_LENGTH);
   Result := True;
+  if not (length(v1) = length(v2)) then Exit(False);
   for i := 0 to length(v1) - 1 do
     if v1[i] <> v2[i] then
     begin
