@@ -16,6 +16,10 @@ type
 
   TActivationTypes = (atSigmoid, atReLU, atTanh, atNone);
 
+  TDenseLayer   = class;
+  TDropoutLayer = class;
+  TSoftMaxLayer = class;
+
   { TLayer }
 
   TLayer = class
@@ -35,6 +39,20 @@ type
     constructor Create(InSize, OutSize: longint; AActivation: TActivationTypes);
     function Eval(X: TVariable): TVariable; override;
     property Activation: TActivationTypes read FActivation write FActivation;
+  end;
+
+  { TDropoutLayer }
+
+  TDropoutLayer = class(TLayer)
+  private
+    FDropoutRate: double;
+    FUseDropout:  boolean;
+    function GetUseDropout: boolean;
+  public
+    constructor Create(ADropoutRate: double);
+    function Eval(X: TVariable): TVariable; override;
+    property DropoutRate: double read FDropoutRate write FDropoutRate;
+    property UseDropout: boolean read GetUseDropout write FUseDropout;
   end;
 
   { TSoftMaxLayer }
@@ -94,6 +112,40 @@ begin
     if predicted.GetAt(i) = actual.GetAt(i) then
       tot := tot + 1;
   Result  := tot / predicted.Size;
+end;
+
+{ TDropoutLayer }
+
+function TDropoutLayer.GetUseDropout: boolean;
+begin
+  if GLOBAL_SKIP_GRAD then
+    exit(False)
+  else
+    Result := self.FUseDropout;
+end;
+
+constructor TDropoutLayer.Create(ADropoutRate: double);
+begin
+  self.DropoutRate := ADropoutRate;
+  self.UseDropout  := True;
+end;
+
+function TDropoutLayer.Eval(X: TVariable): TVariable;
+var
+  T: TTensor;
+begin
+  if Self.UseDropout then
+  begin
+    { FIXME: it works, but seems slow because of copy. Later the dropout can be
+    applied directly on X data (i.e., pass by ref) }
+    T      := X.Data;
+    Result := X;
+    Result.Data := T * RandomTensorBinomial(X.Shape, 1 - self.DropoutRate) *
+      (1 / (1 - self.DropoutRate));
+  end
+  else
+    Result := X;
+
 end;
 
 { TSoftMaxLayer }
