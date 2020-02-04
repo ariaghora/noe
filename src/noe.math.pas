@@ -1026,7 +1026,7 @@ begin
     begin
       Result := CreateTensor(B.Shape);
       for i := 0 to Length(B.Val) - 1 do
-        Result.Val[i] := Func(B.Val[i], B.Val[0]);
+        Result.Val[i] := Func(A.Val[0], B.Val[i]);
       exit;
     end;
 
