@@ -39,7 +39,7 @@ With autograd, it is possible to make of neural networks in various degree of ab
 NNModel := TModel.Create([
   TDenseLayer.Create(NInputNeuron, 32, atReLU),
   TDropoutLayer.Create(0.2),
-  TDenseLayer.Create(32, 16, atNone),
+  TDenseLayer.Create(32, 16, atReLU),
   TDropoutLayer.Create(0.2),
   TDenseLayer.Create(16, NOutputNeuron, atNone),
   TSoftMaxLayer.Create(1)
