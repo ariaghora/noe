@@ -88,6 +88,7 @@ var
 
 begin
   RandSeed := 1;
+  NoeConfig.useBLAS:=false;
 
   { Comment this if you have BLAS configured. }
   NoeConfig.useBLAS := False;
@@ -162,7 +163,7 @@ begin
     Optimizer.UpdateParams(TotalLoss, [W1, W2, b1, b2]);
 
     TrainingAcc := AccuracyScore(LabelEncoder.Decode(ypred.Data), LabelsTrain);
-    Writeln('Epoch ', i + 1, ' training accuracy: ', TrainingAcc);
+    Writeln('Epoch ', i + 1, ' training accuracy: ', TrainingAcc: 2: 3);
   end;
 
   WriteLn('Traning completed. Now evaluating the model on the testing set...');
@@ -187,7 +188,7 @@ begin
 
   { Pick one sample from the test set. Let's try to visualize and predict the
     label }
-  SampleIdx   := 400;
+  SampleIdx   := 850;
   ImageSample := GetRow(FeatsTest, SampleIdx);
   ypredTest   := SoftMax(ReLU(ImageSample.Dot(W1.Data) + b1.Data).Dot(W2.Data) +
     b2.Data, 1);

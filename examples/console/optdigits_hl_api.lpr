@@ -76,13 +76,13 @@ begin
   for i := 0 to MAX_EPOCH - 1 do
   begin
     ypred := NNModel.Eval(Xtrain);
-    Loss  := CrossEntropyLoss(ypred, ytrain) {+ L2Regularization(NNModel)};
+    Loss  := CrossEntropyLoss(ypred, ytrain) + L2Regularization(NNModel);
 
     optimizer.UpdateParams(Loss, NNModel.Params);
 
     TrainingAcc := AccuracyScore(LabelEncoder.Decode(ypred.Data),
       LabelEncoder.Decode(ytrain.Data));
-    WriteLn('Training accuracy: ', TrainingAcc: 2: 4);
+    //WriteLn('Training accuracy: ', TrainingAcc: 2: 4);
   end;
 
   { Testing Phase -------------------------------------------------------------}
@@ -100,7 +100,7 @@ begin
 
   { Pick one sample from the test set. Let's try to visualize and predict the
     label }
-  SampleIdx   := 300;
+  SampleIdx   := 150;
   ImageSample := GetRow(FeatsTest, SampleIdx);
   ypredTest   := NNModel.Eval(ImageSample.ToVariable(False));
 
