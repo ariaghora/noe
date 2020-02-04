@@ -30,6 +30,7 @@ type
     LabelToIndexMap: TDoubleIntMap;
   end;
 
+function IntVectorEquals(v1, v2: TIntVector): boolean;
 function ReverseIntArr(A: array of longint): TIntVector;
 function ReverseFloatArr(A: array of Double): TFloatVector;
 
@@ -48,6 +49,20 @@ implementation
 
 uses
   noe.Math;
+
+
+function IntVectorEquals(v1, v2: TIntVector): boolean;
+var
+  i: longint;
+begin
+  Assert(length(v1) = length(v2), MSG_ASSERTION_DIFFERENT_LENGTH);
+  Result := True;
+  for i := 0 to length(v1) - 1 do
+    if v1[i] <> v2[i] then
+    begin
+      Exit(False);
+    end;
+end;
 
 function ReverseIntArr(A: array of longint): TIntVector;
 var
@@ -160,7 +175,7 @@ var
 begin
   Assert(length(a) = length(b), MSG_ASSERTION_DIFFERENT_LENGTH);
   c := True;
-  for i := 0 to length(a) do
+  for i := 0 to length(a) - 1 do
     if a[i] <> b[i] then
     begin
       c := False;

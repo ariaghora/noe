@@ -21,7 +21,7 @@ uses
 
 var
   GLOBAL_NODE_COUNT: integer;
-  GLOBAL_SKIP_GRAD: boolean;
+  GLOBAL_SKIP_GRAD:  boolean;
 
 type
   TIntVector   = array of longint;
@@ -33,19 +33,18 @@ type
 
   { TTensor }
   TTensor = class
-    Val:    TFloatVector;
-    FShape: array of longint;
-    FSize:  longint;
   private
+    FShape: array of longint;
     function GetNDims: longint;
     function GetSize: longint;
   public
+    Val:    TFloatVector;
+    function Dot(Other: TTensor): TTensor;
     function DumpCSV(Sep: string = ','): string;
     function GetAt(i: longint): double; overload;
     function GetAt(i, j: longint): double; overload;
     function GetAt(Index: array of longint): TTensor;
     function GetShape: TIntVector;
-    { transpose for matrix, reverse index for tensors }
     function T: TTensor;
     function ToVariable(RequiresGrad: boolean = False): TVariable;
     procedure SetAt(i: longint; x: double);
@@ -56,9 +55,6 @@ type
     property NDims: longint read GetNDims;
     property Shape: TIntVector read FShape;
     property Size: longint read GetSize;
-
-    { Math helpers }
-    function Dot(Other: TTensor): TTensor;
   end;
 
   PTensor    = ^TTensor;
@@ -256,14 +252,14 @@ begin
   M := CreateTensor([1], Val);
 end;
 
-operator:=(Val: TTensor)V: TVariable;
+operator := (Val: TTensor)V: TVariable;
 begin
   V := TVariable.Create(Val);
 end;
 
 operator +(A, B: TTensor) C: TTensor;
 begin
-  C := noe.Math.Add(A, B);
+  C := Add(A, B);
 end;
 
 operator -(A: TTensor)B: TTensor;
@@ -625,7 +621,7 @@ end;
 function TTensor.Dot(Other: TTensor): TTensor;
 begin
   Assert((Self.NDims <= 2) and (Other.NDims <= 2), MSG_ASSERTION_RANK_2_TENSORS_ONLY);
-  Result := noe.Math.MatMul(self, Other);
+  Result := MatMul(self, Other);
 end;
 
 { TVariable }
@@ -730,8 +726,8 @@ begin
   if not Assigned(self.Grad) then
     self.Grad := Zeros(self.Shape)
   else
-  for i := 0 to self.Grad.Size - 1 do
-    self.Grad.Val[i] := 0;
+    for i := 0 to self.Grad.Size - 1 do
+      self.Grad.Val[i] := 0;
 end;
 
 function TVariable.Dot(Other: TVariable): TVariable;
@@ -797,7 +793,7 @@ begin
   { first run: estimate the RowCount & ColCount }
   ReadLn(InFile, s);
   sl.CommaText := s;
-  ColCount := sl.Count;
+  ColCount     := sl.Count;
 
   RowCount := 1;
   while not EOF(InFile) do
@@ -942,13 +938,14 @@ var
   Sorted: TVariableArr;
   i: longint;
 begin
-  if GLOBAL_SKIP_GRAD then exit;
+  if GLOBAL_SKIP_GRAD then
+    exit;
   Sorted := TopologicalSort(T);
 
   T.Grad := Ones(T.Data.Shape);
   for i := length(Sorted) - 1 downto 0 do
     if Assigned(Sorted[i].BackwardFunc) then
-    Sorted[i].BackwardFunc(Sorted[i].Prev, Sorted[i].FGrad);
+      Sorted[i].BackwardFunc(Sorted[i].Prev, Sorted[i].FGrad);
 end;
 
 function Squeeze(T: TTensor): TTensor;
@@ -1003,8 +1000,8 @@ begin
     end;
 end;
 
-function GetRange(T: TVariable; RowIndex, ColumnIndex, Height, Width: longint
-  ): TTensor;
+function GetRange(T: TVariable;
+  RowIndex, ColumnIndex, Height, Width: longint): TTensor;
 begin
   Result := GetRange(T.Data, RowIndex, ColumnIndex, Height, Width);
 end;
@@ -1218,11 +1215,11 @@ begin
 end;
 
 initialization
-  NoeConfig.debug   := True;
+  NoeConfig.debug := True;
 
-  NoeConfig.backend := 'BLAS';
+  NoeConfig.backend      := 'BLAS';
   NoeConfig.BLASFileName := BLAS_FILENAME;
-  NoeConfig.useBLAS := True;
+  NoeConfig.useBLAS      := True;
 
   GLOBAL_NODE_COUNT := 0;
 end.

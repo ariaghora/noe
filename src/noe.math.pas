@@ -31,9 +31,17 @@ type
   { Wrapping FPC's f:RxR->R binary functions in math unit }
   TBFunc = function(v1, v2: double): double;
 
-{ basic math functions --------------------------------------------------------}
+{ Helper to apply a function on each tensor's element }
+function ApplyUfunc(A: TTensor; Func: TUFunc): TTensor; inline;
+function ApplyBfunc(A, B: TTensor; Func: TBFunc): TTensor; inline;
 
-{ basic binary functions }
+{ Some of functions belong to system unit are in different format. Hence, they
+  need to be wrapped to make them compatible. They are given suffix "F"
+  (indicating double-valued function) to avoid confusion. }
+function Sin_F(x: double): double;
+function Cos_F(x: double): double;
+function Exp_F(x: double): double;
+function Ln_F(x: double): double;
 function AddF(v1, v2: double): double; inline;
 function SubtractF(v1, v2: double): double; inline;
 function DivideF(v1, v2: double): double; inline;
@@ -55,6 +63,21 @@ function Max(M: TTensor): TTensor; inline;
 function Max(M: TTensor; axis: byte): TTensor; inline; overload;
 function Mean(M: TTensor): TTensor; inline;
 function Mean(M: TTensor; axis: byte): TTensor; inline; overload;
+function DegToRad(A: TTensor): TTensor;
+function RadToDeg(A: TTensor): TTensor;
+function Cos(A: TTensor): TTensor;
+function Cosh(A: TTensor): TTensor;
+function Exp(A: TTensor): TTensor;
+function Log10(A: TTensor): TTensor;
+function Log2(A: TTensor): TTensor;
+function Log(A: TTensor): TTensor;
+function Tan(A: TTensor): TTensor;
+function Tanh(A: TTensor): TTensor;
+function Power(A: TTensor; exponent: double): TTensor; overload;
+function Power(A, B: TTensor): TTensor; overload;
+function ReLU(T: TTensor): TTensor;
+function Sin(A: TTensor): TTensor;
+function Sinh(A: TTensor): TTensor;
 function SoftMax(A: TTensor; axis: byte): TTensor; inline;
 function Sum(M: TTensor): TTensor; inline;
 function Sum(M: TTensor; axis: byte): TTensor; inline; overload;
@@ -65,47 +88,9 @@ function Sum(M: TTensor; axis: byte): TTensor; inline; overload;
   welcome. }
 function Einsum(Subscripts: string; Pots: array of TTensor): TTensor;
 
-{ Helper to apply a function on each tensor's element }
-function ApplyUfunc(A: TTensor; Func: TUFunc): TTensor;
-function ApplyBfunc(A: TTensor; v: double; Func: TBFunc): TTensor; overload;
-function ApplyBfunc(A, B: TTensor; Func: TBFunc): TTensor; overload;
-
-{ Angle conversion }
-function DegToRad(A: TTensor): TTensor;
-function RadToDeg(A: TTensor): TTensor;
-
-{ Logarithm functions }
-function Log10(A: TTensor): TTensor;
-function Log2(A: TTensor): TTensor;
-function Log(A: TTensor): TTensor;
-
-{ Some of functions belong to system unit are in different format. Hence, they
-  need to be wrapped to make them compatible. They are given suffix "F"
-  (indicating double-valued function) to avoid confusion. }
-function Sin_F(x: double): double;
-function Cos_F(x: double): double;
-function Exp_F(x: double): double;
-function Ln_F(x: double): double;
-
-{ Trigonometric functions }
-function Sin(A: TTensor): TTensor;
-function Sinh(A: TTensor): TTensor;
-function Cos(A: TTensor): TTensor;
-function Cosh(A: TTensor): TTensor;
-function Tan(A: TTensor): TTensor;
-function Tanh(A: TTensor): TTensor;
-
-{ Exponential functions }
-function Power(A: TTensor; exponent: double): TTensor; overload;
-function Power(A, B: TTensor): TTensor; overload;
-function Exp(A: TTensor): TTensor;
-
 function Transpose2D(T: TTensor): TTensor;
 function Transpose(T: TTensor; dims: array of longint): TTensor;
 function Transpose(T: TTensor): TTensor;
-
-{ Nonlinear activation functions }
-function ReLU(T: TTensor): TTensor;
 
  { TVariable math --------------------------------------------------------------}
  { forward mode }
@@ -158,7 +143,6 @@ function SoftMax(A: TVariable; axis: byte): TVariable;
 
 { If target is the result of broadcasting, reduce to its original shape }
 function ReduceTo(Target, Other: TTensor): TTensor;
-
 
 implementation
 
@@ -510,7 +494,8 @@ end;
 
 function MultiplyC(A: TVariable; x: double): TVariable;
 begin
-  Result := TVariable.Create(noe.Math.Multiply(A.Data, x), 'MultiplyC', @BackwardMultiplyC);
+  Result := TVariable.Create(noe.Math.Multiply(A.Data, x), 'MultiplyC',
+    @BackwardMultiplyC);
   Result.RequiresGrad := True;
 
   SetLength(Result.Prev, 2);
@@ -991,23 +976,6 @@ begin
   { there are repeated letters but no '->', return sum of diagonal }
   else
     Result := Math.sum(Einsum(Subscripts + '->', Pots).Val);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 end;
 
 function ApplyUfunc(A: TTensor; Func: TUFunc): TTensor;
@@ -1027,7 +995,7 @@ var
   br: TBroadcastResult;
 begin
   { if the dimensions are the same, perform usual element-wise operation }
-  if (A.Shape = B.Shape) then
+  if IntVectorEquals(A.Shape, B.Shape) then
   begin
     Result := TTensor.Create;
     Result.Reshape(A.Shape);
@@ -1040,6 +1008,12 @@ begin
   begin
     { first, check if broadcastable }
     Assert(IsBroadcastable(A, B), 'Cannot perform broadcasting');
+
+    { Current general broadcasting implementation seems slow. At least, for a
+      specific rank-2 tensor case, go for optimization. The workaround is to
+      make a copy of orginal tensor, then "tile" it to match the output shape.
+      The trade-off is storage complexity. }
+
     br := Broadcast(A, B);
 
     Result := TTensor.Create;
@@ -1049,17 +1023,6 @@ begin
     for i := 0 to ShapeToSize(br.broadcastShape) - 1 do
       Result.Val[i] := Func(br.A.Val[i], br.B.Val[i]);
   end;
-end;
-
-function ApplyBfunc(A: TTensor; v: double; Func: TBFunc): TTensor;
-var
-  i: longint;
-begin
-  Result := TTensor.Create;
-  Result.Reshape(A.Shape);
-  SetLength(Result.val, Length(A.val));
-  for i := 0 to length(A.val) - 1 do
-    Result.val[i] := func(A.val[i], v);
 end;
 
 end.
