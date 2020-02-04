@@ -119,7 +119,7 @@ begin
   Self.Activation := AActivation;
 
   { Xavier weight initialization }
-  W := TVariable.Create(RandomTensorG([InSize, OutSize]) * 1 / (InSize ** 0.5));
+  W := TVariable.Create(RandomTensorNormal([InSize, OutSize]) * 1 / (InSize ** 0.5));
   b := TVariable.Create(CreateTensor([1, OutSize], 0));
   SetRequiresGrad([W, b], True);
 

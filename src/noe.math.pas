@@ -133,25 +133,25 @@ function Sum(A: TVariable; axis: byte): TVariable;
 function Sum(A: TVariable): TVariable; overload;
 
 { backward mode }
-procedure BwAdd(arr: TVariableArr; ADy: TTensor);
-procedure BwDivide(arr: TVariableArr; ADy: TTensor);
-procedure BwSubtract(arr: TVariableArr; ADy: TTensor);
-procedure BwMultiply(arr: TVariableArr; ADy: TTensor);
-procedure BwMultiplyC(arr: TVariableArr; ADy: TTensor);
-procedure BwMatmul(arr: TVariableArr; ADy: TTensor);
+procedure BackwardAdd(arr: TVariableArr; ADy: TTensor);
+procedure BackwardDivide(arr: TVariableArr; ADy: TTensor);
+procedure BackwardSubtract(arr: TVariableArr; ADy: TTensor);
+procedure BackwardMultiply(arr: TVariableArr; ADy: TTensor);
+procedure BackwardMultiplyC(arr: TVariableArr; ADy: TTensor);
+procedure BackwardMatmul(arr: TVariableArr; ADy: TTensor);
 
-procedure BwCosh(arr: TVariableArr; ADy: TTensor);
-procedure BwLn(arr: TVariableArr; ADy: TTensor);
-procedure BwExp(arr: TVariableArr; ADy: TTensor);
-procedure BwMax(arr: TVariableArr; ADy: TTensor);
-procedure BwMean(arr: TVariableArr; ADy: TTensor);
-procedure BwNegate(arr: TVariableArr; ADy: TTensor);
-procedure BwReLU(arr: TVariableArr; ADy: TTensor);
-procedure BwSinh(arr: TVariableArr; ADy: TTensor);
-procedure BwSqr(arr: TVariableArr; ADy: TTensor);
-procedure BwSqrt(arr: TVariableArr; ADy: TTensor);
-procedure BwSum(arr: TVariableArr; ADy: TTensor);
-procedure BwTanh(arr: TVariableArr; ADy: TTensor);
+procedure BackwardCosh(arr: TVariableArr; ADy: TTensor);
+procedure BackwardLn(arr: TVariableArr; ADy: TTensor);
+procedure BackwardExp(arr: TVariableArr; ADy: TTensor);
+procedure BackwardMax(arr: TVariableArr; ADy: TTensor);
+procedure BackwardMean(arr: TVariableArr; ADy: TTensor);
+procedure BackwardNegate(arr: TVariableArr; ADy: TTensor);
+procedure BackwardReLU(arr: TVariableArr; ADy: TTensor);
+procedure BackwardSinh(arr: TVariableArr; ADy: TTensor);
+procedure BackwardSqr(arr: TVariableArr; ADy: TTensor);
+procedure BackwardSqrt(arr: TVariableArr; ADy: TTensor);
+procedure BackwardSum(arr: TVariableArr; ADy: TTensor);
+procedure BackwardTanh(arr: TVariableArr; ADy: TTensor);
 
 { aggregate functions, derived from above functions }
 function SoftMax(A: TVariable; axis: byte): TVariable;
@@ -481,48 +481,36 @@ end;
 
 function Add(A, B: TVariable): TVariable;
 begin
-  Result := TVariable.Create(A.Data + B.Data, 'Add', @BwAdd);
+  Result := TVariable.Create(A.Data + B.Data, 'Add', @BackwardAdd);
   Result.RequiresGrad := True;
-
-  SetLength(Result.Prev, 2);
-  Result.Prev[0] := A;
-  Result.Prev[1] := B;
+  Result.AddPrev([A, B]);
 end;
 
 function Divide(A, B: TVariable): TVariable;
 begin
-  Result := TVariable.Create(A.Data / B.Data, 'Divide', @BwDivide);
+  Result := TVariable.Create(A.Data / B.Data, 'Divide', @BackwardDivide);
   Result.RequiresGrad := True;
-
-  SetLength(Result.Prev, 2);
-  Result.Prev[0] := A;
-  Result.Prev[1] := B;
+  Result.AddPrev([A, B]);
 end;
 
 function Subtract(A, B: TVariable): TVariable;
 begin
-  Result := TVariable.Create(A.Data - B.Data, 'Subtract', @BwSubtract);
+  Result := TVariable.Create(A.Data - B.Data, 'Subtract', @BackwardSubtract);
   Result.RequiresGrad := True;
-
-  SetLength(Result.Prev, 2);
-  Result.Prev[0] := A;
-  Result.Prev[1] := B;
+  Result.AddPrev([A, B]);
 end;
 
 function Multiply(A, B: TVariable): TVariable;
 begin
   Result := TVariable.Create(noe.Math.Multiply(A.Data, B.Data),
-    'Multiply', @BwMultiply);
+    'Multiply', @BackwardMultiply);
   Result.RequiresGrad := True;
-
-  SetLength(Result.Prev, 2);
-  Result.Prev[0] := A;
-  Result.Prev[1] := B;
+  Result.AddPrev([A, B]);
 end;
 
 function MultiplyC(A: TVariable; x: double): TVariable;
 begin
-  Result := TVariable.Create(noe.Math.Multiply(A.Data, x), 'MultiplyC', @BwMultiplyC);
+  Result := TVariable.Create(noe.Math.Multiply(A.Data, x), 'MultiplyC', @BackwardMultiplyC);
   Result.RequiresGrad := True;
 
   SetLength(Result.Prev, 2);
@@ -534,102 +522,83 @@ end;
 function MatMul(A, B: TVariable): TVariable;
 begin
   Assert(A.Shape[1] = B.Shape[0], MSG_ASSERTION_DIM_MISMATCH);
-  Result := TVariable.Create(noe.Math.MatMul(A.Data, B.Data), 'MatMul', @BwMatmul);
+  Result := TVariable.Create(noe.Math.MatMul(A.Data, B.Data), 'MatMul', @BackwardMatmul);
   Result.RequiresGrad := True;
-
-  SetLength(Result.Prev, 2);
-  Result.Prev[0] := A;
-  Result.Prev[1] := B;
+  Result.AddPrev([A, B]);
 end;
 
 function Negate(A: TVariable): TVariable;
 begin
-  Result := TVariable.Create(-A.Data, 'Negate', @BwNegate);
+  Result := TVariable.Create(-A.Data, 'Negate', @BackwardNegate);
   Result.RequiresGrad := True;
-
-  SetLength(Result.Prev, 1);
-  Result.Prev[0] := A;
+  Result.AddPrev(A);
 end;
 
 function Cosh(A: TVariable): TVariable;
 begin
-  Result := TVariable.Create(noe.Math.Cosh(A.Data), 'Cosh', @BwCosh);
+  Result := TVariable.Create(noe.Math.Cosh(A.Data), 'Cosh', @BackwardCosh);
   Result.RequiresGrad := True;
 
-  SetLength(Result.Prev, 1);
-  Result.Prev[0] := A;
+  Result.AddPrev(A);
 end;
 
 function Log(A: TVariable): TVariable;
 begin
-  Result := TVariable.Create(Log(A.Data), 'Ln', @BwLn);
+  Result := TVariable.Create(Log(A.Data), 'Ln', @BackwardLn);
   Result.RequiresGrad := True;
 
-  SetLength(Result.Prev, 1);
-  Result.Prev[0] := A;
+  Result.AddPrev(A);
 end;
 
 function Sinh(A: TVariable): TVariable;
 begin
-  Result := TVariable.Create(noe.Math.Sinh(A.Data), 'Sinh', @BwSinh);
+  Result := TVariable.Create(noe.Math.Sinh(A.Data), 'Sinh', @BackwardSinh);
   Result.RequiresGrad := True;
 
-  SetLength(Result.Prev, 1);
-  Result.Prev[0] := A;
+  Result.AddPrev(A);
 end;
 
 function Sqr(A: TVariable): TVariable;
 begin
-  Result := TVariable.Create(A.Data ** 2, 'Sqr', @BwSqr);
+  Result := TVariable.Create(A.Data ** 2, 'Sqr', @BackwardSqr);
   Result.RequiresGrad := True;
 
-  SetLength(Result.Prev, 1);
-  Result.Prev[0] := A;
+  Result.AddPrev(A);
 end;
 
 function Sqrt(A: TVariable): TVariable;
 begin
-  Result := TVariable.Create(A.Data ** 0.5, 'Sqrt', @BwSqrt);
+  Result := TVariable.Create(A.Data ** 0.5, 'Sqrt', @BackwardSqrt);
   Result.RequiresGrad := True;
-
-  SetLength(Result.Prev, 1);
-  Result.Prev[0] := A;
+  Result.AddPrev(A);
 end;
 
 function ReLU(A: TVariable): TVariable;
 begin
-  Result := TVariable.Create(noe.Math.ReLU(A.Data), 'ReLU', @BwReLU);
+  Result := TVariable.Create(noe.Math.ReLU(A.Data), 'ReLU', @BackwardReLU);
   Result.RequiresGrad := True;
-
-  SetLength(Result.Prev, 1);
-  Result.Prev[0] := A;
+  Result.AddPrev(A);
 end;
 
 function Tanh(A: TVariable): TVariable;
 begin
-  Result := TVariable.Create(noe.Math.Tanh(A.Data), 'Tanh', @BwTanh);
+  Result := TVariable.Create(noe.Math.Tanh(A.Data), 'Tanh', @BackwardTanh);
   Result.RequiresGrad := True;
-
-  SetLength(Result.Prev, 1);
-  Result.Prev[0] := A;
+  Result.AddPrev(A);
 end;
 
 function Exp(A: TVariable): TVariable;
 begin
-  Result := TVariable.Create(noe.Math.Exp(A.Data), 'Exp', @BwExp);
+  Result := TVariable.Create(noe.Math.Exp(A.Data), 'Exp', @BackwardExp);
   Result.RequiresGrad := True;
-
-  SetLength(Result.Prev, 1);
-  Result.Prev[0] := A;
+  Result.AddPrev(A);
 end;
 
 function Max(A: TVariable): TVariable;
 begin
-  Result := TVariable.Create(Max(A.Data), 'Max', @BwMax);
+  Result := TVariable.Create(Max(A.Data), 'Max', @BackwardMax);
   Result.RequiresGrad := True;
-
-  SetLength(Result.Prev, 1);
-  Result.Prev[0] := A;
+  Result.AddPrev(A);
 end;
 
 function Max(A: TVariable; axis: byte): TVariable;
@@ -640,46 +609,30 @@ end;
 
 function Mean(A: TVariable; axis: byte): TVariable;
 begin
-  Result := TVariable.Create(Mean(A.Data, axis), 'Mean', @BwMean);
+  Result := TVariable.Create(Mean(A.Data, axis), 'Mean', @BackwardMean);
   Result.RequiresGrad := True;
-
-  SetLength(Result.Prev, 1);
-  Result.Prev[0] := A;
+  Result.AddPrev(A);
 end;
 
 function Mean(A: TVariable): TVariable;
 begin
-  Result := TVariable.Create(noe.Math.Mean(A.Data), 'Mean', @BwMean);
+  Result := TVariable.Create(noe.Math.Mean(A.Data), 'Mean', @BackwardMean);
   Result.RequiresGrad := True;
-
-  SetLength(Result.Prev, 1);
-  Result.Prev[0] := A;
+  Result.AddPrev(A);
 end;
 
 function Sum(A: TVariable; axis: byte): TVariable;
 begin
-  Result := TVariable.Create(noe.Math.sum(A.Data, axis), 'Sum', @BwSum);
+  Result := TVariable.Create(noe.Math.sum(A.Data, axis), 'Sum', @BackwardSum);
   Result.RequiresGrad := True;
-
-  SetLength(Result.Prev, 1);
-  Result.Prev[0] := A;
+  Result.AddPrev(A);
 end;
 
 function Sum(A: TVariable): TVariable;
 begin
-  Result := TVariable.Create(noe.Math.sum(A.Data), 'Sum', @BwSum);
+  Result := TVariable.Create(noe.Math.sum(A.Data), 'Sum', @BackwardSum);
   Result.RequiresGrad := True;
-
-  SetLength(Result.Prev, 1);
-  Result.Prev[0] := A;
-end;
-
-procedure BwAdd(arr: TVariableArr; ADy: TTensor);
-begin
-  if arr[0].RequiresGrad then
-    arr[0].Grad := arr[0].Grad + ReduceTo(ADy, arr[0].Data);
-  if arr[1].RequiresGrad then
-    arr[1].Grad := arr[1].Grad + ReduceTo(ADy, arr[1].Data);
+  Result.AddPrev(A);
 end;
 
 function SoftMax(A: TVariable; axis: byte): TVariable;
@@ -704,7 +657,16 @@ begin
     Result := Sum(Target, ax);
 end;
 
-procedure BwDivide(arr: TVariableArr; ADy: TTensor);
+procedure BackwardAdd(arr: TVariableArr; ADy: TTensor);
+begin
+  if arr[0].RequiresGrad then
+    arr[0].Grad := arr[0].Grad + ReduceTo(ADy, arr[0].Data);
+  if arr[1].RequiresGrad then
+    arr[1].Grad := arr[1].Grad + ReduceTo(ADy, arr[1].Data);
+end;
+
+
+procedure BackwardDivide(arr: TVariableArr; ADy: TTensor);
 var
   A, B: TTensor;
 begin
@@ -720,7 +682,7 @@ begin
   end;
 end;
 
-procedure BwSubtract(arr: TVariableArr; ADy: TTensor);
+procedure BackwardSubtract(arr: TVariableArr; ADy: TTensor);
 begin
   if arr[0].RequiresGrad then
     arr[0].Grad := arr[0].Grad + ReduceTo(ADy, arr[0].Data);
@@ -728,7 +690,7 @@ begin
     arr[1].Grad := arr[1].Grad - ReduceTo(ADy, arr[1].Data);
 end;
 
-procedure BwMultiply(arr: TVariableArr; ADy: TTensor);
+procedure BackwardMultiply(arr: TVariableArr; ADy: TTensor);
 var
   B, A: TTensor;
 begin
@@ -744,13 +706,13 @@ begin
   end;
 end;
 
-procedure BwMultiplyC(arr: TVariableArr; ADy: TTensor);
+procedure BackwardMultiplyC(arr: TVariableArr; ADy: TTensor);
 begin
   if arr[0].RequiresGrad then
     arr[0].Grad := arr[0].Grad + noe.Math.Multiply(ADy, arr[1].Data);
 end;
 
-procedure BwMatmul(arr: TVariableArr; ADy: TTensor);
+procedure BackwardMatmul(arr: TVariableArr; ADy: TTensor);
 begin
   if arr[0].RequiresGrad then
     arr[0].Grad := arr[0].Grad + noe.Math.MatMul(ADy, arr[1].Data.T);
@@ -758,43 +720,43 @@ begin
     arr[1].Grad := arr[1].Grad + noe.Math.MatMul(arr[0].Data.T, ADy);
 end;
 
-procedure BwCosh(arr: TVariableArr; ADy: TTensor);
+procedure BackwardCosh(arr: TVariableArr; ADy: TTensor);
 begin
   if arr[0].RequiresGrad then
     arr[0].Grad := arr[0].Grad + (ADy * noe.Math.Sinh(arr[0].Data));
 end;
 
-procedure BwSinh(arr: TVariableArr; ADy: TTensor);
+procedure BackwardSinh(arr: TVariableArr; ADy: TTensor);
 begin
   if arr[0].RequiresGrad then
     arr[0].Grad := arr[0].Grad + (ADy * noe.Math.Cosh(arr[0].Data));
 end;
 
-procedure BwSqr(arr: TVariableArr; ADy: TTensor);
+procedure BackwardSqr(arr: TVariableArr; ADy: TTensor);
 begin
   if arr[0].RequiresGrad then
     arr[0].Grad := arr[0].Grad + (ADy * 2 * arr[0].Data);
 end;
 
-procedure BwMeanElement(arr: TVariableArr; ADy: TTensor);
+procedure BackwardMeanElement(arr: TVariableArr; ADy: TTensor);
 begin
   if arr[0].RequiresGrad then
     arr[0].Grad := arr[0].Grad + (ADy * Ones(arr[0].Data.Shape));
 end;
 
-procedure BwSqrt(arr: TVariableArr; ADy: TTensor);
+procedure BackwardSqrt(arr: TVariableArr; ADy: TTensor);
 begin
   if arr[0].RequiresGrad then
     arr[0].Grad := arr[0].Grad + (ADy * 0.5 * 1 / (arr[0].Data ** 0.5));
 end;
 
-procedure BwNegate(arr: TVariableArr; ADy: TTensor);
+procedure BackwardNegate(arr: TVariableArr; ADy: TTensor);
 begin
   if arr[0].RequiresGrad then
     arr[0].Grad := arr[0].Grad - ADy;
 end;
 
-procedure BwReLU(arr: TVariableArr; ADy: TTensor);
+procedure BackwardReLU(arr: TVariableArr; ADy: TTensor);
 var
   i: longint;
 begin
@@ -804,25 +766,25 @@ begin
         arr[0].Grad.Val[i] := arr[0].Grad.Val[i] + ADy.Val[i];
 end;
 
-procedure BwLn(arr: TVariableArr; ADy: TTensor);
+procedure BackwardLn(arr: TVariableArr; ADy: TTensor);
 begin
   if arr[0].RequiresGrad then
     arr[0].Grad := arr[0].Grad + (ADy / arr[0].Data);
 end;
 
-procedure BwExp(arr: TVariableArr; ADy: TTensor);
+procedure BackwardExp(arr: TVariableArr; ADy: TTensor);
 begin
   if arr[0].RequiresGrad then
     arr[0].Grad := arr[0].Grad + (ADy * noe.Math.Exp(arr[0].Data));
 end;
 
-procedure BwTanh(arr: TVariableArr; ADy: TTensor);
+procedure BackwardTanh(arr: TVariableArr; ADy: TTensor);
 begin
   if arr[0].RequiresGrad then
     arr[0].Grad := arr[0].Grad + (ADy / noe.Math.Cosh(arr[0].Data) ** 2);
 end;
 
-procedure BwMax(arr: TVariableArr; ADy: TTensor);
+procedure BackwardMax(arr: TVariableArr; ADy: TTensor);
 var
   maxval: double;
   A: TTensor;
@@ -839,7 +801,7 @@ begin
   end;
 end;
 
-procedure BwMean(arr: TVariableArr; ADy: TTensor);
+procedure BackwardMean(arr: TVariableArr; ADy: TTensor);
 var
   szArr, szDy: longint;
 begin
@@ -850,7 +812,7 @@ begin
       ADy.Val[0] / (szArr / szDy));
 end;
 
-procedure BwSum(arr: TVariableArr; ADy: TTensor);
+procedure BackwardSum(arr: TVariableArr; ADy: TTensor);
 begin
   if arr[0].RequiresGrad then
     arr[0].Grad := arr[0].Grad + CreateTensor(arr[0].Data.Shape, ADy.Val[0]);

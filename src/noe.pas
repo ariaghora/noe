@@ -21,6 +21,7 @@ uses
 
 var
   GLOBAL_NODE_COUNT: integer;
+  GLOBAL_SKIP_GRAD: boolean;
 
 type
   TIntVector   = array of longint;
@@ -133,6 +134,8 @@ type
       ABackwardFunc: TBackwardFunc); overload;
     constructor Create(ATensor: TTensor; AName: string;
       ABackwardFunc: TBackwardFunc; AIsLeaf: boolean); overload;
+    procedure AddPrev(AVariable: TVariable);
+    procedure AddPrev(arr: array of TVariable);
     procedure Backpropagate;
     procedure Step(LearningRate: double);
     procedure ZeroGrad;
@@ -166,6 +169,7 @@ var
 { Operator overloading --------------------------------------------------------}
 operator := (Val: float) M: TTensor;
 operator := (Val: double) V: TVariable;
+operator := (Val: TTensor) V: TVariable;
 operator +(A, B: TTensor) C: TTensor;
 operator +(A, B: TVariable) C: TVariable;
 operator -(A: TTensor) B: TTensor;
@@ -179,6 +183,8 @@ operator * (A, B: TVariable) C: TVariable;
 operator ** (A: TTensor; expo: double) B: TTensor; inline;
 operator ** (A, B: TTensor) C: TTensor; inline;
 operator in (T: TVariable; arr: array of TVariable) b: boolean;
+operator explicit (Val: TVariable) M: TTensor;
+operator explicit (Val: TTensor) M: TVariable;
 
 
 { Helpers ---------------------------------------------------------------------}
@@ -200,6 +206,7 @@ function Squeeze(T: TTensor): TTensor;
 
 { Helpers API for matrix (rank-2 tensor) --------------------------------------}
 function GetRange(T: TTensor; RowIndex, ColumnIndex, Height, Width: longint): TTensor;
+function GetRange(T: TVariable; RowIndex, ColumnIndex, Height, Width: longint): TTensor;
 function GetColumn(T: TTensor; ColumnIndex: longint): TTensor;
 function GetColumnRange(T: TTensor; ColumnIndex, Amount: longint): TTensor;
 function GetRow(T: TTensor; RowIndex: longint): TTensor;
@@ -217,10 +224,12 @@ procedure IterateTensor(T: TTensor; Callback: TCallback);
 
 { Tensor creation ------------------------------------------------------------ }
 function CopyTensor(A: TTensor): TTensor;
+function CreateEmptyTensor(Shape: array of longint): TTensor;
 function CreateTensor(Shape: array of longint): TTensor; overload;
 function CreateTensor(Shape: array of longint; Val: float): TTensor; overload;
 function CreateTensor(Shape: array of longint; Vals: array of float): TTensor; overload;
-function RandomTensorG(Shape: array of longint): TTensor;
+function RandomTensorNormal(Shape: array of longint): TTensor;
+function RandomTensorBinomial(Shape: array of longint; p: double): TTensor;
 function ReadCSV(fileName: string): TTensor;
 
 function Zeros(Shape: array of longint): TTensor;
@@ -245,6 +254,11 @@ uses
 operator := (Val: float) M: TTensor;
 begin
   M := CreateTensor([1], Val);
+end;
+
+operator:=(Val: TTensor)V: TVariable;
+begin
+  V := TVariable.Create(Val);
 end;
 
 operator +(A, B: TTensor) C: TTensor;
@@ -328,6 +342,16 @@ begin
       result := true;
       exit;
     end;
+end;
+
+operator explicit(Val: TVariable)M: TTensor;
+begin
+  M := Val.Data;
+end;
+
+operator explicit(Val: TTensor)M: TVariable;
+begin
+  M := Val.ToVariable(False);
 end;
 
 function ArgMax(V: TFloatVector): longint;
@@ -671,6 +695,23 @@ begin
   Inc(GLOBAL_NODE_COUNT);
 end;
 
+procedure TVariable.AddPrev(AVariable: TVariable);
+begin
+  if not GLOBAL_SKIP_GRAD then
+  begin
+    SetLength(self.Prev, Length(self.Prev) + 1);
+    self.Prev[Length(self.Prev) - 1] := AVariable;
+  end;
+end;
+
+procedure TVariable.AddPrev(arr: array of TVariable);
+var
+  T: TVariable;
+begin
+  for T in arr do
+    self.AddPrev(T);
+end;
+
 procedure TVariable.Backpropagate;
 begin
   BackwardGraph(self);
@@ -722,16 +763,22 @@ begin
   Result.Reshape(A.Shape);
 end;
 
-function RandomTensorG(Shape: array of longint): TTensor;
+function RandomTensorNormal(Shape: array of longint): TTensor;
 var
-  i, size: longint;
+  i: longint;
 begin
-  size   := ShapeToSize(Shape);
-  Result := TTensor.Create;
-  SetLength(Result.Val, size);
-  for i := 0 to size - 1 do
+  Result := CreateEmptyTensor(Shape);
+  for i := 0 to Result.Size - 1 do
     Result.Val[i] := Math.randg(0, 1);
-  Result.Reshape(shape);
+end;
+
+function RandomTensorBinomial(Shape: array of longint; p: double): TTensor;
+var
+  i: longint;
+begin
+  Result := CreateEmptyTensor(Shape);
+  for i := 0 to Result.Size - 1 do
+    Result.Val[i] := ifthen(random > p, 1, 0);
 end;
 
 function ReadCSV(fileName: string): TTensor;
@@ -782,26 +829,29 @@ begin
   sl.Free;
 end;
 
+function CreateEmptyTensor(Shape: array of longint): TTensor;
+begin
+  Result := TTensor.Create;
+  SetLength(Result.Val, ShapeToSize(Shape));
+  Result.Reshape(shape);
+end;
+
 function CreateTensor(Shape: array of longint): TTensor;
 var
-  i, size: longint;
+  i: longint;
 begin
-  size   := ShapeToSize(Shape);
-  Result := TTensor.Create;
-  SetLength(Result.Val, size);
-  for i := 0 to size - 1 do
+  Result := CreateEmptyTensor(Shape);
+  for i := 0 to Result.Size - 1 do
     Result.Val[i] := Random;
   Result.Reshape(shape);
 end;
 
 function CreateTensor(Shape: array of longint; Val: float): TTensor;
 var
-  i, size: longint;
+  i: longint;
 begin
-  size   := ShapeToSize(Shape);
-  Result := TTensor.Create;
-  SetLength(Result.Val, size);
-  for i := 0 to size - 1 do
+  Result := CreateEmptyTensor(Shape);
+  for i := 0 to Result.Size - 1 do
     Result.Val[i] := Val;
   Result.Reshape(shape);
 end;
@@ -892,6 +942,7 @@ var
   Sorted: TVariableArr;
   i: longint;
 begin
+  if GLOBAL_SKIP_GRAD then exit;
   Sorted := TopologicalSort(T);
 
   T.Grad := Ones(T.Data.Shape);
@@ -950,6 +1001,12 @@ begin
       Result.Val[offset] := T.Val[i * T.Shape[1] + j];
       Inc(offset);
     end;
+end;
+
+function GetRange(T: TVariable; RowIndex, ColumnIndex, Height, Width: longint
+  ): TTensor;
+begin
+  Result := GetRange(T.Data, RowIndex, ColumnIndex, Height, Width);
 end;
 
 function GetColumn(T: TTensor; ColumnIndex: longint): TTensor;

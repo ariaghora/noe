@@ -50,17 +50,16 @@ var
 begin
   RandSeed := 1;
 
+  PrintTensor(RandomTensorBinomial([4,4], 0.1));
+
   { Data preparation ----------------------------------------------------------}
   DatasetTrain := ReadCSV('../datasets/optdigits-train.csv');
   M := DatasetTrain.Shape[0];
 
-  FeatsTrain   := GetRange(DatasetTrain, 0, 0, M, 64) / 16;
-  LabelsTrain  := Squeeze(GetColumn(DatasetTrain, 64));
+  Xtrain := GetRange(DatasetTrain, 0, 0, M, 64) / 16;
+  ytrain := Squeeze(GetColumn(DatasetTrain, 64));
   LabelEncoder := TOneHotEncoder.Create;
-  EncodedLabelsTrain := LabelEncoder.Encode(LabelsTrain);
-
-  Xtrain := TVariable.Create(FeatsTrain);
-  ytrain := TVariable.Create(EncodedLabelsTrain);
+  ytrain := LabelEncoder.Encode(ytrain.Data);
 
   { Model preparation ---------------------------------------------------------}
   NInputNeuron  := Xtrain.Shape[1];
@@ -83,7 +82,8 @@ begin
 
     optimizer.UpdateParams(Loss, NNModel.Params);
 
-    TrainingAcc := AccuracyScore(LabelEncoder.Decode(ypred.Data), LabelsTrain);
+    TrainingAcc := AccuracyScore(LabelEncoder.Decode(ypred.Data),
+      LabelEncoder.Decode(ytrain.Data));
     WriteLn('Training accuracy: ', TrainingAcc: 2: 4);
   end;
 
@@ -96,7 +96,8 @@ begin
   LabelsTest  := Squeeze(GetColumn(DatasetTest, 64));
 
   ypredTest  := NNModel.Eval(FeatsTest.ToVariable());
-  TestingAcc := AccuracyScore(LabelEncoder.Decode(ypredTest.Data), LabelsTest);
+  TestingAcc := AccuracyScore(LabelEncoder.Decode(ypredTest.Data),
+    LabelsTest);
   WriteLn('testing accuracy = ', TestingAcc: 2: 2);
 
   { Pick one sample from the test set. Let's try to visualize and predict the
