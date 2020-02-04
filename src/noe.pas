@@ -246,7 +246,7 @@ function Range(n: longint): TTensor; overload;
 function TopologicalSort(T: TVariable): TVariableArr;
 procedure BackwardGraph(const T: TVariable);
 procedure SetRequiresGrad(arr: array of TVariable; val: boolean);
-procedure ZeroGradGraph(const T: TVariable; RetainGraph: boolean = False);
+procedure ZeroGradGraph(const T: TVariable; RetainGraph: boolean = True);
 
 implementation
 
