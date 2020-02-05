@@ -34,7 +34,6 @@ type
 { Helper to apply a function on each tensor's element }
 function ApplyUfunc(A: TTensor; Func: TUFunc): TTensor; inline;
 function ApplyBfunc(A, B: TTensor; Func: TBFunc): TTensor; inline;
-//function ApplyBfunc(A: TTensor; v: double; Func: TBFunc): TTensor; inline;
 
 { Some of functions belong to system unit are in different format. Hence, they
   need to be wrapped to make them compatible. They are given suffix "F"
@@ -193,7 +192,7 @@ begin
     'Tensor dimension must be <= 2.');
 
   { calculates matrix multiplication according to the backend }
-  if noe.NoeConfig.useBLAS then
+  if blas_dgemm <> nil then
     Result := MatMul_BLAS(A, B)
   else
     Result := MatMul_Native(A, B);
@@ -508,7 +507,8 @@ end;
 function MatMul(A, B: TVariable): TVariable;
 begin
   Assert(A.Shape[1] = B.Shape[0], MSG_ASSERTION_DIM_MISMATCH);
-  Result := TVariable.Create(noe.Math.MatMul(A.Data, B.Data), 'ForwardMatMul', @BackwardMatmul);
+  Result := TVariable.Create(noe.Math.MatMul(A.Data, B.Data),
+    'ForwardMatMul', @BackwardMatmul);
   Result.RequiresGrad := True;
   Result.AddPrev([A, B]);
 end;
@@ -701,9 +701,9 @@ end;
 procedure BackwardMatmul(arr: TVariableArr; ADy: TTensor);
 begin
   if arr[0].RequiresGrad then
-    arr[0].Grad := arr[0].Grad + noe.Math.MatMul(ADy, arr[1].Data.T);
+    arr[0].Grad := arr[0].Grad + MatMul(ADy, arr[1].Data.T);
   if arr[1].RequiresGrad then
-    arr[1].Grad := arr[1].Grad + noe.Math.MatMul(arr[0].Data.T, ADy);
+    arr[1].Grad := arr[1].Grad + MatMul(arr[0].Data.T, ADy);
 end;
 
 procedure BackwardCosh(arr: TVariableArr; ADy: TTensor);
@@ -1000,9 +1000,10 @@ begin
   { if the dimensions are the same, perform usual element-wise operation }
   if IntVectorEquals(A.Shape, B.Shape) then
   begin
-    //Writeln('regular broadcast bfunc');
     Result := TTensor.Create;
     Result.Reshape(A.Shape);
+
+    //if Func = @AddF then writeln('add');
 
     SetLength(Result.Val, Length(A.Val));
     for i := 0 to Length(A.Val) - 1 do

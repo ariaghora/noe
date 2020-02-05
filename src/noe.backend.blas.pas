@@ -20,7 +20,7 @@ unit noe.backend.blas;
 interface
 
 uses
-  Classes, SysUtils, dynlibs, noe;
+  Classes, dynlibs, noe, SysUtils;
 
 type
   CBLAS_ORDER     = (CblasRowMajor = 101, CblasColMajor = 102);
@@ -29,6 +29,8 @@ type
   CBLAS_DIAG      = (CblasNonUnit = 131, CblasUnit = 132);
   LAPACK_ORDER    = (LAPACKRowMajor = 101, LAPACKColMajor = 102);
 
+  TFuncDaxpy = procedure(N: longint; Alpha: double; X: TFloatVector;
+    INCX: longint; Y: TFloatVector; INCY: longint);
   TFuncDgemm = procedure(Order: CBLAS_ORDER; TransA: CBLAS_TRANSPOSE;
     TransB: CBLAS_TRANSPOSE; M: longint; N: longint; K: longint;
     alpha: double; A: TFloatVector; lda: longint; B: TFloatVector;
@@ -40,9 +42,11 @@ type
 
 var
   blas_dgemm: TFuncDgemm;
+  blas_daxpy: TFuncDaxpy;
 
   libHandle: THandle = dynlibs.NilHandle;
 
+function Add_BLAS(A, B: TTensor): TTensor;
 function MatMul_BLAS(A, B: TTensor): TTensor;
 function MeanCol_BLAS(A: TTensor): TTensor;
 function MeanRow_BLAS(A: TTensor): TTensor;
@@ -51,10 +55,17 @@ function SumRow_BLAS(A: TTensor): TTensor;
 
 implementation
 
+function Add_BLAS(A, B: TTensor): TTensor;
+begin
+  Assert(A.Size = B.Size, MSG_ASSERTION_DIFFERENT_LENGTH);
+  Result := CreateEmptyTensor(A.Shape);
+  Result.Val := copy(B.Val);
+  blas_daxpy(A.Size, 1, A.Val, 1, Result.Val, 1);
+end;
+
 function MatMul_BLAS(A, B: TTensor): TTensor;
 begin
-  Result := TTensor.Create;
-  SetLength(Result.val, A.Shape[0] * B.Shape[1]);
+  Result := CreateEmptyTensor([A.Shape[0], B.Shape[1]]);
   blas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
     A.Shape[0], B.Shape[1], B.Shape[0], // m, n, k
     1, // alpha
@@ -91,9 +102,9 @@ initialization
   Assert(libHandle <> dynlibs.NilHandle, 'Failed loading ' + BLAS_FILENAME);
 
   blas_dgemm := TFuncDgemm(GetProcedureAddress(libHandle, 'cblas_dgemm'));
+  blas_daxpy := TFuncDaxpy(GetProcedureAddress(libHandle, 'cblas_daxpy'));
 
 finalization
   blas_dgemm := nil;
 
 end.
-

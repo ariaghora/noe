@@ -246,7 +246,7 @@ function Range(n: longint): TTensor; overload;
 function TopologicalSort(T: TVariable): TVariableArr;
 procedure BackwardGraph(const T: TVariable);
 procedure SetRequiresGrad(arr: array of TVariable; val: boolean);
-procedure ZeroGradGraph(const T: TVariable; RetainGraph: boolean = True);
+procedure ZeroGradGraph(const T: TVariable);
 
 implementation
 
@@ -701,6 +701,8 @@ begin
 
   self.FID := GLOBAL_NODE_COUNT;
   Inc(GLOBAL_NODE_COUNT);
+
+  //WriteLn(self.Name, ' with id ', self.ID, ' created');
 end;
 
 procedure TVariable.AddPrev(AVariable: TVariable);
@@ -762,22 +764,15 @@ begin
     V.RequiresGrad := val;
 end;
 
-procedure ZeroGradGraph(const T: TVariable; RetainGraph: boolean);
+procedure ZeroGradGraph(const T: TVariable);
 var
-  tmp: TVariable;
-  i: longint;
+  arr: TVariableArr;
+  i: integer;
 begin
-  for tmp in TopologicalSort(T) do
+  arr := TopologicalSort(T);
+  for i := 0 to length(arr) - 1 do
   begin
-    tmp.ZeroGrad;
-
-    { HACK: my intention is to clear all nodes that is not a leaf node AND not
-      a model parameter. In other words, the remaining nodes are those from math
-      operations, that has 'Forward' prefix in their name. So I use this property
-      as the criteria for node freeing. }
-    if tmp.Name.StartsWith('Forward') then
-      if not (RetainGraph) then
-        tmp.Free;
+    arr[i].ZeroGrad;
   end;
 end;
 
@@ -941,7 +936,6 @@ var
 
   procedure TopoHelper(v: TVariable);
   begin
-    //if (not (v in Seen)) and (not (v.IsLeaf)) then
     if (not (v in Seen)) then
     begin
       SetLength(Seen, Length(seen) + 1);
