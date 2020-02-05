@@ -34,7 +34,7 @@ uses
   noe.utils;
 
 const
-  MAX_EPOCH = 100;
+  MAX_EPOCH = 150;
 
 var
   i, M, NInputNeuron, NOutputNeuron, PredictedLabel, ActualLabel,
@@ -60,19 +60,19 @@ begin
 
   { Model preparation ---------------------------------------------------------}
   NInputNeuron  := Xtrain.Shape[1];
-  NHiddenNeuron := 32;
   NOutputNeuron := ytrain.Shape[1];
 
   NNModel := TModel.Create([
-    TDenseLayer.Create(NInputNeuron, NHiddenNeuron, atReLU),
-    TDenseLayer.Create(NHiddenNeuron, NOutputNeuron, atNone),
+    TDenseLayer.Create(NInputNeuron, 32, atReLU),
+    TDenseLayer.Create(32, 16, atReLU),
+    TDenseLayer.Create(16, NOutputNeuron, atNone),
     TSoftMaxLayer.Create(1)
   ]);
 
 
   { Training phase ------------------------------------------------------------}
   optimizer := TAdamOptimizer.Create;
-  optimizer.LearningRate := 0.003;
+  optimizer.Verbose:=false;
   for i := 0 to MAX_EPOCH - 1 do
   begin
     ypred := NNModel.Eval(Xtrain);
@@ -82,7 +82,7 @@ begin
 
     TrainingAcc := AccuracyScore(LabelEncoder.Decode(ypred.Data),
       LabelEncoder.Decode(ytrain.Data));
-    WriteLn('Training accuracy: ', TrainingAcc: 2: 4);
+    WriteLn(i+1, ' Training accuracy: ', TrainingAcc: 2: 4);
   end;
 
   { Testing Phase -------------------------------------------------------------}
