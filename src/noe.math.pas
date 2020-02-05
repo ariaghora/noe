@@ -34,6 +34,7 @@ type
 { Helper to apply a function on each tensor's element }
 function ApplyUfunc(A: TTensor; Func: TUFunc): TTensor; inline;
 function ApplyBfunc(A, B: TTensor; Func: TBFunc): TTensor; inline;
+function IsBlasfuncAvailable(Func: Pointer): boolean;
 
 { Some of functions belong to system unit are in different format. Hence, they
   need to be wrapped to make them compatible. They are given suffix "F"
@@ -192,7 +193,7 @@ begin
     'Tensor dimension must be <= 2.');
 
   { calculates matrix multiplication according to the backend }
-  if blas_dgemm <> nil then
+  if IsBlasfuncAvailable(blas_dgemm) then
     Result := MatMul_BLAS(A, B)
   else
     Result := MatMul_Native(A, B);
@@ -1000,11 +1001,14 @@ begin
   { if the dimensions are the same, perform usual element-wise operation }
   if IntVectorEquals(A.Shape, B.Shape) then
   begin
+
+    { ---------- If you can BLAS it, BLAS it ---------- }
+    if (Func = @AddF) and IsBlasfuncAvailable(blas_daxpy) then
+      exit(Add_BLAS(A, B));
+
+    { ---------- Otherwise, go vanilla ---------- }
     Result := TTensor.Create;
     Result.Reshape(A.Shape);
-
-    //if Func = @AddF then writeln('add');
-
     SetLength(Result.Val, Length(A.Val));
     for i := 0 to Length(A.Val) - 1 do
       Result.Val[i] := Func(A.Val[i], B.Val[i]);
@@ -1075,20 +1079,13 @@ begin
       for i := 0 to ShapeToSize(br.broadcastShape) - 1 do
         Result.Val[i] := Func(br.A.Val[i], br.B.Val[i]);
     end;
-
   end;
 end;
 
-//function ApplyBfunc(A: TTensor; v: double; Func: TBFunc): TTensor;
-//var
-//  i: longint;
-//begin
-//  //Result := TTensor.Create;
-//  //Result.Reshape(A.Shape);
-//  //SetLength(Result.val, Length(A.val));
-//  Result := CreateEmptyTensor(A.Shape);
-//  for i := 0 to length(A.val) - 1 do
-//    Result.val[i] := func(A.val[i], v);
-//end;
+function IsBlasfuncAvailable(Func: Pointer): boolean;
+begin
+  Result := NoeConfig.useBLAS and (Func <> nil);
+end;
+
 
 end.
