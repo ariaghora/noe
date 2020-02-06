@@ -50,6 +50,7 @@ begin
   RandSeed := 1;
 
   { Data preparation ----------------------------------------------------------}
+  WriteLn('Loading and preparing the data...');
   DatasetTrain := ReadCSV('../datasets/optdigits-train.csv');
   M := DatasetTrain.Shape[0];
 
@@ -63,32 +64,34 @@ begin
   NOutputNeuron := ytrain.Shape[1];
 
   NNModel := TModel.Create([
-    TDenseLayer.Create(NInputNeuron, 32, atReLU),
-    TDenseLayer.Create(32, 16, atReLU),
-    TDenseLayer.Create(16, NOutputNeuron, atNone),
+    TDenseLayer.Create(NInputNeuron, 32),
+    TLeakyReLULayer.Create(0.2),
+    TDenseLayer.Create(32, 16),
+    TLeakyReLULayer.Create(0.2),
+    TDenseLayer.Create(16, NOutputNeuron),
     TSoftMaxLayer.Create(1)
-  ]);
-
+    ]);
 
   { Training phase ------------------------------------------------------------}
+  WriteLn('Press enter to start training in ', MAX_EPOCH, ' iterations.');
+  ReadLn;
   optimizer := TAdamOptimizer.Create;
-  optimizer.Verbose:=false;
   for i := 0 to MAX_EPOCH - 1 do
   begin
     ypred := NNModel.Eval(Xtrain);
     Loss  := CrossEntropyLoss(ypred, ytrain) + L2Regularization(NNModel);
 
     optimizer.UpdateParams(Loss, NNModel.Params);
-
-    TrainingAcc := AccuracyScore(LabelEncoder.Decode(ypred.Data),
-      LabelEncoder.Decode(ytrain.Data));
-    WriteLn(i+1, ' Training accuracy: ', TrainingAcc: 2: 4);
   end;
 
+  TrainingAcc := AccuracyScore(LabelEncoder.Decode(ypred.Data),
+    LabelEncoder.Decode(ytrain.Data));
+  WriteLn('Training accuracy: ', TrainingAcc: 2: 4);
+  WriteLn;
+
+
   { Testing Phase -------------------------------------------------------------}
-
   WriteLn('Traning completed. Now evaluating the model on the testing set...');
-
   DatasetTest := ReadCSV('../datasets/optdigits-test.csv');
   FeatsTest   := GetRange(DatasetTest, 0, 0, DatasetTest.Shape[0], 64) / 16;
   LabelsTest  := Squeeze(GetColumn(DatasetTest, 64));
@@ -100,15 +103,19 @@ begin
 
   { Pick one sample from the test set. Let's try to visualize and predict the
     label }
-  SampleIdx   := 150;
+  SampleIdx   := 100;
   ImageSample := GetRow(FeatsTest, SampleIdx);
   ypredTest   := NNModel.Eval(ImageSample.ToVariable(False));
 
   { transform the probability into the discrete label }
   PredictedLabel := Round(LabelEncoder.Decode(ypredTest.Data).Val[0]);
   ActualLabel    := Round(LabelsTest.GetAt(SampleIdx));
-  WriteLn('Predicted: ', PredictedLabel, '; Prob: ', Max(ypredTest.Data,
-    1).Val[0]: 2: 2, '; Actual: ', ActualLabel);
+
+  WriteLn('Predicting one of the test samples...');
+  ImageSample.Reshape([8, 8]);
+  PrintMatrix(ImageSample);
+  WriteLn('Predicted class: ', PredictedLabel, '; Probability: ', Max(ypredTest.Data,
+    1).Val[0]: 2: 2, '; The actual class: ', ActualLabel);
 
   ReadLn;
 end.
