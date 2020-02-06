@@ -52,6 +52,7 @@ function MultiplyF(v1, v2: double): double; inline;
 
 { binary functions for tensors }
 function Add(A, B: TTensor): TTensor; inline;
+function Convolve2D(A, w: TTensor): TTensor; inline;
 function Subtract(A, B: TTensor): TTensor; inline;
 function Divide(A, B: TTensor): TTensor; inline;
 function Multiply(A, B: TTensor): TTensor; inline;
@@ -69,6 +70,7 @@ function RadToDeg(A: TTensor): TTensor;
 function Cos(A: TTensor): TTensor;
 function Cosh(A: TTensor): TTensor;
 function Exp(A: TTensor): TTensor;
+function LeakyReLU(A: TTensor; v: double): TTensor; overload;
 function Log10(A: TTensor): TTensor;
 function Log2(A: TTensor): TTensor;
 function Log(A: TTensor): TTensor;
@@ -104,6 +106,7 @@ function MatMul(A, B: TVariable): TVariable;
 
 function Negate(A: TVariable): TVariable;
 function Cosh(A: TVariable): TVariable;
+function LeakyReLU(A: TVariable; v: double): TVariable; overload;
 function Log(A: TVariable): TVariable;
 function Sinh(A: TVariable): TVariable;
 function Sqr(A: TVariable): TVariable;
@@ -127,6 +130,7 @@ procedure BackwardMultiplyC(arr: TVariableArr; ADy: TTensor);
 procedure BackwardMatmul(arr: TVariableArr; ADy: TTensor);
 
 procedure BackwardCosh(arr: TVariableArr; ADy: TTensor);
+procedure BackwardLeakyReLU(arr: TVariableArr; ADy: TTensor);
 procedure BackwardLn(arr: TVariableArr; ADy: TTensor);
 procedure BackwardExp(arr: TVariableArr; ADy: TTensor);
 procedure BackwardMax(arr: TVariableArr; ADy: TTensor);
@@ -170,6 +174,11 @@ end;
 function Add(A, B: TTensor): TTensor;
 begin
   Result := ApplyBfunc(A, B, @AddF);
+end;
+
+function Convolve2D(A, w: TTensor): TTensor;
+begin
+  raise ENotImplemented.Create('Not implemented');
 end;
 
 function Subtract(A, B: TTensor): TTensor;
@@ -334,6 +343,15 @@ end;
 function RadToDeg(A: TTensor): TTensor;
 begin
   Result := ApplyUfunc(A, @Math.radtodeg);
+end;
+
+function LeakyReLU(A: TTensor; v: double): TTensor;
+var
+  i: longint;
+begin
+  Result := CreateEmptyTensor(A.Shape);
+  for i := 0 to A.Size - 1 do
+    Result.Val[i] := IfThen(A.Val[i] < 0, A.Val[i] * v, A.Val[i]);
 end;
 
 function Log10(A: TTensor): TTensor;
@@ -523,10 +541,20 @@ end;
 
 function Cosh(A: TVariable): TVariable;
 begin
-  Result := TVariable.Create(noe.Math.Cosh(A.Data), 'ForwardCosh', @BackwardCosh);
+  Result := TVariable.Create(Cosh(A.Data), 'ForwardCosh', @BackwardCosh);
   Result.RequiresGrad := True;
 
   Result.AddPrev(A);
+end;
+
+function LeakyReLU(A: TVariable; v: double): TVariable;
+begin
+  Result := TVariable.Create(LeakyReLU(A.Data, v), 'ForwardLeakyReLU',
+    @BackwardLeakyReLU);
+  Result.RequiresGrad := True;
+
+  Result.AddPrev(A);
+  Result.AddPrev(v);
 end;
 
 function Log(A: TVariable): TVariable;
@@ -751,6 +779,19 @@ begin
     for i := 0 to Length(arr[0].Data.Val) - 1 do
       if arr[0].Data.Val[i] > 0 then
         arr[0].Grad.Val[i] := arr[0].Grad.Val[i] + ADy.Val[i];
+end;
+
+procedure BackwardLeakyReLU(arr: TVariableArr; ADy: TTensor);
+var
+  i: longint;
+begin
+  if arr[0].RequiresGrad then
+    for i := 0 to Length(arr[0].Data.Val) - 1 do
+      if arr[0].Data.Val[i] > 0 then
+        arr[0].Grad.Val[i] := arr[0].Grad.Val[i] + ADy.Val[i]
+      else
+        { arr[1].Data.Val[0] refers to v parameter in LeakyReLU }
+        arr[0].Grad.Val[i] := arr[0].Grad.Val[i] + ADy.Val[i] * arr[1].Data.Val[0];
 end;
 
 procedure BackwardLn(arr: TVariableArr; ADy: TTensor);

@@ -22,16 +22,11 @@ type
   TVariableList = specialize TFPGList<TVariable>;
   TLayerList    = specialize TFPGList<TLayer>;
 
-  TActivationTypes = (
-    atNone,    // linear layer (no activation);
-    atSigmoid, // Sigmoid activation;
-    atReLU,    // ReLU activation;
-    atTanh     // Hyperbolic tangent activation;
-    );
-
-  TDenseLayer   = class;
-  TDropoutLayer = class;
-  TSoftMaxLayer = class;
+  TDenseLayer     = class;
+  TDropoutLayer   = class;
+  TLeakyReLULayer = class;
+  TReLULayer      = class;
+  TSoftMaxLayer   = class;
 
   { TLayer Base class }
 
@@ -46,12 +41,9 @@ type
   { TDenseLayer, or fully-connected layer }
 
   TDenseLayer = class(TLayer)
-  private
-    FActivation: TActivationTypes;
   public
-    constructor Create(InSize, OutSize: longint; AActivation: TActivationTypes);
+    constructor Create(InSize, OutSize: longint);
     function Eval(X: TVariable): TVariable; override;
-    property Activation: TActivationTypes read FActivation write FActivation;
   end;
 
   { TDropoutLayer }
@@ -66,6 +58,24 @@ type
     function Eval(X: TVariable): TVariable; override;
     property DropoutRate: double read FDropoutRate write FDropoutRate;
     property UseDropout: boolean read GetUseDropout write FUseDropout;
+  end;
+
+  { TLeakyReLULayer }
+
+  TLeakyReLULayer = class(TLayer)
+  private
+    FAlpha: double;
+  public
+    constructor Create(AAlpha: double);
+    function Eval(X: TVariable): TVariable; override;
+    property Alpha: double read FAlpha write FAlpha;
+  end;
+
+  { TReLULayer }
+
+  TReLULayer = class(TLayer)
+  public
+    function Eval(X: TVariable): TVariable; override;
   end;
 
   { TSoftMaxLayer }
@@ -110,8 +120,9 @@ var
 begin
   Result := 0;
   for param in Model.Params do
-    Result := Result + Sum(param * param);
-  Result   := Lambda * Result;
+    if not param.Name.StartsWith('Bias') then
+      Result := Result + Sum(param * param);
+  Result     := Lambda * Result;
 end;
 
 function AccuracyScore(predicted, actual: TTensor): double;
@@ -125,6 +136,25 @@ begin
     if predicted.GetAt(i) = actual.GetAt(i) then
       tot := tot + 1;
   Result  := tot / predicted.Size;
+end;
+
+{ TLeakyReLULayer }
+
+constructor TLeakyReLULayer.Create(AAlpha: double);
+begin
+
+end;
+
+function TLeakyReLULayer.Eval(X: TVariable): TVariable;
+begin
+  Result := LeakyReLU(X, self.FAlpha);
+end;
+
+{ TReLULayer }
+
+function TReLULayer.Eval(X: TVariable): TVariable;
+begin
+  Result := ReLU(X);
 end;
 
 { TDropoutLayer }
@@ -158,7 +188,6 @@ begin
   end
   else
     Result := X;
-
 end;
 
 { TSoftMaxLayer }
@@ -175,17 +204,16 @@ end;
 
 { TDenseLayer }
 
-constructor TDenseLayer.Create(InSize, OutSize: longint; AActivation: TActivationTypes);
-
+constructor TDenseLayer.Create(InSize, OutSize: longint);
 var
   W, b: TVariable;
 begin
   inherited Create;
-  Self.Activation := AActivation;
 
   { Xavier weight initialization }
-  W := TVariable.Create(RandomTensorNormal([InSize, OutSize]) * 1 / (InSize ** 0.5));
-  b := TVariable.Create(CreateTensor([1, OutSize], 0));
+  W      := TVariable.Create(RandomTensorNormal([InSize, OutSize]) * 1 / (InSize ** 0.5));
+  b      := TVariable.Create(CreateTensor([1, OutSize], 0));
+  b.Name := 'Bias' + IntToStr(b.ID);
   SetRequiresGrad([W, b], True);
 
   SetLength(self.Params, 2);
@@ -196,13 +224,6 @@ end;
 function TDenseLayer.Eval(X: TVariable): TVariable;
 begin
   Result := X.Dot(self.Params[0]) + self.Params[1];
-
-  case self.Activation of
-    atReLU: Result := ReLU(Result);
-    atTanh: Result := Tanh(Result);
-    atSigmoid: raise ENotImplemented.Create(
-        'Activation is not implemented yet.');
-  end;
 end;
 
 { TModel }
