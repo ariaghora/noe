@@ -14,7 +14,12 @@ unit noe.utils;
 interface
 
 uses
-  SysUtils, strutils, fgl, Classes, noe;
+  SysUtils,
+  strutils,
+  fgl,
+  Classes,
+  math,
+  noe;
 
 type
   TIntVector = array of longint;
@@ -39,6 +44,7 @@ function SortStr(s: string; ascending: boolean = True): string; inline;
 function StandardScaler(X:TTensor): TTensor;
 
 procedure NoeLog(tag, msg: string);
+procedure PrintMatrix(T: TTensor);
 
 operator in (substr, mainstr: string) b: boolean;
 operator in (str: string; arr: array of string) b: boolean;
@@ -136,6 +142,30 @@ begin
   begin
     WriteLn(tag + ': ' + msg);
   end;
+end;
+
+procedure PrintMatrix(T: TTensor);
+var
+  s: string = '';
+  c: char;
+  i, j: integer;
+  maxval: double;
+begin
+  Assert(T.NDims = 2, MSG_ASSERTION_RANK_2_TENSORS_ONLY);
+  maxval := maxvalue(T.Val);
+  for i := 0 to T.Shape[0] - 1 do
+  begin
+    for j := 0 to T.Shape[1] - 1 do
+    begin
+      if (T.GetAt(i, j) / maxval) > (3/4) then write(#178)
+      else if (T.GetAt(i, j) / maxval) > (2/4) then write(#177)
+      else if (T.GetAt(i, j) / maxval) > (3/4) then write(#176)
+      else write(' ');
+    end;
+    writeln;
+    //s := s + sLineBreak;
+  end;
+  //WriteLn(s);
 end;
 
 operator in (substr, mainstr: string)b: boolean;
