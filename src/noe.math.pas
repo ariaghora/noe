@@ -677,8 +677,6 @@ procedure BackwardDivide(arr: TVariableArr; ADy: TTensor);
 var
   A, B: TTensor;
 begin
-  //PrintTensor(ADy);
-  //readln; //////////
   if arr[0].RequiresGrad then
   begin
     A := ADy / arr[1].Data;

@@ -98,7 +98,6 @@ end;
 procedure TBaseOptimizer.UpdateParams(Loss: TVariable; ModelParams: array of TVariable);
 begin
   ZeroGradGraph(Loss);
-  //ClearIntermediaryNodes;
   Loss.Backpropagate;
 
   if self.Verbose then
