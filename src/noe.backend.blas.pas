@@ -74,7 +74,7 @@ begin
     1, // beta
     Result.val, B.Shape[1]
     );
-  Result.Reshape([A.Shape[0], B.Shape[1]]);
+  Result.ReshapeInplace([A.Shape[0], B.Shape[1]]);
 end;
 
 function MeanCol_BLAS(A: TTensor): TTensor;

@@ -26,6 +26,7 @@ type
   TDropoutLayer   = class;
   TLeakyReLULayer = class;
   TReLULayer      = class;
+  TSigmoidLayer   = class;
   TSoftMaxLayer   = class;
 
   { TLayer Base class }
@@ -78,6 +79,13 @@ type
     function Eval(X: TVariable): TVariable; override;
   end;
 
+  { TSigmoidLayer }
+
+  TSigmoidLayer = class(TLayer)
+  public
+    function Eval(X: TVariable): TVariable; override;
+  end;
+
   { TSoftMaxLayer }
 
   TSoftMaxLayer = class(TLayer)
@@ -102,11 +110,22 @@ type
 
 { Loss functions }
 function AccuracyScore(predicted, actual: TTensor): double;
+function BinaryCrossEntropyLoss(ypred, ytrue: TVariable): TVariable;
 function CrossEntropyLoss(ypred, ytrue: TVariable): TVariable;
 function L2Regularization(Model: TModel; Lambda: double = 0.001): TVariable;
 
 
 implementation
+
+function BinaryCrossEntropyLoss(ypred, ytrue: TVariable): TVariable;
+var
+  m: longint;
+begin
+  Assert(ypred.Size = ytrue.Size, MSG_ASSERTION_DIFFERENT_LENGTH);
+
+  m      := ypred.Size;
+  Result := -(1 / m) * Sum(ytrue * Log(ypred) + (1 - ytrue) * Log(1 - ypred));
+end;
 
 function CrossEntropyLoss(ypred, ytrue: TVariable): TVariable;
 begin
@@ -138,11 +157,18 @@ begin
   Result  := tot / predicted.Size;
 end;
 
+{ TSigmoidLayer }
+
+function TSigmoidLayer.Eval(X: TVariable): TVariable;
+begin
+  Result := 1 / 1 + (Exp(-X));
+end;
+
 { TLeakyReLULayer }
 
 constructor TLeakyReLULayer.Create(AAlpha: double);
 begin
-
+  self.Alpha := AAlpha;
 end;
 
 function TLeakyReLULayer.Eval(X: TVariable): TVariable;
@@ -211,7 +237,8 @@ begin
   inherited Create;
 
   { Xavier weight initialization }
-  W      := TVariable.Create(RandomTensorNormal([InSize, OutSize]) * 1 / (InSize ** 0.5));
+  W      := TVariable.Create(RandomTensorNormal([InSize, OutSize]) *
+    1 / (InSize ** 0.5));
   b      := TVariable.Create(CreateTensor([1, OutSize], 0));
   b.Name := 'Bias' + IntToStr(b.ID);
   SetRequiresGrad([W, b], True);

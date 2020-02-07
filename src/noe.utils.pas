@@ -44,7 +44,7 @@ function SortStr(s: string; ascending: boolean = True): string; inline;
 function StandardScaler(X:TTensor): TTensor;
 
 procedure NoeLog(tag, msg: string);
-procedure PrintMatrix(T: TTensor);
+procedure VisualizeMatrix(T: TTensor);
 
 operator in (substr, mainstr: string) b: boolean;
 operator in (str: string; arr: array of string) b: boolean;
@@ -144,7 +144,7 @@ begin
   end;
 end;
 
-procedure PrintMatrix(T: TTensor);
+procedure VisualizeMatrix(T: TTensor);
 var
   s: string = '';
   c: char;
@@ -157,9 +157,10 @@ begin
   begin
     for j := 0 to T.Shape[1] - 1 do
     begin
-      if (T.GetAt(i, j) / maxval) > (3/4) then write(#178)
-      else if (T.GetAt(i, j) / maxval) > (2/4) then write(#177)
-      else if (T.GetAt(i, j) / maxval) > (3/4) then write(#176)
+      if (T.GetAt(i, j) / maxval) > (4/5) then write(#178)
+      else if (T.GetAt(i, j) / maxval) > (3/5) then write(#177)
+      else if (T.GetAt(i, j) / maxval) > (2/5) then write(#176)
+      else if (T.GetAt(i, j) / maxval) > (1/5) then write(#247)
       else write(' ');
     end;
     writeln;
@@ -250,7 +251,7 @@ begin
   Indices := Squeeze(ArgMax(T, 1));
 
   Result := TTensor.Create;
-  Result.Reshape([Indices.Size]);
+  Result.ReshapeInplace([Indices.Size]);
   SetLength(Result.Val, Indices.Size);
   for i := 0 to Indices.Size - 1 do
     Result.SetAt(i, unique[Round(Indices.GetAt(i))]);

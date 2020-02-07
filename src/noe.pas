@@ -41,6 +41,7 @@ type
     function GetAt(i, j: longint): double; overload;
     function GetAt(Index: array of longint): TTensor;
     function GetShape: TIntVector;
+    function Reshape(ShapeVals: array of longint): TTensor;
     function T: TTensor;
     function ToVariable(RequiresGrad: boolean = False): TVariable;
     procedure Free;
@@ -48,9 +49,9 @@ type
     procedure SetAt(i, j: longint; x: double);
     procedure SetAt(Index: array of longint; x: double);
     procedure WriteToCSV(FileName: string);
-    procedure Reshape(ShapeVals: array of longint);
+    procedure ReshapeInplace(ShapeVals: array of longint);
     property NDims: longint read GetNDims;
-    property Shape: TIntVector read FShape;
+    property Shape: TIntVector read FShape write FShape;
     property Size: longint read GetSize;
   end;
 
@@ -204,6 +205,7 @@ function GetRange(T: TVariable; RowIndex, ColumnIndex, Height, Width: longint): 
 function GetColumn(T: TTensor; ColumnIndex: longint): TTensor;
 function GetColumnRange(T: TTensor; ColumnIndex, Amount: longint): TTensor;
 function GetRow(T: TTensor; RowIndex: longint): TTensor;
+function GetRowRange(T: TTensor; RowIndex, Amount: longint): TTensor;
 function VFlip(T: TTensor): TTensor;
 
 { Broadcasting ----------------------------------------------------------------}
@@ -517,7 +519,7 @@ begin
     ResultingShape[i] := self.Shape[i + LShape - LIndex - 1];
 
   Result := TTensor.Create;
-  Result.Reshape(ResultingShape);
+  Result.ReshapeInplace(ResultingShape);
 
   ResultLength := 1;
   for i := LIndex to LShape - 1 do
@@ -621,7 +623,17 @@ begin
   Result := self.Shape;
 end;
 
-procedure TTensor.Reshape(ShapeVals: array of longint);
+function TTensor.Reshape(ShapeVals: array of longint): TTensor;
+var
+  i: longint;
+begin
+  Result := CopyTensor(self);
+  SetLength(Result.FShape, Length(ShapeVals));
+  for i :=0 to Length(ShapeVals) - 1 do
+    Result.FShape[i] := ShapeVals[i];
+end;
+
+procedure TTensor.ReshapeInplace(ShapeVals: array of longint);
 var
   i: longint;
 begin
@@ -780,7 +792,7 @@ function CopyTensor(A: TTensor): TTensor;
 begin
   Result     := TTensor.Create;
   Result.val := copy(A.val);
-  Result.Reshape(A.Shape);
+  Result.ReshapeInplace(A.Shape);
 end;
 
 function RandomTensorNormal(Shape: array of longint): TTensor;
@@ -828,7 +840,7 @@ begin
 
   { actual data handle }
   Result := TTensor.Create;
-  Result.Reshape([RowCount, ColCount]);
+  Result.ReshapeInplace([RowCount, ColCount]);
   SetLength(Result.Val, RowCount * ColCount);
 
   offset := 0;
@@ -853,7 +865,7 @@ function CreateEmptyTensor(Shape: array of longint): TTensor;
 begin
   Result := TTensor.Create;
   SetLength(Result.Val, ShapeToSize(Shape));
-  Result.Reshape(shape);
+  Result.ReshapeInplace(shape);
 end;
 
 function CreateTensor(Shape: array of longint): TTensor;
@@ -863,7 +875,7 @@ begin
   Result := CreateEmptyTensor(Shape);
   for i := 0 to Result.Size - 1 do
     Result.Val[i] := Random;
-  Result.Reshape(shape);
+  Result.ReshapeInplace(shape);
 end;
 
 function CreateTensor(Shape: array of longint; Val: float): TTensor;
@@ -873,7 +885,7 @@ begin
   Result := CreateEmptyTensor(Shape);
   for i := 0 to Result.Size - 1 do
     Result.Val[i] := Val;
-  Result.Reshape(shape);
+  Result.ReshapeInplace(shape);
 end;
 
 function CreateTensor(Shape: array of longint; Vals: array of float): TTensor;
@@ -887,7 +899,7 @@ begin
   SetLength(Result.Val, size);
   for i := 0 to size - 1 do
     Result.Val[i] := Vals[i];
-  Result.Reshape(Shape);
+  Result.ReshapeInplace(Shape);
 end;
 
 function Zeros(Shape: array of longint): TTensor;
@@ -906,7 +918,7 @@ var
   offset: longint;
 begin
   Result := TTensor.Create;
-  Result.Reshape([Ceil((stop - start) / step)]);
+  Result.ReshapeInplace([Ceil((stop - start) / step)]);
   SetLength(Result.Val, Ceil((stop - start) / step));
 
   i      := start;
@@ -989,9 +1001,15 @@ begin
   SetLength(tmpShape, offset);
 
   if Length(tmpShape) = 0 then
-    Result.Reshape([1])
+    Result.ReshapeInplace([1])
   else
-    Result.Reshape(tmpShape);
+    Result.ReshapeInplace(tmpShape);
+end;
+
+function GetRowRange(T: TTensor; RowIndex, Amount: longint): TTensor;
+begin
+  Assert(T.NDims = 2, MSG_ASSERTION_RANK_2_TENSORS_ONLY);
+  Result := GetRange(T, RowIndex, 0, Amount, T.Shape[1]);
 end;
 
 function VFlip(T: TTensor): TTensor;
@@ -1011,7 +1029,7 @@ var
 begin
   Assert(Length(T.Shape) = 2, MSG_ASSERTION_RANK_2_TENSORS_ONLY);
   Result := TTensor.Create;
-  Result.Reshape([Height, Width]);
+  Result.ReshapeInplace([Height, Width]);
 
   SetLength(Result.Val, Height * Width);
   offset := 0;

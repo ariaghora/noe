@@ -42,7 +42,7 @@ begin
       Result.Val[i * B.Shape[1] + j] := sum;
     end;
 
-  Result.Reshape([A.Shape[0], B.Shape[1]]);
+  Result.ReshapeInplace([A.Shape[0], B.Shape[1]]);
 end;
 
 function MeanCol_Native(A: TTensor): TTensor;
@@ -61,7 +61,7 @@ var
 begin
   Result := TTensor.Create;
   SetLength(Result.Val, A.Shape[1]);
-  Result.Reshape([1, A.Shape[1]]);
+  Result.ReshapeInplace([1, A.Shape[1]]);
   for i := 0 to A.Shape[1] - 1 do
   begin
     Result.val[i] := 0;
@@ -76,7 +76,7 @@ var
 begin
   Result := SumCol_Native(A);
   SetLength(Result.Val, A.Shape[0]);
-  Result.Reshape([A.Shape[0], 1]);
+  Result.ReshapeInplace([A.Shape[0], 1]);
   for i := 0 to A.Shape[0] - 1 do
   begin
     Result.val[i] := 0;

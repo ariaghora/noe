@@ -16,7 +16,7 @@
 
 unit noe.Math;
 
-{$mode objfpc}{$H+}//{$INLINE ON}
+{$mode objfpc}{$H+}{$INLINE ON}
 
 interface
 
@@ -80,6 +80,7 @@ function Power(A: TTensor; exponent: double): TTensor; overload;
 function Power(A, B: TTensor): TTensor; overload;
 function ReLU(T: TTensor): TTensor;
 function Sin(A: TTensor): TTensor;
+function Sigmoid(A: TTensor): TTensor;
 function Sinh(A: TTensor): TTensor;
 function SoftMax(A: TTensor; axis: byte): TTensor; inline;
 function Sum(M: TTensor): TTensor; inline;
@@ -108,6 +109,7 @@ function Negate(A: TVariable): TVariable;
 function Cosh(A: TVariable): TVariable;
 function LeakyReLU(A: TVariable; v: double): TVariable; overload;
 function Log(A: TVariable): TVariable;
+function Sigmoid(A: TVariable): TVariable;
 function Sinh(A: TVariable): TVariable;
 function Sqr(A: TVariable): TVariable;
 function Sqrt(A: TVariable): TVariable;
@@ -137,6 +139,7 @@ procedure BackwardMax(arr: TVariableArr; ADy: TTensor);
 procedure BackwardMean(arr: TVariableArr; ADy: TTensor);
 procedure BackwardNegate(arr: TVariableArr; ADy: TTensor);
 procedure BackwardReLU(arr: TVariableArr; ADy: TTensor);
+procedure BackwardSigmoid(arr: TVariableArr; ADy: TTensor);
 procedure BackwardSinh(arr: TVariableArr; ADy: TTensor);
 procedure BackwardSqr(arr: TVariableArr; ADy: TTensor);
 procedure BackwardSqrt(arr: TVariableArr; ADy: TTensor);
@@ -213,7 +216,7 @@ begin
   Result := TTensor.Create;
   SetLength(Result.Val, 1);
   Result.Val[0] := ArgMax(M.Val);
-  Result.Reshape([1]);
+  Result.ReshapeInplace([1]);
 end;
 
 function ArgMax(M: TTensor; axis: byte): TTensor;
@@ -226,14 +229,14 @@ begin
   if axis = 0 then
   begin
     SetLength(Result.Val, M.Shape[1]);
-    Result.Reshape([1, M.Shape[1]]);
+    Result.ReshapeInplace([1, M.Shape[1]]);
     for i := 0 to M.Shape[1] - 1 do
       Result.Val[i] := ArgMax(GetColumn(M, i).Val);
   end
   else
   begin
     SetLength(Result.Val, M.Shape[0]);
-    Result.Reshape([M.Shape[0], 1]);
+    Result.ReshapeInplace([M.Shape[0], 1]);
     for i := 0 to M.Shape[0] - 1 do
       Result.Val[i] := ArgMax(GetRow(M, i).Val);
   end;
@@ -244,7 +247,7 @@ begin
   Result := TTensor.Create;
   SetLength(Result.Val, 1);
   Result.Val[0] := MaxValue(M.Val);
-  Result.Reshape([1]);
+  Result.ReshapeInplace([1]);
 end;
 
 function Max(M: TTensor; axis: byte): TTensor;
@@ -257,14 +260,14 @@ begin
   if axis = 0 then
   begin
     SetLength(Result.Val, M.Shape[1]);
-    Result.Reshape([1, M.Shape[1]]);
+    Result.ReshapeInplace([1, M.Shape[1]]);
     for i := 0 to M.Shape[1] - 1 do
       Result.Val[i] := MaxValue(GetColumn(M, i).Val);
   end
   else
   begin
     SetLength(Result.Val, M.Shape[0]);
-    Result.Reshape([M.Shape[0], 1]);
+    Result.ReshapeInplace([M.Shape[0], 1]);
     for i := 0 to M.Shape[0] - 1 do
       Result.Val[i] := MaxValue(GetRow(M, i).Val);
   end;
@@ -375,7 +378,7 @@ var
 begin
   Assert(Length(T.Shape) = 2, 'Transpose2D only accepts rank-2 tensors');
   Result := TTensor.Create;
-  Result.Reshape([T.Shape[1], T.Shape[0]]);
+  Result.ReshapeInplace([T.Shape[1], T.Shape[0]]);
   SetLength(Result.Val, Length(T.Val));
   for i := 0 to T.Shape[0] - 1 do
     for j := 0 to T.Shape[1] - 1 do
@@ -411,7 +414,7 @@ var
   i: longint;
 begin
   Result := TTensor.Create;
-  Result.Reshape(T.Shape);
+  Result.ReshapeInplace(T.Shape);
   SetLength(Result.Val, Length(T.Val));
   for i := 0 to Length(Result.Val) - 1 do
     Result.Val[i] := Max(0, T.Val[i]);
@@ -440,6 +443,11 @@ end;
 function Sin(A: TTensor): TTensor;
 begin
   Result := ApplyUfunc(A, @Sin_F);
+end;
+
+function Sigmoid(A: TTensor): TTensor;
+begin
+  Result := 1 / (1 + Exp(-A));
 end;
 
 function Sinh(A: TTensor): TTensor;
@@ -560,6 +568,14 @@ end;
 function Log(A: TVariable): TVariable;
 begin
   Result := TVariable.Create(Log(A.Data), 'ForwardLn', @BackwardLn);
+  Result.RequiresGrad := True;
+
+  Result.AddPrev(A);
+end;
+
+function Sigmoid(A: TVariable): TVariable;
+begin
+  Result := TVariable.Create(Sigmoid(A.Data), 'ForwardSigmoid', @BackwardSigmoid);
   Result.RequiresGrad := True;
 
   Result.AddPrev(A);
@@ -741,6 +757,12 @@ begin
     arr[0].Grad := arr[0].Grad + (ADy * noe.Math.Sinh(arr[0].Data));
 end;
 
+procedure BackwardSigmoid(arr: TVariableArr; ADy: TTensor);
+begin
+  if arr[0].RequiresGrad then
+    arr[0].Grad := arr[0].Grad + (Sigmoid(arr[0].Data) * (1 - Sigmoid(arr[0].Data)));
+end;
+
 procedure BackwardSinh(arr: TVariableArr; ADy: TTensor);
 begin
   if arr[0].RequiresGrad then
@@ -913,7 +935,7 @@ begin
       Result := TTensor.Create;
       len    := Pots[0].Shape[0];
       SetLength(Result.Val, len);
-      Result.Reshape([len]);
+      Result.ReshapeInplace([len]);
       for i := 0 to len - 1 do
         Result.Val[i] := Pots[0].GetAt([i, i]).Val[0];
     end
@@ -1026,7 +1048,7 @@ var
   i: longint;
 begin
   Result := TTensor.Create;
-  Result.Reshape(A.Shape);
+  Result.ReshapeInplace(A.Shape);
   SetLength(Result.val, Length(A.val));
   for i := 0 to length(A.val) - 1 do
     Result.val[i] := func(A.val[i]);
@@ -1049,7 +1071,7 @@ begin
 
     { ---------- Otherwise, go vanilla ---------- }
     Result := TTensor.Create;
-    Result.Reshape(A.Shape);
+    Result.ReshapeInplace(A.Shape);
     SetLength(Result.Val, Length(A.Val));
     for i := 0 to Length(A.Val) - 1 do
       Result.Val[i] := Func(A.Val[i], B.Val[i]);
@@ -1113,7 +1135,7 @@ begin
       br := Broadcast(A, B);
 
       Result := TTensor.Create;
-      Result.Reshape(br.broadcastShape);
+      Result.ReshapeInplace(br.broadcastShape);
       SetLength(Result.Val, ShapeToSize(br.broadcastShape));
 
       { apply binary function }

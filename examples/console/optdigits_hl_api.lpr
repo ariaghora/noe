@@ -37,8 +37,7 @@ const
   MAX_EPOCH = 150;
 
 var
-  i, M, NInputNeuron, NOutputNeuron, PredictedLabel, ActualLabel,
-  NHiddenNeuron, SampleIdx: longint;
+  i, M, NInputNeuron, NOutputNeuron, PredictedLabel, ActualLabel, SampleIdx: longint;
   DatasetTrain, DatasetTest, LabelsTest, FeatsTest, ImageSample: TTensor;
   Xtrain, ytrain, ypred, Loss, ypredTest: TVariable;
   LabelEncoder: TOneHotEncoder;
@@ -112,8 +111,7 @@ begin
   ActualLabel    := Round(LabelsTest.GetAt(SampleIdx));
 
   WriteLn('Predicting one of the test samples...');
-  ImageSample.Reshape([8, 8]);
-  PrintMatrix(ImageSample);
+  VisualizeMatrix(ImageSample.Reshape([8, 8]));
   WriteLn('Predicted class: ', PredictedLabel, '; Probability: ', Max(ypredTest.Data,
     1).Val[0]: 2: 2, '; The actual class: ', ActualLabel);
 
