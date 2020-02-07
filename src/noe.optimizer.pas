@@ -97,6 +97,8 @@ end;
 
 procedure TBaseOptimizer.UpdateParams(Loss: TVariable; ModelParams: array of TVariable);
 begin
+  ZeroGradGraph(Loss);
+  //ClearIntermediaryNodes;
   Loss.Backpropagate;
 
   if self.Verbose then
@@ -135,7 +137,6 @@ begin
     ModelParams[i].Data := ModelParams[i].Data - self.V[i];
   end;
 
-  ZeroGradGraph(Loss);
 end;
 
 { TAdamOptimizer }
@@ -186,8 +187,6 @@ begin
     ModelParams[i].Data := ModelParams[i].Data - self.LearningRate *
       mHat / ((vHat ** 0.5) + self.Epsilon);
   end;
-
-  ZeroGradGraph(Loss);
 end;
 
 { TSGDOptimizer }
@@ -210,7 +209,6 @@ begin
     param.Data := param.Data - self.LearningRate * param.Grad;
   end;
 
-  ZeroGradGraph(Loss);
 end;
 
 end.
