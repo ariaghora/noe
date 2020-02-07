@@ -111,6 +111,7 @@ type
     FRequiresGrad: boolean;
     FBackwardFunc: TBackwardFunc;
     FName:   string;
+    FTrackingID: string;
     function GetNDims: longint;
     function GetShape: TIntVector;
     function GetSize: longint;
@@ -141,6 +142,7 @@ type
     property RequiresGrad: boolean read FRequiresGrad write FRequiresGrad;
     property Shape: TIntVector read GetShape;
     property Size: longint read GetSize;
+    property TrackingID: string read FTrackingID write FTrackingID;
 
     { Math helpers }
     function Dot(Other: TVariable): TVariable;
@@ -151,6 +153,7 @@ type
   TNodeTracker = record
     Items: TVariableArr;
     procedure Add(V: TVariable);
+    function FindByTrackingID(TrackingID: string): longint;
   end;
 
 const
@@ -443,6 +446,18 @@ procedure TNodeTracker.Add(V: TVariable);
 begin
   SetLength(Self.Items, Length(self.Items) + 1);
   Self.Items[Length(self.Items) - 1] := V;
+end;
+
+function TNodeTracker.FindByTrackingID(TrackingID: string): longint;
+var
+  i: longint;
+begin
+  Result := -1;
+  for i:=0 to Length(self.Items) - 1 do
+  begin
+    if self.Items[i].TrackingID = TrackingID then
+      exit(Result);
+  end;
 end;
 
 { TTensorProxy }
@@ -739,8 +754,8 @@ begin
     SetLength(self.Prev, Length(self.Prev) + 1);
     self.Prev[Length(self.Prev) - 1] := AVariable;
 
-    { track the non-leaf nodes }
-    GlobalNodeTracker.Add(self);
+    if AVariable.RequiresGrad then
+      self.RequiresGrad:=True;
   end;
 end;
 
@@ -1028,6 +1043,7 @@ begin
   for i := length(Sorted) - 1 downto 0 do
     if Assigned(Sorted[i].BackwardFunc) then
       Sorted[i].BackwardFunc(Sorted[i].Prev, Sorted[i].FGrad);
+  //T.Grad := nil;
 end;
 
 function Squeeze(T: TTensor): TTensor;
