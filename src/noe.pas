@@ -19,12 +19,12 @@ type
   TIntVector   = array of longint;
   TFloatVector = array of double;
 
-  TTensor      = class;
+  //TTensor      = record;
   TTensorProxy = class;
   TVariable    = class;
 
   { TTensor }
-  TTensor = class
+  TTensor = record
   private
     FShape: array of longint;
     function GetNDims: longint;
@@ -117,6 +117,7 @@ type
     function GetShape: TIntVector;
     function GetSize: longint;
     procedure SetData(AValue: TTensor);
+    procedure SetRequiresGrad(AValue: boolean);
   public
     constructor Create; overload;
     constructor Create(AName: string); overload;
@@ -140,7 +141,7 @@ type
     property IsLeaf: boolean read FIsLeaf write FIsLeaf;
     property Name: string read FName write FName;
     property NDims: longint read GetNDims;
-    property RequiresGrad: boolean read FRequiresGrad write FRequiresGrad;
+    property RequiresGrad: boolean read FRequiresGrad write SetRequiresGrad;
     property Shape: TIntVector read GetShape;
     property Size: longint read GetSize;
     property TrackingID: string read FTrackingID write FTrackingID;
@@ -550,7 +551,7 @@ begin
   for i := 0 to (LShape - LIndex) - 1 do
     ResultingShape[i] := self.Shape[i + LShape - LIndex - 1];
 
-  Result := TTensor.Create;
+  //Result := TTensor.Create;
   Result.ReshapeInplace(ResultingShape);
 
   ResultLength := 1;
@@ -613,7 +614,6 @@ end;
 
 procedure TTensor.Free;
 begin
-  inherited;
   SetLength(self.Val, 0);
 end;
 
@@ -691,9 +691,14 @@ end;
 { TVariable }
 procedure TVariable.SetData(AValue: TTensor);
 begin
-  if FTensor = AValue then
-    Exit;
   FTensor := AValue;
+end;
+
+procedure TVariable.SetRequiresGrad(AValue: boolean);
+begin
+  if FRequiresGrad=AValue then Exit;
+  FRequiresGrad:=AValue;
+  self.Grad := Zeros(self.Shape);
 end;
 
 function TVariable.GetShape: TIntVector;
@@ -712,13 +717,17 @@ begin
 end;
 
 constructor TVariable.Create;
+var
+  T: TTensor;
 begin
-  self.Create(nil, '', nil, True);
+  self.Create(T, '', nil, True);
 end;
 
 constructor TVariable.Create(AName: string);
+var
+  T: TTensor;
 begin
-  self.Create(nil, AName, nil, True);
+  self.Create(T, AName, nil, True);
 end;
 
 constructor TVariable.Create(ATensor: TTensor);
@@ -785,13 +794,13 @@ end;
 procedure TVariable.FreeData;
 begin
   self.Data.Free;
-  FreeAndNil(Data.Val);
+  //FreeAndNil(Data.Val);
 end;
 
 procedure TVariable.FreeGrad;
 begin
   self.Grad.Free;
-  FreeAndNil(Grad.Val);
+  //FreeAndNil(Grad.Val);
 end;
 
 procedure TVariable.Step(LearningRate: double);
@@ -804,9 +813,9 @@ procedure TVariable.ZeroGrad;
 var
   i: longint;
 begin
-  if not Assigned(self.Grad) then
-    self.Grad := Zeros(self.Shape)
-  else
+  //if not Assigned(self.Grad) then
+  //  self.Grad := Zeros(self.Shape)
+  //else
     for i := 0 to self.Grad.Size - 1 do
       self.Grad.Val[i] := 0;
 end;
@@ -862,7 +871,7 @@ end;
 
 function CopyTensor(A: TTensor): TTensor;
 begin
-  Result     := TTensor.Create;
+  //Result     := TTensor.Create;
   Result.val := copy(A.val);
   Result.ReshapeInplace(A.Shape);
 end;
@@ -911,7 +920,7 @@ begin
   end;
 
   { actual data handle }
-  Result := TTensor.Create;
+  //Result := TTensor.Create;
   Result.ReshapeInplace([RowCount, ColCount]);
   SetLength(Result.Val, RowCount * ColCount);
 
@@ -935,7 +944,7 @@ end;
 
 function CreateEmptyTensor(Shape: array of longint): TTensor;
 begin
-  Result := TTensor.Create;
+  //Result := TTensor.Create;
   SetLength(Result.Val, ShapeToSize(Shape));
   Result.ReshapeInplace(shape);
 end;
@@ -967,7 +976,7 @@ begin
   size := ShapeToSize(Shape);
   Assert(ShapeToSize(Shape) = size,
     'The values cannot be reshaped into the target shape');
-  Result := TTensor.Create;
+  //Result := TTensor.Create;
   SetLength(Result.Val, size);
   for i := 0 to size - 1 do
     Result.Val[i] := Vals[i];
@@ -989,7 +998,7 @@ var
   i: double;
   offset: longint;
 begin
-  Result := TTensor.Create;
+  //Result := TTensor.Create;
   Result.ReshapeInplace([Ceil((stop - start) / step)]);
   SetLength(Result.Val, Ceil((stop - start) / step));
 
@@ -1043,6 +1052,7 @@ end;
 procedure BackwardGraph(const T: TVariable);
 var
   Sorted: TVariableArr;
+  v: TVariable;
   i: longint;
 begin
   if GLOBAL_SKIP_GRAD then
@@ -1052,9 +1062,14 @@ begin
   T.Grad.ReshapeInplace(T.Data.Shape);
   T.Grad.Fill(1);
 
+  //writeln(T.NDims);
+
   for i := length(Sorted) - 1 downto 0 do
     if Assigned(Sorted[i].BackwardFunc) then
+    begin
+      //WriteLn(sorted[i].Grad.NDims);  // LAST EDIT
       Sorted[i].BackwardFunc(Sorted[i].Prev, Sorted[i].FGrad);
+    end;
 end;
 
 function Squeeze(T: TTensor): TTensor;
@@ -1102,7 +1117,7 @@ var
   i, j, offset: longint;
 begin
   Assert(Length(T.Shape) = 2, MSG_ASSERTION_RANK_2_TENSORS_ONLY);
-  Result := TTensor.Create;
+  //Result := TTensor.Create;
   Result.ReshapeInplace([Height, Width]);
 
   SetLength(Result.Val, Height * Width);

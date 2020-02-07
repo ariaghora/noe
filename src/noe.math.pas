@@ -213,7 +213,7 @@ end;
 
 function ArgMax(M: TTensor): TTensor;
 begin
-  Result := TTensor.Create;
+  //Result := TTensor.Create;
   SetLength(Result.Val, 1);
   Result.Val[0] := ArgMax(M.Val);
   Result.ReshapeInplace([1]);
@@ -225,7 +225,7 @@ var
 begin
   Assert(Length(M.Shape) = 2, MSG_ASSERTION_RANK_2_TENSORS_ONLY);
   Assert(axis in [0, 1], MSG_ASSERTION_INVALID_AXIS);
-  Result := TTensor.Create;
+  //Result := TTensor.Create;
   if axis = 0 then
   begin
     SetLength(Result.Val, M.Shape[1]);
@@ -244,7 +244,7 @@ end;
 
 function Max(M: TTensor): TTensor;
 begin
-  Result := TTensor.Create;
+  //Result := TTensor.Create;
   SetLength(Result.Val, 1);
   Result.Val[0] := MaxValue(M.Val);
   Result.ReshapeInplace([1]);
@@ -256,7 +256,7 @@ var
 begin
   Assert(Length(M.Shape) = 2, MSG_ASSERTION_RANK_2_TENSORS_ONLY);
   Assert(axis in [0, 1], MSG_ASSERTION_INVALID_AXIS);
-  Result := TTensor.Create;
+  //Result := TTensor.Create;
   if axis = 0 then
   begin
     SetLength(Result.Val, M.Shape[1]);
@@ -377,7 +377,7 @@ var
   i, j: longint;
 begin
   Assert(Length(T.Shape) = 2, 'Transpose2D only accepts rank-2 tensors');
-  Result := TTensor.Create;
+  //Result := TTensor.Create;
   Result.ReshapeInplace([T.Shape[1], T.Shape[0]]);
   SetLength(Result.Val, Length(T.Val));
   for i := 0 to T.Shape[0] - 1 do
@@ -413,7 +413,7 @@ function ReLU(T: TTensor): TTensor;
 var
   i: longint;
 begin
-  Result := TTensor.Create;
+  //Result := TTensor.Create;
   Result.ReshapeInplace(T.Shape);
   SetLength(Result.Val, Length(T.Val));
   for i := 0 to Length(Result.Val) - 1 do
@@ -558,7 +558,7 @@ begin
   if TrackedNodeIdx > -1 then
   begin
     Result := GlobalNodeTracker.Items[TrackedNodeIdx];
-    Result.Data.Free;
+    //Result.Data.Free;
     Result.Data:=MatMul(A.Data, B.Data);
   end
   else
@@ -713,6 +713,8 @@ procedure BackwardDivide(arr: TVariableArr; ADy: TTensor);
 var
   A, B: TTensor;
 begin
+  //PrintTensor(ADy);
+  //readln; //////////
   if arr[0].RequiresGrad then
   begin
     A := ADy / arr[1].Data;
@@ -956,7 +958,7 @@ begin
       Assert(Pots[0].Shape[0] = Pots[0].Shape[1], 'Cannot collapse index ' +
         re.Match[0].Chars[0]);
 
-      Result := TTensor.Create;
+      //Result := TTensor.Create;
       len    := Pots[0].Shape[0];
       SetLength(Result.Val, len);
       Result.ReshapeInplace([len]);
@@ -1071,7 +1073,7 @@ function ApplyUfunc(A: TTensor; Func: TUFunc): TTensor;
 var
   i: longint;
 begin
-  Result := TTensor.Create;
+  //Result := TTensor.Create;
   Result.ReshapeInplace(A.Shape);
   SetLength(Result.val, Length(A.val));
   for i := 0 to length(A.val) - 1 do
@@ -1094,7 +1096,7 @@ begin
       exit(Add_BLAS(A, B));
 
     { ---------- Otherwise, go vanilla ---------- }
-    Result := TTensor.Create;
+    //Result := TTensor.Create;
     Result.ReshapeInplace(A.Shape);
     SetLength(Result.Val, Length(A.Val));
     for i := 0 to Length(A.Val) - 1 do
@@ -1158,7 +1160,7 @@ begin
       { Otherwise, perform general broadcasting with any dimension }
       br := Broadcast(A, B);
 
-      Result := TTensor.Create;
+      //Result := TTensor.Create;
       Result.ReshapeInplace(br.broadcastShape);
       SetLength(Result.Val, ShapeToSize(br.broadcastShape));
 

@@ -31,7 +31,7 @@ var
   i, j, k: longint;
   sum: double;
 begin
-  Result := TTensor.Create;
+  //Result := TTensor.Create;
   SetLength(Result.Val, A.Shape[0] * B.Shape[1]);
   for i := 0 to A.shape[0] - 1 do
     for j := 0 to B.Shape[1] - 1 do
@@ -59,7 +59,7 @@ function SumCol_Native(A: TTensor): TTensor;
 var
   i, j: longint;
 begin
-  Result := TTensor.Create;
+  //Result := TTensor.Create;
   SetLength(Result.Val, A.Shape[1]);
   Result.ReshapeInplace([1, A.Shape[1]]);
   for i := 0 to A.Shape[1] - 1 do
