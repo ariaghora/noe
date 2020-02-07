@@ -40,6 +40,7 @@ type
     function Reshape(ShapeVals: array of longint): TTensor;
     function T: TTensor;
     function ToVariable(RequiresGrad: boolean = False): TVariable;
+    procedure Fill(v: double);
     procedure Free;
     procedure SetAt(i: longint; x: double);
     procedure SetAt(i, j: longint; x: double);
@@ -456,7 +457,7 @@ begin
   for i:=0 to Length(self.Items) - 1 do
   begin
     if self.Items[i].TrackingID = TrackingID then
-      exit(Result);
+      exit(i);
   end;
 end;
 
@@ -602,8 +603,17 @@ begin
   Result.RequiresGrad := RequiresGrad;
 end;
 
+procedure TTensor.Fill(v: double);
+var
+  i: longint;
+begin
+  for i := 0 to Length(self.Val) - 1 do
+    self.Val[i] := v;
+end;
+
 procedure TTensor.Free;
 begin
+  inherited;
   SetLength(self.Val, 0);
 end;
 
@@ -1039,11 +1049,12 @@ begin
     exit;
   Sorted := TopologicalSort(T);
 
-  T.Grad := Ones(T.Data.Shape);
+  T.Grad.ReshapeInplace(T.Data.Shape);
+  T.Grad.Fill(1);
+
   for i := length(Sorted) - 1 downto 0 do
     if Assigned(Sorted[i].BackwardFunc) then
       Sorted[i].BackwardFunc(Sorted[i].Prev, Sorted[i].FGrad);
-  //T.Grad := nil;
 end;
 
 function Squeeze(T: TTensor): TTensor;

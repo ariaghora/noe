@@ -491,9 +491,27 @@ begin
 end;
 
 function Add(A, B: TVariable): TVariable;
+var
+  ResultName, TrackingID: string;
+  TrackedNodeIdx: longint;
 begin
-  Result := TVariable.Create(A.Data + B.Data, 'ForwardAdd', @BackwardAdd);
-  Result.AddPrev([A, B]);
+  ResultName     := 'ForwardAdd';
+  TrackingID     := ResultName + ';' + IntToStr(A.ID) + ';' + IntToStr(B.ID);
+  TrackedNodeIdx := GlobalNodeTracker.FindByTrackingID(TrackingID);
+
+  if TrackedNodeIdx > -1 then
+  begin
+    Result := GlobalNodeTracker.Items[TrackedNodeIdx];
+    Result.zerograd;
+  end
+  else
+  begin
+    Result := TVariable.Create(A.Data + B.Data, 'ForwardAdd', @BackwardAdd);
+    Result.AddPrev([A, B]);
+
+    { track the non-leaf nodes }
+    GlobalNodeTracker.Add(Result);
+  end;
 end;
 
 function Divide(A, B: TVariable): TVariable;
@@ -527,14 +545,33 @@ begin
 end;
 
 function MatMul(A, B: TVariable): TVariable;
+var
+  ResultName, TrackingID: string;
+  TrackedNodeIdx: longint;
 begin
   Assert(A.Shape[1] = B.Shape[0], MSG_ASSERTION_DIM_MISMATCH);
-  Result := TVariable.Create(noe.Math.MatMul(A.Data, B.Data),
-    'ForwardMatMul', @BackwardMatmul);
-  Result.AddPrev([A, B]);
 
-  { track the non-leaf nodes }
-    //GlobalNodeTracker.Add(self);
+  ResultName     := 'ForwardMatMul';
+  TrackingID     := ResultName + ';' + IntToStr(A.ID) + ';' + IntToStr(B.ID);
+  TrackedNodeIdx := GlobalNodeTracker.FindByTrackingID(TrackingID);
+
+  if TrackedNodeIdx > -1 then
+  begin
+    Result := GlobalNodeTracker.Items[TrackedNodeIdx];
+    Result.Data.Free;
+    Result.Data:=MatMul(A.Data, B.Data);
+  end
+  else
+  begin
+    Result := TVariable.Create(MatMul(A.Data, B.Data),
+      ResultName, @BackwardMatmul);
+    Result.TrackingID := TrackingID;
+    Result.AddPrev([A, B]);
+
+    { track the non-leaf nodes }
+    GlobalNodeTracker.Add(Result);
+  end;
+
 end;
 
 function Negate(A: TVariable): TVariable;
@@ -719,11 +756,23 @@ begin
 end;
 
 procedure BackwardMatmul(arr: TVariableArr; ADy: TTensor);
+var
+  A, B: TTensor;
+  v1: TFloatVector;
 begin
   if arr[0].RequiresGrad then
+  begin
+    //A := MatMul(ADy, arr[1].Data.T);
+    //setLength(v1, arr[1].Data.size);
     arr[0].Grad := arr[0].Grad + MatMul(ADy, arr[1].Data.T);
+    //setlength(A.val, 0);
+  end;
   if arr[1].RequiresGrad then
+  begin
+    //B := MatMul(arr[0].Data.T, ADy);
     arr[1].Grad := arr[1].Grad + MatMul(arr[0].Data.T, ADy);
+    //setlength(B.val, 0);
+  end;
 end;
 
 procedure BackwardCosh(arr: TVariableArr; ADy: TTensor);
