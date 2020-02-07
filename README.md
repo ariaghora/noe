@@ -1,5 +1,5 @@
 <div align="center">
-<img src="assets/noe-txt.png" alt="logo" width="200px"></img>
+<img src="assets/raster/logo-light.png" alt="logo" width="200px"></img>
 </div>
 
 ***
