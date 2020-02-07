@@ -161,7 +161,7 @@ end;
 
 function TSigmoidLayer.Eval(X: TVariable): TVariable;
 begin
-  Result := 1 / 1 + (Exp(-X));
+  Result := 1 / (1 + (Exp(-X)));
 end;
 
 { TLeakyReLULayer }
