@@ -8,16 +8,12 @@
 }
 unit noe;
 
-{$mode objfpc}{$H+}
+{$mode objfpc}{$H+}{$modeSwitch advancedRecords}
 
 interface
 
 uses
   Classes, Math, strutils, SysUtils;
-
-var
-  GLOBAL_NODE_COUNT: integer;
-  GLOBAL_SKIP_GRAD:  boolean;
 
 type
   TIntVector   = array of longint;
@@ -131,7 +127,8 @@ type
     procedure AddPrev(AVariable: TVariable);
     procedure AddPrev(arr: array of TVariable);
     procedure Backpropagate;
-    procedure Free;
+    procedure FreeData;
+    procedure FreeGrad;
     procedure Step(LearningRate: double);
     procedure ZeroGrad;
     property BackwardFunc: TBackwardFunc read FBackwardFunc write FBackwardFunc;
@@ -144,10 +141,16 @@ type
     property RequiresGrad: boolean read FRequiresGrad write FRequiresGrad;
     property Shape: TIntVector read GetShape;
     property Size: longint read GetSize;
-    property Tensor: TTensor read FTensor write FTensor;
 
     { Math helpers }
     function Dot(Other: TVariable): TVariable;
+  end;
+
+  { TNodeTracker }
+
+  TNodeTracker = record
+    Items: TVariableArr;
+    procedure Add(V: TVariable);
   end;
 
 const
@@ -160,6 +163,9 @@ const
 
 var
   NoeConfig: TConfig;
+  GLOBAL_NODE_COUNT: integer;
+  GLOBAL_SKIP_GRAD:  boolean;
+  GlobalNodeTracker: TNodeTracker;
 
 { Operator overloading --------------------------------------------------------}
 operator := (Val: float) M: TTensor;
@@ -247,6 +253,7 @@ function Range(n: longint): TTensor; overload;
 { Computational graph ---------------------------------------------------------}
 function TopologicalSort(T: TVariable): TVariableArr;
 procedure BackwardGraph(const T: TVariable);
+procedure ClearIntermediaryNodes;
 procedure SetRequiresGrad(arr: array of TVariable; val: boolean);
 procedure ZeroGradGraph(const T: TVariable);
 
@@ -430,6 +437,14 @@ begin
   Result := size;
 end;
 
+{ TNodeTracker }
+
+procedure TNodeTracker.Add(V: TVariable);
+begin
+  SetLength(Self.Items, Length(self.Items) + 1);
+  Self.Items[Length(self.Items) - 1] := V;
+end;
+
 { TTensorProxy }
 
 constructor TTensorProxy.Create(var ref: TTensor; targetShape: TIntVector);
@@ -453,6 +468,7 @@ var
   expectedIndex, mappedIndex: TIntVector;
   i: longint;
 begin
+  //Writeln('TTensorProxy.GetValByOffset was called');
   expectedIndex := OffsetToIndex(offset, FTargetShape);
 
   SetLength(mappedIndex, Length(expectedIndex));
@@ -574,7 +590,6 @@ end;
 procedure TTensor.Free;
 begin
   SetLength(self.Val, 0);
-  SetLength(self.FShape, 0);
 end;
 
 function TTensor.GetAt(i: longint): double;
@@ -723,6 +738,9 @@ begin
   begin
     SetLength(self.Prev, Length(self.Prev) + 1);
     self.Prev[Length(self.Prev) - 1] := AVariable;
+
+    { track the non-leaf nodes }
+    GlobalNodeTracker.Add(self);
   end;
 end;
 
@@ -739,10 +757,16 @@ begin
   BackwardGraph(self);
 end;
 
-procedure TVariable.Free;
+procedure TVariable.FreeData;
 begin
   self.Data.Free;
+  FreeAndNil(Data.Val);
+end;
+
+procedure TVariable.FreeGrad;
+begin
   self.Grad.Free;
+  FreeAndNil(Grad.Val);
 end;
 
 procedure TVariable.Step(LearningRate: double);
@@ -768,6 +792,20 @@ begin
   Result := noe.Math.MatMul(self, Other);
 end;
 
+procedure ClearIntermediaryNodes;
+var
+  i: integer;
+begin
+  for i := 0 to length(GlobalNodeTracker.Items) - 1 do
+    if not GlobalNodeTracker.Items[i].IsLeaf then
+    begin
+      GlobalNodeTracker.Items[i].FreeGrad;
+      GlobalNodeTracker.Items[i].FreeData;
+      GlobalNodeTracker.Items[i] := nil;
+    end;
+  SetLength(GlobalNodeTracker.Items, 0);
+end;
+
 procedure SetRequiresGrad(arr: array of TVariable; val: boolean);
 var
   V: TVariable;
@@ -785,6 +823,15 @@ begin
   for i := 0 to length(arr) - 1 do
   begin
     arr[i].ZeroGrad;
+
+    if i < Length(arr) - 1 then
+    begin
+      if not arr[i].IsLeaf then
+      begin;
+        //writeln(arr[i].Name);
+        //arr[i].FreeData;
+      end;
+    end;
   end;
 end;
 
