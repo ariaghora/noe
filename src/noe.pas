@@ -19,7 +19,6 @@ type
   TIntVector   = array of longint;
   TFloatVector = array of double;
 
-  //TTensor      = record;
   TTensorProxy = class;
   TVariable    = class;
 
@@ -132,7 +131,6 @@ type
     procedure Backpropagate;
     procedure FreeData;
     procedure FreeGrad;
-    procedure Step(LearningRate: double);
     procedure ZeroGrad;
     property BackwardFunc: TBackwardFunc read FBackwardFunc write FBackwardFunc;
     property Data: TTensor read FTensor write SetData;
@@ -551,7 +549,6 @@ begin
   for i := 0 to (LShape - LIndex) - 1 do
     ResultingShape[i] := self.Shape[i + LShape - LIndex - 1];
 
-  //Result := TTensor.Create;
   Result.ReshapeInplace(ResultingShape);
 
   ResultLength := 1;
@@ -762,8 +759,6 @@ begin
 
   self.FID := GLOBAL_NODE_COUNT;
   Inc(GLOBAL_NODE_COUNT);
-
-  //WriteLn(self.Name, ' with id ', self.ID, ' created');
 end;
 
 procedure TVariable.AddPrev(AVariable: TVariable);
@@ -794,30 +789,19 @@ end;
 procedure TVariable.FreeData;
 begin
   self.Data.Free;
-  //FreeAndNil(Data.Val);
 end;
 
 procedure TVariable.FreeGrad;
 begin
   self.Grad.Free;
-  //FreeAndNil(Grad.Val);
-end;
-
-procedure TVariable.Step(LearningRate: double);
-begin
-  if Self.RequiresGrad then
-    self.Data := self.Data - LearningRate * self.Grad;
 end;
 
 procedure TVariable.ZeroGrad;
 var
   i: longint;
 begin
-  //if not Assigned(self.Grad) then
-  //  self.Grad := Zeros(self.Shape)
-  //else
-    for i := 0 to self.Grad.Size - 1 do
-      self.Grad.Val[i] := 0;
+  for i := 0 to self.Grad.Size - 1 do
+    self.Grad.Val[i] := 0;
 end;
 
 function TVariable.Dot(Other: TVariable): TVariable;
@@ -855,23 +839,11 @@ var
 begin
   arr := TopologicalSort(T);
   for i := 0 to length(arr) - 1 do
-  begin
     arr[i].ZeroGrad;
-
-    if i < Length(arr) - 1 then
-    begin
-      if not arr[i].IsLeaf then
-      begin;
-        //writeln(arr[i].Name);
-        //arr[i].FreeData;
-      end;
-    end;
-  end;
 end;
 
 function CopyTensor(A: TTensor): TTensor;
 begin
-  //Result     := TTensor.Create;
   Result.val := copy(A.val);
   Result.ReshapeInplace(A.Shape);
 end;
@@ -920,7 +892,6 @@ begin
   end;
 
   { actual data handle }
-  //Result := TTensor.Create;
   Result.ReshapeInplace([RowCount, ColCount]);
   SetLength(Result.Val, RowCount * ColCount);
 
@@ -944,7 +915,6 @@ end;
 
 function CreateEmptyTensor(Shape: array of longint): TTensor;
 begin
-  //Result := TTensor.Create;
   SetLength(Result.Val, ShapeToSize(Shape));
   Result.ReshapeInplace(shape);
 end;
@@ -976,7 +946,6 @@ begin
   size := ShapeToSize(Shape);
   Assert(ShapeToSize(Shape) = size,
     'The values cannot be reshaped into the target shape');
-  //Result := TTensor.Create;
   SetLength(Result.Val, size);
   for i := 0 to size - 1 do
     Result.Val[i] := Vals[i];
@@ -998,7 +967,6 @@ var
   i: double;
   offset: longint;
 begin
-  //Result := TTensor.Create;
   Result.ReshapeInplace([Ceil((stop - start) / step)]);
   SetLength(Result.Val, Ceil((stop - start) / step));
 
@@ -1117,7 +1085,6 @@ var
   i, j, offset: longint;
 begin
   Assert(Length(T.Shape) = 2, MSG_ASSERTION_RANK_2_TENSORS_ONLY);
-  //Result := TTensor.Create;
   Result.ReshapeInplace([Height, Width]);
 
   SetLength(Result.Val, Height * Width);
