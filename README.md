@@ -35,8 +35,9 @@ yVar := y.ToVariable();
 ```
 
 ## High-level neural network API
-With autograd, it is possible to make of neural networks in various degree of abstraction. You can control the flow of of the network, even design a custom fancy loss function. For the high level API, there are several implementation of neural network layers, optimizer, along with TModel class helper, so you can prototype your network quickly.
+With autograd, it is possible to make of neural networks in various degree of abstraction. You can control the flow of of the network, even design a custom fancy loss function. For the high level API, there are several implementation of neural network layers, optimizers, along with TModel class helper, so you can prototype your network quickly.
 ```delphi
+{ Initialize the model. }
 NNModel := TModel.Create([
   TDenseLayer.Create(NInputNeuron, 32, atReLU),
   TDropoutLayer.Create(0.2),
@@ -46,6 +47,7 @@ NNModel := TModel.Create([
   TSoftMaxLayer.Create(1)
 ]);
 
+{ Initialize the optimizer. There are several other optimizer too. }
 optimizer := TAdamOptimizer.Create;
 optimizer.LearningRate := 0.003;
 for i := 0 to MAX_EPOCH - 1 do
