@@ -106,7 +106,7 @@ begin
   { Pick one sample from the test set. Let's try to visualize and predict the
     label }
   SampleIdx   := 100;
-  ImageSample := GetRow(FeatsTest, SampleIdx);
+  ImageSample := GetRow(FeatsTest, SampleIdx, True);
   ypredTest   := NNModel.Eval(ImageSample.ToVariable(False));
 
   { transform the probability into the discrete label }
