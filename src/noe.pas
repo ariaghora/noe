@@ -1347,7 +1347,6 @@ end;
 initialization
   NoeConfig.debug := True;
 
-  NoeConfig.backend      := 'BLAS';
   NoeConfig.BLASFileName := BLAS_FILENAME;
   NoeConfig.useBLAS      := True;
 

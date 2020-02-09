@@ -53,7 +53,7 @@ function MultiplyF(v1, v2: double): double;
 function Add(A, B: TTensor): TTensor;
 function ArgMax(M: TTensor): TTensor;
 function ArgMax(M: TTensor; axis: byte): TTensor;  overload;
-function Convolve2D(A, w: TTensor): TTensor;
+//function Convolve2D(A, w: TTensor): TTensor;
 function Cos(A: TTensor): TTensor;
 function Cosh(A: TTensor): TTensor;
 function DegToRad(A: TTensor): TTensor;
@@ -174,10 +174,10 @@ begin
   Result := ApplyBfunc(A, B, @AddF);
 end;
 
-function Convolve2D(A, w: TTensor): TTensor;
-begin
-  raise ENotImplemented.Create('Not implemented');
-end;
+//function Convolve2D(A, w: TTensor): TTensor;
+//begin
+//  raise ENotImplemented.Create('Not implemented');
+//end;
 
 function Subtract(A, B: TTensor): TTensor;
 begin
@@ -280,13 +280,13 @@ begin
   Assert(axis <= 1, MSG_ASSERTION_INVALID_AXIS);
   if axis = 0 then
   begin
-    if noe.NoeConfig.useBLAS then
+    if IsBlasfuncAvailable(blas_dgemm) then
       Result := MeanCol_BLAS(M)
     else
       Result := MeanCol_Native(M);
   end
   else
-  if noe.NoeConfig.useBLAS then
+  if IsBlasfuncAvailable(blas_dgemm) then
     Result := MeanRow_BLAS(M)
   else
     Result := MeanRow_Native(M);
@@ -317,13 +317,13 @@ begin
   Assert(axis <= 1, MSG_ASSERTION_INVALID_AXIS);
   if axis = 0 then
   begin
-    if noe.NoeConfig.useBLAS then
+    if IsBlasfuncAvailable(blas_daxpy) then
       Result := SumCol_BLAS(M)
     else
       Result := SumCol_Native(M);
   end
   else
-  if noe.NoeConfig.useBLAS then
+  if IsBlasfuncAvailable(blas_daxpy) then
     Result := SumRow_BLAS(M)
   else
     Result := SumRow_Native(M);
@@ -720,9 +720,6 @@ begin
 end;
 
 procedure BackwardMatmul(arr: TVariableArr; ADy: TTensor);
-var
-  A, B: TTensor;
-  v1: TFloatVector;
 begin
   if arr[0].RequiresGrad then
     arr[0].Grad := arr[0].Grad + MatMul(ADy, arr[1].Data.T);
@@ -1130,7 +1127,7 @@ end;
 
 function IsBlasfuncAvailable(Func: Pointer): boolean;
 begin
-  Result := NoeConfig.useBLAS and (Func <> nil);
+  Result := not(Func = nil);
 end;
 
 

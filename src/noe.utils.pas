@@ -146,8 +146,6 @@ end;
 
 procedure VisualizeMatrix(T: TTensor);
 var
-  s: string = '';
-  c: char;
   i, j: integer;
   maxval: double;
 begin
