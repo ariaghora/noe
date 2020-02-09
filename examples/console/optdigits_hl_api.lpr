@@ -27,6 +27,7 @@ program optdigits_hl_api;
 {$mode objfpc}{$H+}
 
 uses
+  math,
   noe,
   noe.Math,
   noe.neuralnet,
@@ -34,7 +35,7 @@ uses
   noe.utils;
 
 const
-  MAX_EPOCH = 150;
+  MAX_EPOCH = 100;
 
 var
   i, M, NInputNeuron, NOutputNeuron, PredictedLabel, ActualLabel, SampleIdx: longint;
@@ -45,6 +46,8 @@ var
   optimizer: TAdamOptimizer;
   TrainingAcc, TestingAcc: double;
 
+  foo : TTensor;
+
 begin
   RandSeed := 1;
 
@@ -53,7 +56,7 @@ begin
   DatasetTrain := ReadCSV('../datasets/optdigits-train.csv');
   M := DatasetTrain.Shape[0];
 
-  Xtrain := GetRange(DatasetTrain, 0, 0, M, 64) / 16;
+  Xtrain := GetRange(DatasetTrain, 0, 0, M, 64);
   ytrain := Squeeze(GetColumn(DatasetTrain, 64));
   LabelEncoder := TOneHotEncoder.Create;
   ytrain := LabelEncoder.Encode(ytrain.Data);
@@ -63,13 +66,13 @@ begin
   NOutputNeuron := ytrain.Shape[1];
 
   NNModel := TModel.Create([
-    TDenseLayer.Create(NInputNeuron, 32),
-    TLeakyReLULayer.Create(0.2),
-    TDenseLayer.Create(32, 16),
-    TLeakyReLULayer.Create(0.2),
-    TDenseLayer.Create(16, NOutputNeuron),
+    TDenseLayer.Create(NInputNeuron, 128),
+    TLeakyReLULayer.Create(0.3),
+    TDenseLayer.Create(128, 64),
+    TLeakyReLULayer.Create(0.3),
+    TDenseLayer.Create(64, NOutputNeuron),
     TSoftMaxLayer.Create(1)
-    ]);
+  ]);
 
   { Training phase ------------------------------------------------------------}
   WriteLn('Press enter to start training in ', MAX_EPOCH, ' iterations.');
