@@ -327,6 +327,9 @@ operator := (Val: double)V: TVariable;
 begin
   V := TVariable.Create(Val);
   V.RequiresGrad := False;
+
+  { all constants are given id 1 }
+  V.ID := -1;
 end;
 
 operator +(A, B: TVariable)C: TVariable;
@@ -722,6 +725,7 @@ var
   T: TTensor;
 begin
   self.Create(T, '', nil, True);
+  self.FID := -2;
 end;
 
 constructor TVariable.Create(AName: string);
@@ -729,6 +733,7 @@ var
   T: TTensor;
 begin
   self.Create(T, AName, nil, True);
+  self.FID := -2;
 end;
 
 constructor TVariable.Create(ATensor: TTensor);
@@ -739,6 +744,10 @@ end;
 constructor TVariable.Create(ATensor: TTensor; AName: string);
 begin
   self.Create(ATensor, AName, nil, True);
+  if ATensor.Size = 1 then
+    self.FID := -1
+  else
+    self.FID := -2;
 end;
 
 constructor TVariable.Create(ATensor: TTensor; AName: string;
@@ -1178,7 +1187,7 @@ begin
   Result   := False;
   revA     := ReverseIntArr(A.Shape);
   revB     := ReverseIntArr(B.Shape);
-  for i := 0 to Min(Length(A.Shape), Length(B.Shape)) - 1 do
+  for i := 0 to Math.Min(Length(A.Shape), Length(B.Shape)) - 1 do
     if (revA[i] <> revB[i]) then
       if ((revA[i] <> 1) and (revB[i] <> 1)) then
         Inc(violated);
