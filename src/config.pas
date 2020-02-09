@@ -9,4 +9,3 @@ BLAS_FILENAME = 'libopenblas.dll';
     BLAS_FILENAME = 'libopenblas.dylib';
   {$ENDIF}
 {$ENDIF}
-//BLAS_BACKEND = 'OPENBLAS';
