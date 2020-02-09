@@ -22,12 +22,14 @@ type
   TVariableList = specialize TFPGList<TVariable>;
   TLayerList    = specialize TFPGList<TLayer>;
 
+  TBatchNormLayer = class;
   TDenseLayer     = class;
   TDropoutLayer   = class;
   TLeakyReLULayer = class;
   TReLULayer      = class;
   TSigmoidLayer   = class;
   TSoftMaxLayer   = class;
+  TTanhLayer      = class;
 
   { TLayer Base class }
 
@@ -37,6 +39,18 @@ type
   public
     function Eval(X: TVariable): TVariable; virtual; abstract;
     function GetParams: TVariableArr;
+  end;
+
+  { TBatchNormLayer }
+
+  TBatchNormLayer = class(TLayer)
+  private
+    FGamma, FBeta: TVariable;
+  public
+    constructor Create;
+    function Eval(X: TVariable): TVariable; override;
+    property Gamma: TVariable read FGamma write FGamma;
+    property Beta: TVariable read FBeta write FBeta;
   end;
 
   { TDenseLayer, or fully-connected layer }
@@ -93,6 +107,13 @@ type
     FAxis: longint;
   public
     constructor Create(AAxis: longint);
+    function Eval(X: TVariable): TVariable; override;
+  end;
+
+  { TTanhLayer }
+
+  TTanhLayer = class(TLayer)
+  public
     function Eval(X: TVariable): TVariable; override;
   end;
 
@@ -155,6 +176,36 @@ begin
     if predicted.GetAt(i) = actual.GetAt(i) then
       tot := tot + 1;
   Result  := tot / predicted.Size;
+end;
+
+{ TBatchNormLayer }
+
+constructor TBatchNormLayer.Create;
+begin
+  self.Beta  := 0;
+  self.Gamma := 1;
+
+  self.Beta.Data.ReshapeInplace([1, 1]);
+  self.Gamma.Data.ReshapeInplace([1, 1]);
+
+  self.Beta.RequiresGrad  := True;
+  self.Gamma.RequiresGrad := True;
+end;
+
+function TBatchNormLayer.Eval(X: TVariable): TVariable;
+var
+  muB, varB: TVariable;
+begin
+  muB    := Mean(X, 0);
+  varB   := Sum(Sqr(X - muB), 0) / X.Shape[0];
+  Result := self.Gamma * ((X - muB) / Sqrt(varB + 1e-8)) + self.Beta;
+end;
+
+{ TTanhLayer }
+
+function TTanhLayer.Eval(X: TVariable): TVariable;
+begin
+  Result := Tanh(X);
 end;
 
 { TSigmoidLayer }
