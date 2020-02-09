@@ -64,6 +64,7 @@ function Log10(A: TTensor): TTensor;
 function Log2(A: TTensor): TTensor;
 function Log(A: TTensor): TTensor;
 function MatMul(A, B: TTensor): TTensor;
+function Min(M: TTensor): TTensor;
 function Max(M: TTensor): TTensor;
 function Max(M: TTensor; axis: byte): TTensor;
 function Mean(M: TTensor): TTensor;
@@ -233,6 +234,13 @@ begin
     for i := 0 to M.Shape[0] - 1 do
       Result.Val[i] := ArgMax(GetRow(M, i).Val);
   end;
+end;
+
+function Min(M: TTensor): TTensor;
+begin
+  SetLength(Result.Val, 1);
+  Result.Val[0] := MinValue(M.Val);
+  Result.ReshapeInplace([1]);
 end;
 
 function Max(M: TTensor): TTensor;
@@ -513,7 +521,6 @@ end;
 function Add(A, B: TVariable): TVariable;
 begin
   CreateOrUpdateOpNode(Result, 'ForwardAdd', [A, B], (A.Data + B.Data), @BackwardAdd);
-
 end;
 
 function Divide(A, B: TVariable): TVariable;
@@ -646,9 +653,9 @@ function SoftMax(A: TVariable; axis: byte): TVariable;
 var
   X, Y: TVariable;
 begin
-  X      := A - Max(A, axis);
-  Y      := Exp(X);
-  Result := Y / sum(Y, axis);
+  //X      := ;
+  //Y      := ;
+  Result := Exp((A - Max(A, axis))) / sum(Exp((A - Max(A, axis))), axis);
 end;
 
 function ReduceTo(Target, Other: TTensor): TTensor;
