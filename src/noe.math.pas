@@ -1127,7 +1127,7 @@ end;
 
 function IsBlasfuncAvailable(Func: Pointer): boolean;
 begin
-  Result := not(Func = nil);
+  Result := (NoeConfig.useBLAS) and (Func <> nil);
 end;
 
 
