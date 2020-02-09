@@ -238,7 +238,7 @@ begin
 
   { Xavier weight initialization }
   W      := TVariable.Create(RandomTensorNormal([InSize, OutSize]) *
-    1 / (InSize ** 0.5));
+    ((2 / (InSize + OutSize)) ** 0.5));
   b      := TVariable.Create(CreateTensor([1, OutSize], 0));
   b.Name := 'Bias' + IntToStr(b.ID);
   SetRequiresGrad([W, b], True);
