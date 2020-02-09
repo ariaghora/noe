@@ -32,8 +32,8 @@ type
     Val:    TFloatVector;
     function Dot(Other: TTensor): TTensor;
     function DumpCSV(Sep: string = ','): string;
-    function GetAt(i: longint): double; overload;
-    function GetAt(i, j: longint): double; overload;
+    function GetAt(i: longint): double;
+    function GetAt(i, j: longint): double;
     function GetAt(Index: array of longint): TTensor;
     function GetShape: TIntVector;
     function Reshape(ShapeVals: array of longint): TTensor;
@@ -49,6 +49,10 @@ type
     property NDims: longint read GetNDims;
     property Shape: TIntVector read FShape write FShape;
     property Size: longint read GetSize;
+  end;
+
+  TTensorHelper = record helper for TTensor
+    const Default: TTensor = (FShape:nil; val: nil);
   end;
 
   PTensor    = ^TTensor;
@@ -184,8 +188,8 @@ operator / (A, B: TTensor) C: TTensor;
 operator / (A, B: TVariable) C: TVariable;
 operator * (A, B: TTensor) C: TTensor;
 operator * (A, B: TVariable) C: TVariable;
-operator ** (A: TTensor; expo: double) B: TTensor; inline;
-operator ** (A, B: TTensor) C: TTensor; inline;
+operator ** (A: TTensor; expo: double) B: TTensor;
+operator ** (A, B: TTensor) C: TTensor;
 operator in (T: TVariable; arr: array of TVariable) b: boolean;
 operator explicit (Val: TVariable) M: TTensor;
 operator explicit (Val: TTensor) M: TVariable;
@@ -211,9 +215,9 @@ function Squeeze(T: TTensor): TTensor;
 { Helpers API for matrix (rank-2 tensor) --------------------------------------}
 function GetRange(T: TTensor; RowIndex, ColumnIndex, Height, Width: longint): TTensor;
 function GetRange(T: TVariable; RowIndex, ColumnIndex, Height, Width: longint): TTensor;
-function GetColumn(T: TTensor; ColumnIndex: longint): TTensor;
+function GetColumn(T: TTensor; ColumnIndex: longint; KeepDims: boolean = false): TTensor;
 function GetColumnRange(T: TTensor; ColumnIndex, Amount: longint): TTensor;
-function GetRow(T: TTensor; RowIndex: longint): TTensor;
+function GetRow(T: TTensor; RowIndex: longint; KeepDims: boolean = false): TTensor;
 function GetRowRange(T: TTensor; RowIndex, Amount: longint): TTensor;
 function VFlip(T: TTensor): TTensor;
 
@@ -233,12 +237,12 @@ function TileColumn(A: TTensor; n: longint): TTensor;
 function TileRow(A: TTensor; n: longint): TTensor;
 
 procedure PrintTensor(T: TTensor);
+procedure PrintTensor(V: TVariable);
 procedure IterateTensor(T: TTensor; Callback: TCallback);
 
 { Tensor creation ------------------------------------------------------------ }
 function CopyTensor(A: TTensor): TTensor;
 function CreateEmptyTensor(Shape: array of longint): TTensor;
-function CreateTensor(Shape: array of longint): TTensor; overload;
 function CreateTensor(Shape: array of longint; Val: float): TTensor; overload;
 function CreateTensor(Shape: array of longint; Vals: array of float): TTensor; overload;
 function Ones(Shape: array of longint): TTensor;
@@ -250,8 +254,8 @@ function Zeros(Shape: array of longint): TTensor;
 
 { Generates an array of float within range of (0, n] }
 function Range(start, stop, step: double): TTensor;
-function Range(start, stop: double): TTensor; overload;
-function Range(n: longint): TTensor; overload;
+function Range(start, stop: double): TTensor;
+function Range(n: longint): TTensor;
 
 { Computational graph ---------------------------------------------------------}
 function TopologicalSort(T: TVariable): TVariableArr;
@@ -915,17 +919,8 @@ end;
 
 function CreateEmptyTensor(Shape: array of longint): TTensor;
 begin
+  Result := TTensor.Default;
   SetLength(Result.Val, ShapeToSize(Shape));
-  Result.ReshapeInplace(shape);
-end;
-
-function CreateTensor(Shape: array of longint): TTensor;
-var
-  i: longint;
-begin
-  Result := CreateEmptyTensor(Shape);
-  for i := 0 to Result.Size - 1 do
-    Result.Val[i] := Random;
   Result.ReshapeInplace(shape);
 end;
 
@@ -936,7 +931,6 @@ begin
   Result := CreateEmptyTensor(Shape);
   for i := 0 to Result.Size - 1 do
     Result.Val[i] := Val;
-  Result.ReshapeInplace(shape);
 end;
 
 function CreateTensor(Shape: array of longint; Vals: array of float): TTensor;
@@ -946,7 +940,7 @@ begin
   size := ShapeToSize(Shape);
   Assert(ShapeToSize(Shape) = size,
     'The values cannot be reshaped into the target shape');
-  SetLength(Result.Val, size);
+  Result := CreateEmptyTensor(shape);
   for i := 0 to size - 1 do
     Result.Val[i] := Vals[i];
   Result.ReshapeInplace(Shape);
@@ -1074,7 +1068,7 @@ var
   i, j: longint;
 begin
   Assert(T.NDims = 2, MSG_ASSERTION_RANK_2_TENSORS_ONLY);
-  Result := CreateTensor(T.Shape);
+  Result := CreateEmptyTensor(T.Shape);
   for i := 0 to T.Shape[0] - 1 do
     for j := 0 to T.Shape[1] - 1 do
       Result.SetAt(i, j, T.GetAt(T.Shape[0] - i - 1, j));
@@ -1103,9 +1097,13 @@ begin
   Result := GetRange(T.Data, RowIndex, ColumnIndex, Height, Width);
 end;
 
-function GetColumn(T: TTensor; ColumnIndex: longint): TTensor;
+function GetColumn(T: TTensor; ColumnIndex: longint; KeepDims: boolean
+  ): TTensor;
 begin
-  Result := GetRange(T, 0, ColumnIndex, T.Shape[0], 1);
+  if not KeepDims then
+    Exit(Squeeze(GetRange(T, 0, ColumnIndex, T.Shape[0], 1)))
+  else
+    Exit(GetRange(T, 0, ColumnIndex, T.Shape[0], 1));
 end;
 
 function GetColumnRange(T: TTensor; ColumnIndex, Amount: longint): TTensor;
@@ -1114,9 +1112,17 @@ begin
   Result := GetRange(T, 0, ColumnIndex, T.Shape[0], Amount);
 end;
 
-function GetRow(T: TTensor; RowIndex: longint): TTensor;
+function GetRow(T: TTensor; RowIndex: longint; KeepDims: boolean): TTensor;
 begin
-  Result := GetRange(T, RowIndex, 0, 1, T.Shape[1]);
+  if not KeepDims then
+    Exit(Squeeze(GetRange(T, RowIndex, 0, 1, T.Shape[1])))
+  else
+    Exit(GetRange(T, RowIndex, 0, 1, T.Shape[1]));
+end;
+
+procedure PrintTensor(V: TVariable);
+begin
+  PrintTensor(V.Data);
 end;
 
 procedure IterateTensor(T: TTensor; Callback: TCallback);
@@ -1257,6 +1263,7 @@ var
   begin
     NewlineNum := 0;
 
+    ithDimChanged := n;
     for i := Length(res) - 1 downto 0 do
       if dimTracker[i] <> res[i] then
       begin
@@ -1266,12 +1273,12 @@ var
         ithDimChanged := i; // in which dimension there is a change?
       end;
 
-    if ithDimChanged < n - 1 then
+    if (ithDimChanged < n - 1) then
       outstr := outstr + (DupeString(']', NewlineNum));
 
     outstr := outstr + (DupeString(sLineBreak, NewlineNum));
 
-    if ithDimChanged = n - 1 then
+    if (ithDimChanged = n - 1) then
       outstr := outstr + (', ');
 
     if ithDimChanged < n - 1 then
