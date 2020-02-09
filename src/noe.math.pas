@@ -16,7 +16,7 @@
 
 unit noe.Math;
 
-{$mode objfpc}{$H+}{$INLINE ON}
+{$mode objfpc}{$H+}//{$INLINE ON}
 
 interface
 
@@ -32,8 +32,8 @@ type
   TBFunc = function(v1, v2: double): double;
 
 { Helper to apply a function on each tensor's element }
-function ApplyUfunc(A: TTensor; Func: TUFunc): TTensor; inline;
-function ApplyBfunc(A, B: TTensor; Func: TBFunc): TTensor; inline;
+function ApplyUfunc(A: TTensor; Func: TUFunc): TTensor;
+function ApplyBfunc(A, B: TTensor; Func: TBFunc): TTensor;
 function IsBlasfuncAvailable(Func: Pointer): boolean;
 
 { Some of functions belong to system unit are in different format. Hence, they
@@ -43,32 +43,32 @@ function Sin_F(x: double): double;
 function Cos_F(x: double): double;
 function Exp_F(x: double): double;
 function Ln_F(x: double): double;
-function AddF(v1, v2: double): double; inline;
-function SubtractF(v1, v2: double): double; inline;
-function DivideF(v1, v2: double): double; inline;
-function MultiplyF(v1, v2: double): double; inline;
+function AddF(v1, v2: double): double;
+function SubtractF(v1, v2: double): double;
+function DivideF(v1, v2: double): double;
+function MultiplyF(v1, v2: double): double;
 
 { TTensor math ----------------------------------------------------------------}
 
-function Add(A, B: TTensor): TTensor; inline;
-function ArgMax(M: TTensor): TTensor; inline; overload;
-function ArgMax(M: TTensor; axis: byte): TTensor; inline; overload;
-function Convolve2D(A, w: TTensor): TTensor; inline;
+function Add(A, B: TTensor): TTensor;
+function ArgMax(M: TTensor): TTensor;
+function ArgMax(M: TTensor; axis: byte): TTensor;  overload;
+function Convolve2D(A, w: TTensor): TTensor;
 function Cos(A: TTensor): TTensor;
 function Cosh(A: TTensor): TTensor;
 function DegToRad(A: TTensor): TTensor;
-function Divide(A, B: TTensor): TTensor; inline;
+function Divide(A, B: TTensor): TTensor;
 function Exp(A: TTensor): TTensor;
-function LeakyReLU(A: TTensor; v: double): TTensor; overload;
+function LeakyReLU(A: TTensor; v: double): TTensor;
 function Log10(A: TTensor): TTensor;
 function Log2(A: TTensor): TTensor;
 function Log(A: TTensor): TTensor;
-function MatMul(A, B: TTensor): TTensor; inline;
-function Max(M: TTensor): TTensor; inline;
-function Max(M: TTensor; axis: byte): TTensor; inline; overload;
-function Mean(M: TTensor): TTensor; inline;
-function Mean(M: TTensor; axis: byte): TTensor; inline; overload;
-function Multiply(A, B: TTensor): TTensor; inline;
+function MatMul(A, B: TTensor): TTensor;
+function Max(M: TTensor): TTensor;
+function Max(M: TTensor; axis: byte): TTensor;
+function Mean(M: TTensor): TTensor;
+function Mean(M: TTensor; axis: byte): TTensor;
+function Multiply(A, B: TTensor): TTensor;
 function Power(A: TTensor; exponent: double): TTensor; overload;
 function Power(A, B: TTensor): TTensor; overload;
 function RadToDeg(A: TTensor): TTensor;
@@ -76,10 +76,10 @@ function ReLU(T: TTensor): TTensor;
 function Sin(A: TTensor): TTensor;
 function Sigmoid(A: TTensor): TTensor;
 function Sinh(A: TTensor): TTensor;
-function SoftMax(A: TTensor; axis: byte): TTensor; inline;
-function Subtract(A, B: TTensor): TTensor; inline;
-function Sum(M: TTensor): TTensor; inline;
-function Sum(M: TTensor; axis: byte): TTensor; inline; overload;
+function SoftMax(A: TTensor; axis: byte): TTensor;
+function Subtract(A, B: TTensor): TTensor;
+function Sum(M: TTensor): TTensor;
+function Sum(M: TTensor; axis: byte): TTensor;  overload;
 function Tan(A: TTensor): TTensor;
 function Tanh(A: TTensor): TTensor;
 function Transpose(T: TTensor; dims: array of longint): TTensor;
@@ -1062,7 +1062,10 @@ begin
     { If either one is a scalar, i.e., A.Size=1 or B.Size=1 }
     if (B.Size = 1) then
     begin
-      Result := CreateTensor(A.Shape);
+      //Writeln('tensor-scalar broadcasting');
+      Result := CreateEmptyTensor(A.Shape);
+      //SetLength(Result.Val, ShapeToSize(A.Shape));
+      //Result.ReshapeInplace(A.Shape);
       for i := 0 to Length(A.Val) - 1 do
         Result.Val[i] := Func(A.Val[i], B.Val[0]);
       exit;
@@ -1070,7 +1073,10 @@ begin
 
     if (A.Size = 1) then
     begin
-      Result := CreateTensor(B.Shape);
+      //Writeln('scalar-tensor broadcasting');
+      Result := CreateEmptyTensor(B.Shape);
+      //SetLength(Result.Val, ShapeToSize(B.Shape));
+      //Result.ReshapeInplace(B.Shape);
       for i := 0 to Length(B.Val) - 1 do
         Result.Val[i] := Func(A.Val[0], B.Val[i]);
       exit;
