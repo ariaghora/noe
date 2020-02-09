@@ -12,7 +12,7 @@ unit noe.plot.gnuplot;
 interface
 
 uses
-  Classes, SysUtils, noe;
+  Classes, noe, SysUtils;
 
 var
   { Hold global count of created plots }
@@ -68,6 +68,7 @@ type
 
 { Initialize plotting functionality by passing gnuplot executable path }
 procedure GNUPlotInit(GNUplotPath: string);
+procedure ImageShow(img: TTensor; title: string = '');
 
 
 implementation
@@ -102,12 +103,30 @@ end;
 
 procedure GNUPlotInit(GNUplotPath: string);
 begin
-  _GNUPlotPath := GNUplotPath;
+  _GNUPlotPath     := GNUplotPath;
   _GNUPlotTerminal := 'qt';
   //if FileExists(GNUplotPath) then
   _GNUPlotInitialized := True;
   //else
   //  WriteLn('GNU Plot executable is not found.');
+end;
+
+procedure ImageShow(img: TTensor; title: string);
+var
+  fig: TFigure;
+  plot: TPlot;
+begin
+  Assert(img.NDims = 2, 'Currently only greyscale images are supported (NDims=2).');
+  fig := TFigure.Create;
+  fig.Title := title;
+  fig.Palette := 'grey';
+
+  plot := TPlot.Create;
+  plot.SetDataPoints(VFlip(img));
+  plot.PlotType := ptImage;
+
+  fig.AddPlot(plot);
+  fig.Show;
 end;
 
 constructor TPlot.Create;
@@ -118,7 +137,7 @@ begin
   FileName := Format('_DTPLOT_TMP_%d.tmp', [GlobalPlotCount]);
 
   { default style (for overriding) }
-  PlotStyle.LineType := 1;
+  PlotStyle.LineType  := 1;
   PlotStyle.LineColor := '#000000';
   PlotStyle.LineWidth := 2;
   PlotStyle.PointType := 7;
@@ -141,11 +160,11 @@ var
   s, style, PlotTypeStr, Modifier: string;
 begin
   case PlotType of
-    ptLines: PlotTypeStr := 'lines';
-    ptPoints: PlotTypeStr := 'points';
+    ptLines: PlotTypeStr     := 'lines';
+    ptPoints: PlotTypeStr    := 'points';
     ptHistogram: PlotTypeStr := 'histogram';
-    ptBoxes: PlotTypeStr := 'boxes';
-    ptImage: PlotTypeStr := 'image';
+    ptBoxes: PlotTypeStr     := 'boxes';
+    ptImage: PlotTypeStr     := 'image';
   end;
 
   if PlotType = ptImage then
@@ -154,11 +173,9 @@ begin
   if not OverrideDefaultStyle then
     style := ''
   else
-  begin
     style := Format(' linetype %d linecolor ''%s'' linewidth %d pointtype %d pointsize %d',
       [PlotStyle.LineType, PlotStyle.LineColor, PlotStyle.LineWidth,
       PlotStyle.PointType, PlotStyle.PointSize]);
-  end;
   s := Format('''%s'' %s title ''%s'' with %s%s',
     [FileName, Modifier, Title, PlotTypeStr, style]);
   Result := s;
@@ -168,7 +185,7 @@ procedure TPlot.SetDataPoints(x: TTensor);
 var
   x_: TTensor;
 begin
-  x_ := CopyTensor(x);
+  x_ := x;
 
   if self.PlotType <> ptImage then
     x_.Reshape([x_.Shape[0], 1]);
@@ -195,7 +212,7 @@ end;
 constructor TFigure.Create;
 begin
   self.PlotList := TList.Create;
-  self.Palette := 'rgbformulae 7,5,15';
+  self.Palette  := 'rgbformulae 7,5,15';
 end;
 
 function TFigure.GenerateScript: string;
@@ -219,7 +236,7 @@ begin
     if i < PlotList.Count - 1 then
       s := s + ',';
   end;
-  s := s + ';';
+  s      := s + ';';
   script := Format(s, [_GNUPlotTerminal, Title]);
   Result := script;
 end;
@@ -238,20 +255,18 @@ begin
     TPlot(PlotList.Items[i]).WriteDataStringTableToFile;
 
   if IsDTPlotReady then
-  begin
     ExecuteProcess(Utf8ToAnsi(Format('%s --persist -e "%s" ',
       [_GNUPlotPath, self.GenerateScript])),
       '', []);
 
-  end;
-
   { do cleanup (temp files removal) }
-  //for i := 0 to PlotList.Count - 1 do
-  //  TPlot(PlotList.Items[i]).RemoveDataStringTableFile;
+  for i := 0 to PlotList.Count - 1 do
+    TPlot(PlotList.Items[i]).RemoveDataStringTableFile;
 
 end;
 
 initialization
+  GNUPlotInit('gnuplot');
   GlobalPlotCount := 0;
 
 end.
