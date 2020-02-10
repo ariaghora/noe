@@ -135,6 +135,11 @@ function BinaryCrossEntropyLoss(ypred, ytrue: TVariable): TVariable;
 function CrossEntropyLoss(ypred, ytrue: TVariable): TVariable;
 function L2Regularization(Model: TModel; Lambda: double = 0.001): TVariable;
 
+{ Utilities }
+function Im2Col(img: TTensor;
+  Channels, Height, Width, FilterH, FilterW, PaddingHeight, PaddingWidth,
+  StrideHeight, StrideWidth: longint): TTensor;
+
 
 implementation
 
@@ -163,6 +168,52 @@ begin
     if not param.Name.StartsWith('Bias') then
       Result := Result + Sum(param * param);
   Result     := Lambda * Result;
+end;
+
+function Im2ColGetPixel(img: TTensor;
+  Height, Width, channels, row, col, channel, padH, padW: longint): double;
+var
+  r, c: longint;
+begin
+  r := row - padH;
+  c := col - padW;
+
+  if ((r < 0) or (c < 0) or (r >= Height) or (c >= Width)) then
+    Exit(0);
+  Exit(img.Val[c + Width * (r + Height * channel)]);
+end;
+
+function Im2Col(img: TTensor;
+  Channels, Height, Width, FilterH, FilterW, PaddingHeight, PaddingWidth,
+  StrideHeight, StrideWidth: longint): TTensor;
+var
+  ConvOutHeight, ConvOutWidth: longint;
+  ChannelsCol, c, h, w, wOffset, hOffset, cIm: longint;
+  ImRow, ImCol, colIdx: longint;
+begin
+  ConvOutHeight := (Height + 2 * PaddingHeight - FilterH) div StrideHeight + 1;
+  ConvOutWidth  := (Width + 2 * PaddingWidth - FilterW) div StrideWidth + 1;
+  ChannelsCol   := Channels * FilterH * FilterW;
+
+  SetLength(Result.Val, Channels * FilterH * FilterW * ConvOutHeight * ConvOutWidth);
+  Result.ReshapeInplace([Channels * FilterH * FilterW, ConvOutHeight * ConvOutWidth]);
+  for c := 0 to ChannelsCol - 1 do
+  begin
+    wOffset := c mod FilterW;
+    hOffset := (c div FilterW) mod FilterH;
+    cIm     := c div FilterH div FilterW;
+    for h := 0 to ConvOutHeight - 1 do
+      for w := 0 to ConvOutWidth - 1 do
+      begin
+        ImRow  := hOffset + h * StrideHeight;
+        ImCol  := wOffset + w * StrideWidth;
+        colIdx := (c * ConvOutHeight + h) * ConvOutWidth + w;
+
+        Result.Val[colIdx] := Im2ColGetPixel(img, Height, Width,
+          Channels, ImRow, ImCol, cIm, PaddingHeight, PaddingWidth);
+      end;
+  end;
+
 end;
 
 function AccuracyScore(predicted, actual: TTensor): double;
