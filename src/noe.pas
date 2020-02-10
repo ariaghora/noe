@@ -26,6 +26,7 @@ type
   TTensor = record
   private
     FShape: array of longint;
+    FStrides: array of longint;
     function GetNDims: longint;
     function GetSize: longint;
   public
@@ -49,10 +50,11 @@ type
     property NDims: longint read GetNDims;
     property Shape: TIntVector read FShape write FShape;
     property Size: longint read GetSize;
+    property Strides: TIntVector read FStrides write FStrides;
   end;
 
   TTensorHelper = record helper for TTensor
-    const Default: TTensor = (FShape:nil; val: nil);
+    const Default: TTensor = (FShape:nil; FStrides: nil; val: nil);
   end;
 
   PTensor    = ^TTensor;
@@ -94,7 +96,7 @@ type
     BLASFileName: string;
   end;
 
-  TCallback = procedure(val: float; idx: TIntVector; currDim: longint; var T: TTensor);
+  TCallback = procedure(val: float; offset:longint; idx: TIntVector; currDim: longint; var T, OutT: TTensor);
 
   { The wrapper of TTensor that also acts as a single node in a computaional graph }
   PVariable = ^TVariable;
@@ -206,10 +208,12 @@ function DimsToLetter(dims: array of longint): string;
 
 { Determine the offset based on given multidimensional index }
 function IndexToOffset(Index, Shape: array of longint): longint;
+function IndexToOffset(Index, Shape, Strides: array of longint): longint;
 { Determine the multidimensional index based on given offset }
 function OffsetToIndex(offset: longint; Shape: array of longint): TIntVector;
 { Determine the required 1-d array size based on a tensor shape }
 function ShapeToSize(Shape: array of longint): longint;
+function ShapeToStride(Shape: array of longint): TIntVector;
 function Squeeze(T: TTensor): TTensor;
 
 { Helpers API for matrix (rank-2 tensor) --------------------------------------}
@@ -238,7 +242,7 @@ function TileRow(A: TTensor; n: longint): TTensor;
 
 procedure PrintTensor(T: TTensor);
 procedure PrintTensor(V: TVariable);
-procedure IterateTensor(T: TTensor; Callback: TCallback);
+procedure IterateTensor(T, OutT: TTensor; Callback: TCallback);
 
 { Tensor creation ------------------------------------------------------------ }
 function CopyTensor(A: TTensor): TTensor;
@@ -419,6 +423,15 @@ begin
     SumRes    := SumRes + ProdRes * Index[i];
   end;
   Result := SumRes;
+end;
+
+function IndexToOffset(Index, Shape, Strides: array of longint): longint;
+var
+  k: longint;
+begin
+  Result := 0;
+  for k := 0 to Length(Shape) - 1 do
+    Result := Result + Strides[k] * Index[k];
 end;
 
 function OffsetToIndex(offset: longint; Shape: array of longint): TIntVector;
@@ -675,6 +688,7 @@ begin
   SetLength(Result.FShape, Length(ShapeVals));
   for i :=0 to Length(ShapeVals) - 1 do
     Result.FShape[i] := ShapeVals[i];
+  Result.Strides := ShapeToStride(ShapeVals);
 end;
 
 procedure TTensor.ReshapeInplace(ShapeVals: array of longint);
@@ -684,6 +698,7 @@ begin
   SetLength(self.FShape, Length(ShapeVals));
   for i := 0 to Length(ShapeVals) - 1 do
     self.FShape[i] := ShapeVals[i];
+  self.Strides := ShapeToStride(ShapeVals);
 end;
 
 function TTensor.Dot(Other: TTensor): TTensor;
@@ -931,6 +946,7 @@ begin
   Result := TTensor.Default;
   SetLength(Result.Val, ShapeToSize(Shape));
   Result.ReshapeInplace(shape);
+  Result.Strides := ShapeToStride(Shape);
 end;
 
 function CreateTensor(Shape: array of longint; Val: float): TTensor;
@@ -971,6 +987,7 @@ var
   offset: longint;
 begin
   Result.ReshapeInplace([Ceil((stop - start) / step)]);
+  Result.Strides := ShapeToStride([Ceil((stop - start) / step)]);
   SetLength(Result.Val, Ceil((stop - start) / step));
 
   i      := start;
@@ -1041,6 +1058,21 @@ begin
       //WriteLn(sorted[i].Grad.NDims);  // LAST EDIT
       Sorted[i].BackwardFunc(Sorted[i].Prev, Sorted[i].FGrad);
     end;
+end;
+
+function ShapeToStride(Shape: array of longint): TIntVector;
+var
+  k, j, sz, prod: longint;
+begin
+  SetLength(Result, Length(Shape));
+
+  for k := 0 to Length(Shape) - 1 do
+  begin
+    prod := 1;
+    for j := k + 1 to Length(Shape) - 1 do
+      prod := prod * Shape[j];
+    Result[k] := prod;
+  end;
 end;
 
 function Squeeze(T: TTensor): TTensor;
@@ -1134,7 +1166,7 @@ begin
   PrintTensor(V.Data);
 end;
 
-procedure IterateTensor(T: TTensor; Callback: TCallback);
+procedure IterateTensor(T, OutT: TTensor; Callback: TCallback);
 var
   n, offset, ithDimChanged, dtIter: longint;
   res, dimTracker: TIntVector;
@@ -1154,7 +1186,7 @@ var
           ithDimChanged := j; // in which dimension there is a change?
         end;
 
-      Callback(T.Val[offset], res, ithDimChanged, T);
+      Callback(T.Val[offset], offset, res, ithDimChanged, T, OutT);
       Inc(offset);
       exit;
     end;
@@ -1282,6 +1314,7 @@ var
         ithDimChanged := i; // in which dimension there is a change?
       end;
 
+
     if (ithDimChanged < n - 1) then
       outstr := outstr + (DupeString(']', NewlineNum));
 
@@ -1296,7 +1329,7 @@ var
       outstr := outstr + (DupeString('[', NewlineNum));
     end;
 
-    outstr := outstr + FloatToStrF(T.Val[offset], ffFixed, digitMax, decimalPlace);
+    outstr := outstr + Format('%'+IntToStr(digitMax+decimalPlace+2)+'.'+IntToStr(decimalPlace)+'f', [T.Val[IndexToOffset(res, T.Shape, T.Strides)]]);
   end;
 
   // d is dimension iterator, d=0..n-1
@@ -1306,7 +1339,11 @@ var
   begin
     if d >= n then
     begin
-      PPrint(res);
+      if (res[d-1] < 3) or (res[d-1] > T.Shape[n-1] - 3 - 1) then
+        PPrint(res);
+
+      if res[d-1] = 3 then
+        outstr := outstr + ', ... ';
       Inc(offset);
       exit;
     end;
@@ -1322,9 +1359,9 @@ var
   var
     i: double;
   begin
-    Result := 0;
+    Result := abs(arr[0]);
     for i in arr do
-      if i > Result then
+      if abs(i) > abs(Result) then
         Result := i;
   end;
 
