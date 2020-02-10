@@ -52,7 +52,7 @@ function MultiplyF(v1, v2: double): double;
 
 function Add(A, B: TTensor): TTensor;
 function ArgMax(M: TTensor): TTensor;
-function ArgMax(M: TTensor; axis: byte): TTensor;  overload;
+function ArgMax(M: TTensor; axis: byte): TTensor; overload;
 //function Convolve2D(A, w: TTensor): TTensor;
 function Cos(A: TTensor): TTensor;
 function Cosh(A: TTensor): TTensor;
@@ -80,12 +80,13 @@ function Sinh(A: TTensor): TTensor;
 function SoftMax(A: TTensor; axis: byte): TTensor;
 function Subtract(A, B: TTensor): TTensor;
 function Sum(M: TTensor): TTensor;
-function Sum(M: TTensor; axis: byte): TTensor;  overload;
+function Sum(M: TTensor; axis: byte): TTensor; overload;
 function Tan(A: TTensor): TTensor;
 function Tanh(A: TTensor): TTensor;
 function Transpose(T: TTensor; dims: array of longint): TTensor;
 function Transpose(T: TTensor): TTensor;
 function Transpose2D(T: TTensor): TTensor;
+function TransposeTensor(X: TTensor; axis: array of longint): TTensor;
 
 
 { Evaluates the Einstein summation convention on the operands. Very slow now.
@@ -371,6 +372,30 @@ begin
   Result := ApplyUfunc(A, @Ln_F);
 end;
 
+function Transpose(T: TTensor; dims: array of longint): TTensor;
+begin
+  Assert(Length(dims) = length(T.Shape),
+    'dims length does not match tensor dimension');
+  Result := TransposeTensor(T, dims);
+end;
+
+function Transpose(T: TTensor): TTensor;
+var
+  OutDims: TIntVector;
+  i: longint;
+begin
+  // attempt with 2d transpose first
+  if (Length(T.Shape) = 2) then
+    Result := Transpose2D(T)
+  else
+  begin
+    SetLength(OutDims, T.NDims);
+    for i := 0 to T.NDims - 1 do
+      OutDims[i] := T.NDims - i - 1;
+    Result := TransposeTensor(T, OutDims);
+  end;
+end;
+
 function Transpose2D(T: TTensor): TTensor;
 var
   i, j: longint;
@@ -383,28 +408,35 @@ begin
       Result.Val[j * T.Shape[0] + i] := T.Val[i * T.Shape[1] + j];
 end;
 
-function Transpose(T: TTensor; dims: array of longint): TTensor;
-var
-  resultedIdx, dimsLetter: string;
-  i: longint;
+procedure cbTranspose(val: double; offset: longint; idx: TIntVector;
+  currDim: longint; var T, OutT: TTensor);
 begin
-  dimsLetter := DimsToLetter(dims);
-  Assert(Length(dims) = length(T.Shape),
-    'dims length does not match tensor dimension');
-  resultedIdx := DimsToLetter(dims);
-  for i := 0 to Length(dims) - 1 do
-    resultedIdx[i + 1] := dimsLetter.Chars[dims[i]];
-  Result := Einsum(dimsLetter + '->' + resultedIdx, [T]);
+  OutT.Val[offset] := val;
 end;
 
-function Transpose(T: TTensor): TTensor;
+function TransposeTensor(X: TTensor; axis: array of longint): TTensor;
+var
+  outStrides, OutShape: TIntVector;
+  i: integer;
 begin
-  // attempt with 2d transpose first
-  if (Length(T.Shape) = 2) then
-    Result := Transpose2D(T)
-  else
-    Result := Einsum(DimsToLetter(T.Shape) + '->' +
-      ReverseString(DimsToLetter(T.Shape)), [T]);
+  SetLength(OutShape, Length(axis));
+  SetLength(OutStrides, Length(axis));
+  SetLength(Result.Val, X.Size);
+
+  for i := 0 to Length(axis) - 1 do
+  begin
+    OutShape[i]   := X.Shape[axis[i]];
+    OutStrides[i] := X.Strides[axis[i]];
+  end;
+
+  X.ReshapeInplace(OutShape);
+  X.Strides := outStrides;
+
+  { Fill Result.Val with strided X.Val }
+  IterateTensor(X, Result, @cbTranspose);
+
+  Result.ReshapeInplace(OutShape);
+  Result.Strides := outStrides;
 end;
 
 function ReLU(T: TTensor): TTensor;
