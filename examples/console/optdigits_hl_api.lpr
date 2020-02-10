@@ -29,9 +29,9 @@ program optdigits_hl_api;
 uses
   noe,
   noe.Math,
-  noe.neuralnet,
   noe.optimizer,
-  noe.utils;
+  noe.utils,
+  noe.neuralnet;
 
 const
   MAX_EPOCH = 150;

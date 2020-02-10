@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <Package Version="4">
+    <PathDelim Value="\"/>
+    <Name Value="noe.source"/>
+    <Type Value="RunAndDesignTime"/>
+    <CompilerOptions>
+      <Version Value="11"/>
+      <PathDelim Value="\"/>
+      <SearchPaths>
+        <IncludeFiles Value="..\src"/>
+        <OtherUnitFiles Value="..\src"/>
+        <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)\"/>
+      </SearchPaths>
+    </CompilerOptions>
+    <Files Count="9">
+      <Item1>
+        <Filename Value="..\src\config.pas"/>
+        <Type Value="Include"/>
+      </Item1>
+      <Item2>
+        <Filename Value="..\src\noe.backend.blas.pas"/>
+        <UnitName Value="noe.backend.blas"/>
+      </Item2>
+      <Item3>
+        <Filename Value="..\src\noe.backend.native.pas"/>
+        <UnitName Value="noe.backend.native"/>
+      </Item3>
+      <Item4>
+        <Filename Value="..\src\noe.math.pas"/>
+        <UnitName Value="noe.Math"/>
+      </Item4>
+      <Item5>
+        <Filename Value="..\src\noe.neuralnet.pas"/>
+        <UnitName Value="noe.neuralnet"/>
+      </Item5>
+      <Item6>
+        <Filename Value="..\src\noe.optimizer.pas"/>
+        <UnitName Value="noe.optimizer"/>
+      </Item6>
+      <Item7>
+        <Filename Value="..\src\noe.pas"/>
+        <UnitName Value="noe"/>
+      </Item7>
+      <Item8>
+        <Filename Value="..\src\noe.plot.gnuplot.pas"/>
+        <UnitName Value="noe.plot.gnuplot"/>
+      </Item8>
+      <Item9>
+        <Filename Value="..\src\noe.utils.pas"/>
+        <UnitName Value="noe.utils"/>
+      </Item9>
+    </Files>
+    <RequiredPkgs Count="1">
+      <Item1>
+        <PackageName Value="FCL"/>
+      </Item1>
+    </RequiredPkgs>
+    <UsageOptions>
+      <UnitPath Value="$(PkgOutDir)"/>
+    </UsageOptions>
+    <PublishOptions>
+      <Version Value="2"/>
+      <UseFileFilters Value="True"/>
+    </PublishOptions>
+  </Package>
+</CONFIG>
