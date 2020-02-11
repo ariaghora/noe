@@ -11,13 +11,13 @@
 
 </div>
 
-Noe is a framework for an easier scientific computation in object pascal, especially to build neural networks, and hence the name — *noe (Korean:뇌) means brain (🧠)*. It supports the creation of arbitrary rank tensor and its arithmetical operations. Some of the key features:
+Noe is a framework to build neural networks in pure object pascal. Hence, the name — *noe (뇌): brain*🧠. It supports the creation of arbitrary rank tensor and its arithmetical operations. Some of the key features:
 - Automatic gradient computation
 - Numpy-style broadcasting
 - Interface with *OpenBLAS* for some heavy-lifting
 - Interface with *GNU plot* for plotting
 
-Noe also provides several tensor creation and preprocessing helper functionalities. The created tensors are then wrapped inside the TVariable to train the neural network.
+Batteries are also included. Noe provides several tensor creation and preprocessing helper functionalities.
 
 ```delphi
 { Load and prepare the data. }
@@ -31,7 +31,7 @@ y   := Enc.Encode(Squeeze(y));
 ```
 
 ## High-level neural network API
-With autograd, it is possible to make of neural networks in various degree of abstraction. You can control the flow of of the network, even design a custom fancy loss function. For the high level API, there are several implementation of neural network layers, optimizers, along with TModel class helper, so you can prototype your network quickly.
+With autograd, it is possible to make of neural networks in various degree of abstraction. You can control the flow of of the network, even design a custom fancy loss function. For the high level API, there are several implementation of neural network layers, optimizers, along with `TModel` class helper, so you can prototype your network quickly.
 ```delphi
 { Initialize the model. }
 NNModel := TModel.Create([
@@ -58,16 +58,16 @@ begin
   optimizer.UpdateParams(Loss, NNModel.Params);
 end;
 ```
-With this you are good to go. More layers are coming soon (including convolutional layers).
+Aaaand... you are good to go. More layers are coming soon (including convolutional layers).
 
 ## Touching the bare metal: Write your own math
-If you want more control, you can skip TModel and TLayer creation and define your own model from scratch.
+Noe hackable. If you want more control, you can skip TModel and TLayer creation and define your own model from scratch. It is easy, verbose, and straightforward, like how normal people do math. No random cryptic symbols.
 ```delphi
 { weights and biases }
 W1 := RandomTensorNormal([NInputNeuron, NHiddenNeuron]);
 W2 := RandomTensorNormal([NHiddenNeuron, NOutputNeuron]);
-b1 := CreateTensor([1, NHiddenNeuron], 1 / NHiddenNeuron ** 0.5);
-b2 := CreateTensor([1, NOutputNeuron], 1 / NOutputNeuron ** 0.5); 
+b1 := CreateTensor([1, NHiddenNeuron], (1 / NHiddenNeuron ** 0.5));
+b2 := CreateTensor([1, NOutputNeuron], (1 / NOutputNeuron ** 0.5)); 
 
 { Since we need the gradient of weights and biases, it is mandatory to set
   RequiresGrad property to True. We can also set the parameter individually
@@ -79,14 +79,13 @@ Optimizer.LearningRate := 0.003;
 
 for i := 0 to MAX_EPOCH - 1 do
 begin
-  { Our neural network -> ŷ = softmax(σ(XW₁ + b₁)W₂ + b₂). }
+  { Make the prediction. }
   ypred := SoftMax(ReLU(XVar.Dot(W1) + b1).Dot(W2) + b2, 1);
 
   { Compute the cross-entropy loss. }
   CrossEntropyLoss := -Sum(yVar * Log(ypred)) / M;
 
-  { Compute L2 regularization term. Later it is added to the total loss to
-    prevent model overfitting. }
+  { Your usual L2 regularization term. }
   L2Reg := Sum(W1 * W1) + Sum(W2 * W2);
 
   TotalLoss := CrossEntropyLoss + Lambda * L2Reg;
