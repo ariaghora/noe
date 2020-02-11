@@ -88,10 +88,6 @@ var
 
 begin
   RandSeed := 1;
-  NoeConfig.useBLAS:=false;
-
-  { Comment this if you have BLAS configured. }
-  NoeConfig.useBLAS := False;
 
   { Load the DatasetTrain from CSV. Noe has a built-in function to do so. }
   DatasetTrain := ReadCSV('../datasets/optdigits-train.csv');
@@ -122,10 +118,10 @@ begin
     are set to a particular value. Typically the value is small in the beginning.
     Some implementations just use 1/sqrt(n_of_layer_neuron) for the initial bias
     value. }
-  W1 := TVariable.Create(RandomTensorNormal([NInputNeuron, NHiddenNeuron]));
-  W2 := TVariable.Create(RandomTensorNormal([NHiddenNeuron, NOutputNeuron]));
-  b1 := TVariable.Create(CreateTensor([1, NHiddenNeuron], 1 / NHiddenNeuron ** 0.5));
-  b2 := TVariable.Create(CreateTensor([1, NOutputNeuron], 1 / NOutputNeuron ** 0.5));
+  W1 := RandomTensorNormal([NInputNeuron, NHiddenNeuron]);
+  W2 := RandomTensorNormal([NHiddenNeuron, NOutputNeuron]);
+  b1 := CreateTensor([1, NHiddenNeuron], 1 / NHiddenNeuron ** 0.5);
+  b2 := CreateTensor([1, NOutputNeuron], 1 / NOutputNeuron ** 0.5);
 
   { Since we need the gradient of weights and biases, it is mandatory to set
     RequiresGrad property to True. We can also set the parameter individually
@@ -142,7 +138,7 @@ begin
   Lambda := 0.001; // Weight decay. Feel free to experiment with the value.
 
   { Keep track the loss values over iteration }
-  Losses := CreateTensor([MAX_EPOCH]);
+  Losses := CreateEmptyTensor([MAX_EPOCH]);
 
   for i := 0 to MAX_EPOCH - 1 do
   begin
@@ -170,7 +166,7 @@ begin
 
   DatasetTest := ReadCSV('../datasets/optdigits-test.csv');
   FeatsTest   := GetRange(DatasetTest, 0, 0, DatasetTest.Shape[0], 64) / 16;
-  LabelsTest  := Squeeze(GetColumn(DatasetTest, 64));
+  LabelsTest  := Squeeze(GetColumn(DatasetTest, 64, True));
 
   { Note that we do not need to wrap the test data in a variable, since we only
     need to evaluate the trained model. Thus, there is no need to create another
@@ -189,12 +185,12 @@ begin
   { Pick one sample from the test set. Let's try to visualize and predict the
     label }
   SampleIdx   := 850;
-  ImageSample := GetRow(FeatsTest, SampleIdx);
+  ImageSample := GetRow(FeatsTest, SampleIdx, True);
   ypredTest   := SoftMax(ReLU(ImageSample.Dot(W1.Data) + b1.Data).Dot(W2.Data) +
     b2.Data, 1);
 
   { Reshape it first for display. }
-  ImageSample.Reshape([8, 8]);
+  ImageSample.ReshapeInplace([8, 8]);
 
   { transform the probability into the discrete label }
   PredictedLabel := Round(LabelEncoder.Decode(ypredTest).Val[0]);
