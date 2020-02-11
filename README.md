@@ -65,7 +65,7 @@ end;
 With this you are good to go. More layers are coming soon (including convolutional layers).
 
 ## Touching the bare metal: Write your own math
-If you want more control, you can skip TModel and TLayer creation and define your own network from scratch.
+If you want more control, you can skip TModel and TLayer creation and define your own model from scratch.
 ```delphi
 { weights and biases }
 W1 := RandomTensorNormal([NInputNeuron, NHiddenNeuron]);
