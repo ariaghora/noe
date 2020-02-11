@@ -13,7 +13,7 @@ unit noe.neuralnet;
 interface
 
 uses
-  Classes, fgl, noe, noe.Math, noe.utils, SysUtils;
+  Classes, fgl, math, noe, noe.Math, noe.utils, SysUtils;
 
 type
   TLayer = class;
@@ -129,6 +129,11 @@ type
     procedure AddLayer(Layer: TLayer);
   end;
 
+  TBatchingResult = record
+    Xbatches, ybatches: TTensorArr;
+    BatchCount: longint;
+  end;
+
 { Loss functions }
 function AccuracyScore(predicted, actual: TTensor): double;
 function BinaryCrossEntropyLoss(ypred, ytrue: TVariable): TVariable;
@@ -136,6 +141,8 @@ function CrossEntropyLoss(ypred, ytrue: TVariable): TVariable;
 function L2Regularization(Model: TModel; Lambda: double = 0.001): TVariable;
 
 { Utilities }
+function CreateBatch(X: TTensor; BatchSize: integer): TTensorArr;
+function CreateBatch(X, y: TTensor; BatchSize: integer): TBatchingResult;
 function Im2Col(img: TTensor;
   Channels, Height, Width, FilterH, FilterW, PaddingHeight, PaddingWidth,
   StrideHeight, StrideWidth: longint): TTensor;
@@ -182,6 +189,48 @@ begin
     Exit(0);
   Exit(img.Val[c + Width * (r + Height * channel)]);
 end;
+
+function CreateBatch(X: TTensor; BatchSize: integer): TTensorArr;
+var
+  i, OutSize: longint;
+  isSet: boolean = False;
+  prevID: longint;
+begin
+  OutSize := ceil(X.Shape[0] / BatchSize);
+  SetLength(Result, OutSize);
+  for i := 0 to OutSize - 1 do
+    Result[i] := GetRowRange(X, i * BatchSize,
+      Math.min(BatchSize, X.Shape[0] - i * BatchSize));//if not isSet then
+  //begin
+  //  prevID := Result[i].ID;
+  //  isSet  := True;
+  //end;
+
+end;
+
+function CreateBatch(X, y: TTensor; BatchSize: integer): TBatchingResult;
+var
+  i, OutSize: longint;
+  isSet: boolean = False;
+  prevID: longint;
+begin
+  Assert(X.Shape[0] = y.Shape[0], 'X and y have different height');
+  OutSize := ceil(X.Shape[0] / BatchSize);
+
+  SetLength(Result.Xbatches, OutSize);
+  SetLength(Result.ybatches, OutSize);
+  Result.BatchCount := OutSize;
+
+  for i := 0 to OutSize - 1 do
+  begin
+    Result.Xbatches[i] := GetRowRange(X, i * BatchSize,
+      Math.min(BatchSize, X.Shape[0] - i * BatchSize));
+    Result.ybatches[i] := GetRowRange(y, i * BatchSize,
+      Math.min(BatchSize, y.Shape[0] - i * BatchSize));
+  end;
+
+end;
+
 
 function Im2Col(img: TTensor;
   Channels, Height, Width, FilterH, FilterW, PaddingHeight, PaddingWidth,
