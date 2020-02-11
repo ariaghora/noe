@@ -117,7 +117,9 @@ b2.Data := b2.Data - LearningRate * b2.Grad;
   Because it will replace W1 including all its attribute values entirely.
   We only want to update the data. }
 ```
-That said, you can even define your own custom layers and optimizers :metal:. You can also compute the loss function derivative with respect to all parameters to obtain the gradients... by your hands... But just stop there. Stop hurting yourself. Use more autograd.
+That said, you could have even defined your own custom layers and optimizers :metal:. Really. Even noe's layer implementations are pretty straightfowrward. Check the source code yourself whenever you have free time.
+
+You can also compute the loss function derivative with respect to all parameters to obtain the gradients... by your hands... But just stop there. Stop hurting yourself. Use more autograd.
 
 Check out [the wiki](https://github.com/ariaghora/noe/wiki) for more documentation. Please note that this framework is developed and heavily tested using fpc 3.0.4, with object pascal syntax mode, on a windows machine. Portability is not really my first concern right now, but any helps are sincerely welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
