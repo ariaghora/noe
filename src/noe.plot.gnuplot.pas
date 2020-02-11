@@ -188,7 +188,7 @@ begin
   x_ := x;
 
   if self.PlotType <> ptImage then
-    x_.Reshape([x_.Shape[0], 1]);
+    x_.ReshapeInplace([x_.Size, 1]);
 
   self.Values := x_;
 end;
