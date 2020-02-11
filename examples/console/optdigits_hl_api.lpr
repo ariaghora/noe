@@ -30,9 +30,9 @@ uses
   math,
   noe,
   noe.Math,
-  noe.neuralnet,
   noe.optimizer,
-  noe.utils;
+  noe.utils,
+  noe.neuralnet;
 
 const
   MAX_EPOCH = 100;
