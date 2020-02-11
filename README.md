@@ -116,7 +116,7 @@ W2.Data := W2.Data - LearningRate * W2.Grad;
 b1.Data := b1.Data - LearningRate * b1.Grad;
 b2.Data := b2.Data - LearningRate * b2.Grad;
 
-{ NOTE: Do not du something like this:
+{ NOTE: Do not do something like this:
   
   W1 := W1 - LearningRate * W1.Grad;
   
