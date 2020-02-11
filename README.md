@@ -7,7 +7,7 @@
 <div align="center">
   
 [![Generic badge](https://img.shields.io/badge/license-MIT-blue.svg)](https://shields.io/)
-[![made-for-pascal](https://img.shields.io/badge/Made%20for-object%20pascal-e9448a.svg)](https://code.visualstudio.com/)
+[![made-for-pascal](https://img.shields.io/badge/Made%20for-object%20pascal-7642d2.svg)](https://code.visualstudio.com/)
 
 </div>
 
