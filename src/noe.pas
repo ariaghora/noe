@@ -560,7 +560,7 @@ begin
   { Suppose, the given index is [1,2] while the tensor is 4 dimensional, adjust
     the index to [1,2,0,0], i.e., fill the remaining dimension indices with
     zeros. }
-  for i := 0 to LShape - 1 do
+  for i := 0 to LIndex - 1 do
     AdjustedIndex[i] := Index[i];
 
   offset := IndexToOffset(AdjustedIndex, self.Shape);
@@ -1339,11 +1339,11 @@ var
   begin
     if d >= n then
     begin
-      if (res[d-1] < 3) or (res[d-1] > T.Shape[n-1] - 3 - 1) then
+      //if (res[d-1] < 3) or (res[d-1] > T.Shape[n-1] - 3 - 1) then
         PPrint(res);
 
-      if res[d-1] = 3 then
-        outstr := outstr + ', ... ';
+      //if res[d-1] = 3 then
+      //  outstr := outstr + ', ... ';
       Inc(offset);
       exit;
     end;
