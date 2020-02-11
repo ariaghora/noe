@@ -13,7 +13,7 @@ unit noe;
 interface
 
 uses
-  Classes, Math, strutils, SysUtils;
+  Classes, Math, strutils, SysUtils, fgl;
 
 type
   TIntVector   = array of longint;
@@ -155,10 +155,13 @@ type
   end;
 
   { TNodeTracker }
+  TVariableList = specialize TFPGList<TVariable>;
 
   TNodeTracker = record
     Items: TVariableArr;
+    NodeSpace: TVariableList;
     procedure Add(V: TVariable);
+    procedure ClearUnusedNodes(root: TVariable);
     function FindByTrackingID(TrackingID: string): longint;
   end;
 
@@ -333,7 +336,7 @@ begin
   V.RequiresGrad := False;
 
   { all constants are given id 1 }
-  V.ID := -1;
+  //V.ID := -1;
 end;
 
 operator +(A, B: TVariable)C: TVariable;
@@ -362,7 +365,7 @@ var
 begin
   result := false;
   for Tmp in arr do
-    if T.ID = Tmp.ID then
+    if T.GetHashCode = Tmp.GetHashCode then
     begin
       result := true;
       exit;
@@ -466,6 +469,31 @@ procedure TNodeTracker.Add(V: TVariable);
 begin
   SetLength(Self.Items, Length(self.Items) + 1);
   Self.Items[Length(self.Items) - 1] := V;
+end;
+
+procedure TNodeTracker.ClearUnusedNodes(root: TVariable);
+var
+  CurrentGraphNodes: TVariableArr;
+  TobeRemoved: TVariableList;
+  v, w, x, y: TVariable;
+  i: longint;
+begin
+  CurrentGraphNodes := TopologicalSort(root);
+
+  TobeRemoved := TVariableList.Create;
+  for v in NodeSpace do
+    if not(v in CurrentGraphNodes) and not(v.IsLeaf) then
+      TobeRemoved.Add(v);
+
+  for w in TobeRemoved do
+  begin
+    w.FreeData;
+    w.FreeGrad;
+    NodeSpace.Remove(w);
+
+    // for now idk why cannot destroy :(
+    //w.Destroy;
+  end;
 end;
 
 function TNodeTracker.FindByTrackingID(TrackingID: string): longint;
@@ -740,7 +768,7 @@ var
   T: TTensor;
 begin
   self.Create(T, '', nil, True);
-  self.FID := -2;
+  //self.FID := -2;
 end;
 
 constructor TVariable.Create(AName: string);
@@ -748,7 +776,7 @@ var
   T: TTensor;
 begin
   self.Create(T, AName, nil, True);
-  self.FID := -2;
+  //self.FID := -2;
 end;
 
 constructor TVariable.Create(ATensor: TTensor);
@@ -759,10 +787,10 @@ end;
 constructor TVariable.Create(ATensor: TTensor; AName: string);
 begin
   self.Create(ATensor, AName, nil, True);
-  if ATensor.Size = 1 then
-    self.FID := -1
-  else
-    self.FID := -2;
+  //if ATensor.Size = 1 then
+  //  self.FID := -1;
+  //else
+    //self.FID := -2;
 end;
 
 constructor TVariable.Create(ATensor: TTensor; AName: string;
@@ -784,6 +812,8 @@ begin
   self.RequiresGrad := False;
 
   self.ZeroGrad;
+
+  GlobalNodeTracker.NodeSpace.Add(self);
 
   self.FID := GLOBAL_NODE_COUNT;
   Inc(GLOBAL_NODE_COUNT);
@@ -1045,19 +1075,19 @@ var
 begin
   if GLOBAL_SKIP_GRAD then
     exit;
+
   Sorted := TopologicalSort(T);
 
   T.Grad.ReshapeInplace(T.Data.Shape);
   T.Grad.Fill(1);
 
-  //writeln(T.NDims);
-
   for i := length(Sorted) - 1 downto 0 do
     if Assigned(Sorted[i].BackwardFunc) then
     begin
-      //WriteLn(sorted[i].Grad.NDims);  // LAST EDIT
       Sorted[i].BackwardFunc(Sorted[i].Prev, Sorted[i].FGrad);
     end;
+
+  GlobalNodeTracker.ClearUnusedNodes(T);
 end;
 
 function ShapeToStride(Shape: array of longint): TIntVector;
@@ -1392,9 +1422,10 @@ end;
 
 initialization
   NoeConfig.debug := True;
-
   NoeConfig.BLASFileName := BLAS_FILENAME;
   NoeConfig.useBLAS      := True;
+
+  GlobalNodeTracker.NodeSpace := TVariableList.Create;
 
   GLOBAL_NODE_COUNT := 0;
 end.
