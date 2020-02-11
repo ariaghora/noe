@@ -28,10 +28,6 @@ X       := StandardScaler(X);
 Enc := TOneHotEncoder.Create;    
 y   := GetColumn(Dataset, 4);
 y   := Enc.Encode(Squeeze(y));
-
-{ Wrap tensor in a TVariable }
-XVar := X.ToVariable();
-yVar := y.ToVariable();
 ```
 
 ## High-level neural network API
