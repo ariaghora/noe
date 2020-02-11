@@ -61,7 +61,7 @@ end;
 Aaaand... you are good to go. More layers are coming soon (including convolutional layers).
 
 ## Touching the bare metal: Write your own math
-Noe hackable. If you want more control, you can skip TModel and TLayer creation and define your own model from scratch. It is easy, verbose, and straightforward, like how normal people do math. No random cryptic symbols.
+Noe is hackable. If you want more control, you can skip TModel and TLayer creation and define your own model from scratch. It is easy, verbose, and straightforward, like how normal people do math. No random cryptic symbols.
 ```delphi
 { weights and biases }
 W1 := RandomTensorNormal([NInputNeuron, NHiddenNeuron]);
@@ -97,13 +97,12 @@ end;
 
 Of course you can go even more lower-level by ditching predefined optimizer and replacing `Optimizer.UpdateParams()` by your own weight update rule, like the good ol' day:
 ```delphi
+{ Zero the gradient of all parameters from previous iteration. }
+ZeroGradGraph(TotalLoss);
+
 { Compute all gradients by simply triggering `Backpropagate` method in the 
   `TotalLoss`. }
 TotalLoss.Backpropagate;
-
-{ And zero the gradient of all parameters before stepping to the next 
-  iteration. }
-ZeroGradGraph(TotalLoss);
 
 { Vanilla gradient descent update rule. }
 W1.Data := W1.Data - LearningRate * W1.Grad;
@@ -118,7 +117,7 @@ b2.Data := b2.Data - LearningRate * b2.Grad;
   Because it will replace W1 including all its attribute values entirely.
   We only want to update the data. }
 ```
-You can also compute the loss function derivative with respect to all parameters to obtain the gradients... by your hands... But just stop there. Stop hurting yourself. Use more autograd.
+That said, you can even define your own custom layers and optimizers :metal:. You can also compute the loss function derivative with respect to all parameters to obtain the gradients... by your hands... But just stop there. Stop hurting yourself. Use more autograd.
 
 Check out [the wiki](https://github.com/ariaghora/noe/wiki) for more documentation. Please note that this framework is developed and heavily tested using fpc 3.0.4, with object pascal syntax mode, on a windows machine. Portability is not really my first concern right now, but any helps are sincerely welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
