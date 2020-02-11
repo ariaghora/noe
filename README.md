@@ -39,11 +39,13 @@ With autograd, it is possible to make of neural networks in various degree of ab
 ```delphi
 { Initialize the model. }
 NNModel := TModel.Create([
-  TDenseLayer.Create(NInputNeuron, 32, atReLU),
+  TDenseLayer.Create(NInputNeuron, 32),
   TDropoutLayer.Create(0.2),
-  TDenseLayer.Create(32, 16, atReLU),
+  TReLULayer.Create(),
+  TDenseLayer.Create(32, 16),
+  TReLULayer.Create(),
   TDropoutLayer.Create(0.2),
-  TDenseLayer.Create(16, NOutputNeuron, atNone),
+  TDenseLayer.Create(16, NOutputNeuron),
   TSoftMaxLayer.Create(1)
 ]);
 
@@ -62,14 +64,14 @@ end;
 ```
 With this you are good to go. More layers are coming soon (including convolutional layers).
 
-## Touching the bare metal
-If you want more control and are okay get your hand dirty, you can skip TModel and TLayer creation and define your own network from scratch.
+## Touching the bare metal: Write your own math
+If you want more control, you can skip TModel and TLayer creation and define your own network from scratch.
 ```delphi
 { weights and biases }
-W1 := TVariable.Create(RandomTensorNormal([NInputNeuron, NHiddenNeuron]));
-W2 := TVariable.Create(RandomTensorNormal([NHiddenNeuron, NOutputNeuron]));
-b1 := TVariable.Create(CreateTensor([1, NHiddenNeuron], 1 / NHiddenNeuron ** 0.5));
-b2 := TVariable.Create(CreateTensor([1, NOutputNeuron], 1 / NOutputNeuron ** 0.5));
+W1 := RandomTensorNormal([NInputNeuron, NHiddenNeuron]);
+W2 := RandomTensorNormal([NHiddenNeuron, NOutputNeuron]);
+b1 := CreateTensor([1, NHiddenNeuron], 1 / NHiddenNeuron ** 0.5);
+b2 := CreateTensor([1, NOutputNeuron], 1 / NOutputNeuron ** 0.5); 
 
 { Since we need the gradient of weights and biases, it is mandatory to set
   RequiresGrad property to True. We can also set the parameter individually
@@ -113,9 +115,16 @@ W1.Data := W1.Data - LearningRate * W1.Grad;
 W2.Data := W2.Data - LearningRate * W2.Grad;
 b1.Data := b1.Data - LearningRate * b1.Grad;
 b2.Data := b2.Data - LearningRate * b2.Grad;
+
+{ NOTE: Do not du something like this:
+  
+  W1 := W1 - LearningRate * W1.Grad;
+  
+  Because it will replace W1 including all its attribute values entirely.
+  We only want to update the data. }
 ```
 You can also compute the loss function derivative with respect to all parameters to obtain the gradients... by your hands... But just stop there. Stop hurting yourself. Use more autograd.
 
-Check out [the wiki](https://github.com/ariaghora/noe/wiki) for more documentation. Please note that this framework is developed and heavily tested using fpc 3.0.4, with object pascal syntax mode, on a windows machine. Portability is not really my first concern right now, but any helps are sincerely welcome.
+Check out [the wiki](https://github.com/ariaghora/noe/wiki) for more documentation. Please note that this framework is developed and heavily tested using fpc 3.0.4, with object pascal syntax mode, on a windows machine. Portability is not really my first concern right now, but any helps are sincerely welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 > **A blatant disclaimer -** *This is my learning and experimental project. The development is still early and active. That said, the use for production is not encouraged at this moment.*
