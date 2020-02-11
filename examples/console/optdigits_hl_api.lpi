@@ -26,15 +26,16 @@
       <FormatVersion Value="2"/>
       <Modes Count="0"/>
     </RunParams>
-    <Units Count="2">
+    <RequiredPackages Count="1">
+      <Item1>
+        <PackageName Value="noe.source"/>
+      </Item1>
+    </RequiredPackages>
+    <Units Count="1">
       <Unit0>
         <Filename Value="optdigits_hl_api.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
-      <Unit1>
-        <Filename Value="..\noe\src\noe.neuralnet.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit1>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
