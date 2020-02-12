@@ -931,6 +931,7 @@ var
   InFile: Text;
   RowCount, ColCount, offset: longint;
 begin
+  Assert(FileExists(filename), 'File does not exist.');
   Assign(InFile, fileName);
   Reset(InFile);
 
