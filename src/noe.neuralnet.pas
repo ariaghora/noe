@@ -13,7 +13,7 @@ unit noe.neuralnet;
 interface
 
 uses
-  Classes, fgl, math, noe, noe.Math, noe.utils, SysUtils;
+  Classes, fgl, math, noe, noe.Math, SysUtils;
 
 type
   TLayer = class;
@@ -193,26 +193,18 @@ end;
 function CreateBatch(X: TTensor; BatchSize: integer): TTensorArr;
 var
   i, OutSize: longint;
-  isSet: boolean = False;
-  prevID: longint;
 begin
   OutSize := ceil(X.Shape[0] / BatchSize);
   SetLength(Result, OutSize);
   for i := 0 to OutSize - 1 do
     Result[i] := GetRowRange(X, i * BatchSize,
-      Math.min(BatchSize, X.Shape[0] - i * BatchSize));//if not isSet then
-  //begin
-  //  prevID := Result[i].ID;
-  //  isSet  := True;
-  //end;
+      Math.min(BatchSize, X.Shape[0] - i * BatchSize));
 
 end;
 
 function CreateBatch(X, y: TTensor; BatchSize: integer): TBatchingResult;
 var
   i, OutSize: longint;
-  isSet: boolean = False;
-  prevID: longint;
 begin
   Assert(X.Shape[0] = y.Shape[0], 'X and y have different height');
   OutSize := ceil(X.Shape[0] / BatchSize);

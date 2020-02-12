@@ -20,7 +20,7 @@ unit noe.backend.blas;
 interface
 
 uses
-  Classes, dynlibs, noe, noe.utils, SysUtils;
+  Classes, dynlibs, noe, SysUtils;
 
 type
   Pdouble = ^double;
