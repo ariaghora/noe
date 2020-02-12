@@ -238,6 +238,8 @@ begin
   { Actual data handling }
   for row := 0 to Result.Shape[0] - 1 do
     Result.SetAt(row, LabelToIndexMap.KeyData[T.Val[row]], 1.0);
+
+  FreeAndNil(LabelToIndexMap);
 end;
 
 function TOneHotEncoder.Decode(T: TTensor): TTensor;

@@ -489,8 +489,8 @@ begin
   begin
     w.FreeData;
     w.FreeGrad;
+    Finalize(w.FName);
     NodeSpace.Remove(w);
-
     // for now idk why cannot destroy :(
     //w.Destroy;
   end;
@@ -1429,4 +1429,7 @@ initialization
   GlobalNodeTracker.NodeSpace := TVariableList.Create;
 
   GLOBAL_NODE_COUNT := 0;
+
+finalization
+  GlobalNodeTracker.NodeSpace.Free;
 end.
