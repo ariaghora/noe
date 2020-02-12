@@ -61,7 +61,7 @@ end;
 Aaaand... you are good to go. More layers are coming soon (including convolutional layers).
 
 ## Touching the bare metal: Write your own math
-Noe is hackable. If you want more control, you can skip TModel and TLayer creation and define your own model from scratch. It is easy, verbose, and straightforward, like how normal people do math. No random cryptic symbols.
+Noe is hackable. If you want more control, you can skip TModel and TLayer creation and define your own model from scratch. It is easy and straightforward, like how normal people do math. No random cryptic symbols.
 ```delphi
 { weights and biases }
 W1 := RandomTensorNormal([NInputNeuron, NHiddenNeuron]);
@@ -117,10 +117,10 @@ b2.Data := b2.Data - LearningRate * b2.Grad;
   Because it will replace W1 including all its attribute values entirely.
   We only want to update the data. }
 ```
-That said, you could have even defined your own custom layers and optimizers :metal:. Really. Even noe's layer implementations are pretty straightfowrward. Check the source code yourself whenever you have free time.
+That said, you could have even defined your own custom layers and optimizers :metal:. Really. Even noe's layer implementations are pretty verbose and straightfowrward. Check the source code yourself whenever you have free time.
 
 You can also compute the loss function derivative with respect to all parameters to obtain the gradients... by your hands... But just stop there. Stop hurting yourself. Use more autograd.
 
-Check out [the wiki](https://github.com/ariaghora/noe/wiki) for more documentation. Please note that this framework is developed and heavily tested using fpc 3.0.4, with object pascal syntax mode, on a windows machine. Portability is not really my first concern right now, but any helps are sincerely welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
+See [the wiki](https://github.com/ariaghora/noe/wiki) for more documentation. Please note that this framework is developed and heavily tested using fpc 3.0.4, with object pascal syntax mode, on a windows machine. Portability is not really my first concern right now, but any helps are sincerely welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-> **A blatant disclaimer -** *This is my learning and experimental project. The development is still early and active. That said, the use for production is not encouraged at this moment.*
+>:warning: *Noe is evolving. The development is still early and active. The use for production is not encouraged at this moment.*
