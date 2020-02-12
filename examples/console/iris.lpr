@@ -7,8 +7,7 @@ uses
   noe.Math,
   noe.neuralnet,
   noe.utils,
-  noe.optimizer,
-  noe.backend.blas;
+  noe.optimizer;
 
 var
   X, y: TTensor;
@@ -21,12 +20,14 @@ var
 
 begin
   Dataset := ReadCSV('../datasets/iris.csv');
-  Enc     := TOneHotEncoder.Create; // One-hot encoding
 
   X := GetColumnRange(Dataset, 0, 4);
   X := StandardScaler(X);
   y := GetColumn(Dataset, 4);
-  y := Enc.Encode(y);
+
+  { One-hot encoding the raw label }
+  Enc := TOneHotEncoder.Create;
+  y   := Enc.Encode(y);
 
   MyModel := TModel.Create([
     TDenseLayer.Create(4, 30),
@@ -38,8 +39,9 @@ begin
   opt := TAdamOptimizer.Create;
 
   opt.LearningRate := 0.01;
-  opt.Verbose      := True; // To show loss value at each iteration
-                            // Default: True
+
+  { To show loss value at each iteration. Default: True }
+  opt.Verbose := True;
 
   for i := 0 to 100 do
   begin
