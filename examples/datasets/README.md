@@ -1,0 +1,3 @@
+- Fisher Iris (`iris.csv`): [https://archive.ics.uci.edu/ml/datasets/Iris](https://archive.ics.uci.edu/ml/datasets/Iris)
+- Optical Recognition of Handwritten Digits (`optdigits-train.csv` and `optdigits-test.csv`): [https://archive.ics.uci.edu/ml/datasets/optical+recognition+of+handwritten+digits](https://archive.ics.uci.edu/ml/datasets/optical+recognition+of+handwritten+digits)
+- Boston housing (`housing.csv`): [https://archive.ics.uci.edu/ml/datasets/Housing](https://www.cs.toronto.edu/~delve/data/boston/bostonDetail.html)
