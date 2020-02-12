@@ -122,8 +122,8 @@ begin
   fig.Palette := 'grey';
 
   plot := TPlot.Create;
-  plot.SetDataPoints(VFlip(img));
   plot.PlotType := ptImage;
+  plot.SetDataPoints(VFlip(img));
 
   fig.AddPlot(plot);
   fig.Show;
@@ -260,8 +260,8 @@ begin
       '', []);
 
   { do cleanup (temp files removal) }
-  for i := 0 to PlotList.Count - 1 do
-    TPlot(PlotList.Items[i]).RemoveDataStringTableFile;
+  //for i := 0 to PlotList.Count - 1 do
+  //  TPlot(PlotList.Items[i]).RemoveDataStringTableFile;
 
 end;
 
