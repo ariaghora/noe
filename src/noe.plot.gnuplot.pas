@@ -260,8 +260,8 @@ begin
       '', []);
 
   { do cleanup (temp files removal) }
-  //for i := 0 to PlotList.Count - 1 do
-  //  TPlot(PlotList.Items[i]).RemoveDataStringTableFile;
+  for i := 0 to PlotList.Count - 1 do
+    TPlot(PlotList.Items[i]).RemoveDataStringTableFile;
 
 end;
 

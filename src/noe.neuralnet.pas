@@ -13,7 +13,7 @@ unit noe.neuralnet;
 interface
 
 uses
-  Classes, fgl, math, noe, noe.Math, SysUtils;
+  Classes, fgl, fpjson, jsonparser, math, noe, noe.Math, SysUtils;
 
 type
   TLayer = class;
@@ -108,6 +108,7 @@ type
   public
     constructor Create(AAxis: longint);
     function Eval(X: TVariable): TVariable; override;
+    property Axis: longint read FAxis write FAxis;
   end;
 
   { TTanhLayer }
@@ -127,6 +128,7 @@ type
     constructor Create(Layers: array of TLayer); overload;
     function Eval(X: TVariable): TVariable;
     procedure AddLayer(Layer: TLayer);
+    procedure AddParam(param: TVariable);
   end;
 
   TBatchingResult = record
@@ -146,6 +148,8 @@ function CreateBatch(X, y: TTensor; BatchSize: integer): TBatchingResult;
 function Im2Col(img: TTensor;
   Channels, Height, Width, FilterH, FilterW, PaddingHeight, PaddingWidth,
   StrideHeight, StrideWidth: longint): TTensor;
+function LoadModel(filename: string): TModel;
+procedure SaveModel(Model: TModel; filename: string);
 
 
 implementation
@@ -254,7 +258,161 @@ begin
           Channels, ImRow, ImCol, cIm, PaddingHeight, PaddingWidth);
       end;
   end;
+end;
 
+function JSONArrayToFloatVector(arr: TJSONArray): TFloatVector;
+var
+  i: longint;
+begin
+  SetLength(Result, arr.Count);
+  for i := 0 to arr.Count - 1 do
+    Result[i] := arr[i].AsFloat;
+end;
+
+function FloatVectorToJSONArray(arr: array of double): TJSONArray;
+var
+  i: longint;
+begin
+  Result := TJSONArray.Create;
+  for i := 0 to high(arr) do
+    Result.Add(arr[i]);
+end;
+
+function IntVectorToJSONArray(arr: array of longint): TJSONArray;
+var
+  i: longint;
+begin
+  Result := TJSONArray.Create;
+  for i := 0 to high(arr) do
+    Result.Add(arr[i]);
+end;
+
+function LoadModel(filename: string): TModel;
+var
+  JData: TJSONData;
+  o: TJSONEnum;
+  LayerName: string;
+  layer: TLayer;
+  sl: TStringList;
+  DenseIn, DenseOut: longint;
+begin
+  Result := TModel.Create;
+
+  sl := TStringList.Create;
+  sl.LoadFromFile(filename);
+
+  JData := GetJSON(sl.Text);
+  for o in TJSONArray(JData) do
+  begin
+    LayerName := o.Value.FindPath('layer_name').AsString;
+
+    case LayerName of
+      'Dense':
+      begin
+        DenseIn  := TJSONArray(o.Value.FindPath('layer_data.weight_shape')).Items[0].AsInteger;
+        DenseOut := TJSONArray(o.Value.FindPath('layer_data.weight_shape')).Items[1].AsInteger;
+        layer    := TDenseLayer.Create(DenseIn, DenseOut);
+
+        layer.Params[0] :=
+          CreateTensor([DenseIn, DenseOut], JSONArrayToFloatVector(
+          TJSONArray(o.Value.FindPath('layer_data.weight_val')))
+          ).ToVariable(True);
+        layer.Params[1] :=
+          CreateTensor(layer.Params[1].Shape, JSONArrayToFloatVector(
+          TJSONArray(o.Value.FindPath('layer_data.bias_val')))
+          ).ToVariable(True);
+        Result.AddLayer(layer);
+      end;
+      'Dropout':
+      begin
+        layer := TDropoutLayer.Create(
+          o.Value.FindPath('layer_data.DropoutRate').AsFloat
+          );
+        Result.AddLayer(layer);
+      end;
+      'LeakyReLU':
+      begin
+        layer := TLeakyReLULayer.Create(
+          o.Value.FindPath('layer_data.leakiness').AsFloat
+          );
+        Result.AddLayer(layer);
+      end;
+      'ReLU':
+      begin
+        layer := TReLULayer.Create;
+        Result.AddLayer(layer);
+      end;
+      'SoftMax':
+      begin
+        layer := TSoftMaxLayer.Create(
+          o.Value.FindPath('layer_data.axis').AsInteger
+          );
+        Result.AddLayer(layer);
+      end;
+    end;
+  end;
+
+  sl.Free;
+end;
+
+procedure SaveModel(Model: TModel; filename: string);
+var
+  layer: TLayer;
+  o, LayerData: TJSONObject;
+  LayersJSONArr: TJSONArray;
+  a: array[0..1] of integer;
+  sl: TStringList;
+begin
+  LayersJSONArr := TJSONArray.Create;
+
+  for layer in Model.LayerList do
+  begin
+    if layer is TDenseLayer then
+    begin
+      LayerData := TJSONObject.Create(
+        [
+        'weight_val', FloatVectorToJSONArray(layer.Params[0].Data.val),
+        'weight_shape', IntVectorToJSONArray(layer.Params[0].Data.Shape),
+        'bias_val', FloatVectorToJSONArray(layer.Params[1].Data.Val),
+        'bias_shape', IntVectorToJSONArray(layer.Params[1].Data.Shape)
+        ]);
+      LayersJSONArr.Add(TJSONObject.Create(['layer_name', 'Dense',
+        'layer_data', LayerData]));
+    end;
+
+    if layer is TDropoutLayer then
+    begin
+      LayerData := TJSONObject.Create(['DropoutRate', TDropoutLayer(layer).DropoutRate]);
+      LayersJSONArr.Add(TJSONObject.Create(['layer_name', 'Dropout',
+        'layer_data', LayerData]));
+    end;
+
+    if layer is TLeakyReLULayer then
+    begin
+      LayerData := TJSONObject.Create(['leakiness', TLeakyReLULayer(layer).Alpha]);
+      LayersJSONArr.Add(TJSONObject.Create(['layer_name', 'LeakyReLU',
+        'layer_data', LayerData]));
+    end;
+
+    if layer is TReLULayer then
+      LayersJSONArr.Add(TJSONObject.Create(['layer_name', 'ReLU']));
+
+    if layer is TSoftMaxLayer then
+    begin
+      LayerData := TJSONObject.Create([
+        'axis', TSoftMaxLayer(layer).Axis
+        ]);
+      LayersJSONArr.Add(TJSONObject.Create(['layer_name', 'SoftMax',
+        'layer_data', LayerData]));
+    end;
+  end;
+
+  sl      := TStringList.Create;
+  sl.Text := LayersJSONArr.AsJSON;
+  sl.SaveToFile(filename);
+
+  sl.Free;
+  LayersJSONArr.Free;
 end;
 
 function AccuracyScore(predicted, actual: TTensor): double;
@@ -427,10 +585,13 @@ var
 begin
   self.LayerList.Add(Layer);
   for Param in Layer.Params do
-  begin
-    SetLength(self.Params, Length(self.Params) + 1);
-    self.Params[Length(self.Params) - 1] := Param;
-  end;
+    self.AddParam(param);
+end;
+
+procedure TModel.AddParam(param: TVariable);
+begin
+  SetLength(self.Params, Length(self.Params) + 1);
+  self.Params[Length(self.Params) - 1] := param;
 end;
 
 { TLayer }
