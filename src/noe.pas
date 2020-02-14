@@ -576,36 +576,26 @@ end;
 
 function TTensor.GetAt(Index: array of longint): TTensor;
 var
-  i, ResultLength, offset, LIndex, LShape: longint;
-  AdjustedIndex, ResultingShape: array of longint;
+  i, offset, amount: longint;
+  OutShape: TIntVector;
 begin
-  LIndex := Length(Index);
-  LShape := Length(self.Shape);
+  offset := 0;
+  for i := 0 to Length(Index) - 1 do
+    offset := offset + Self.Strides[i] * Index[i];
 
-  SetLength(AdjustedIndex, 0);      // fill with
-  SetLength(AdjustedIndex, LShape); // zero
+  SetLength(OutShape, Length(Self.Shape) - Length(Index));
+  amount := 1;
+  for i := Length(Index) to Length(Self.Shape) - 1 do
+  begin
+    amount := amount * Self.Shape[i];
+    OutShape[i - Length(Index)] := Self.Shape[i];
+  end;
 
-  { Suppose, the given index is [1,2] while the tensor is 4 dimensional, adjust
-    the index to [1,2,0,0], i.e., fill the remaining dimension indices with
-    zeros. }
-  for i := 0 to LIndex - 1 do
-    AdjustedIndex[i] := Index[i];
+  SetLength(Result.Val, amount);
+  for i := offset to offset + amount - 1 do
+    Result.Val[i - offset] := Self.Val[i];
 
-  offset := IndexToOffset(AdjustedIndex, self.Shape);
-
-  SetLength(ResultingShape, LShape - LIndex);
-  for i := 0 to (LShape - LIndex) - 1 do
-    ResultingShape[i] := self.Shape[i + LShape - LIndex - 1];
-
-  Result.ReshapeInplace(ResultingShape);
-
-  ResultLength := 1;
-  for i := LIndex to LShape - 1 do
-    ResultLength := ResultLength * self.Shape[i];
-
-  SetLength(Result.Val, ResultLength);
-  for i := 0 to ResultLength - 1 do
-    Result.Val[i] := self.Val[i + offset];
+  Result.ReshapeInplace(OutShape);
 end;
 
 procedure TTensor.SetAt(i: longint; x: double);
