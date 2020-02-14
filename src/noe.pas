@@ -1207,7 +1207,8 @@ var
           ithDimChanged := j; // in which dimension there is a change?
         end;
 
-      Callback(T.Val[offset], offset, res, ithDimChanged, T, OutT);
+      //writeln(offset);
+      Callback(T.Val[IndexToOffset(res, T.Shape, T.Strides)], offset, res, ithDimChanged, T, OutT);
       Inc(offset);
       exit;
     end;

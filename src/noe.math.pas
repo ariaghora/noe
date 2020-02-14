@@ -53,7 +53,8 @@ function MultiplyF(v1, v2: double): double;
 function Add(A, B: TTensor): TTensor;
 function ArgMax(M: TTensor): TTensor;
 function ArgMax(M: TTensor; axis: byte): TTensor; overload;
-//function Convolve2D(A, w: TTensor): TTensor;
+function Conv2D(X, w: TTensor;
+  PaddingHeight, PaddingWidth, StrideHeight, StrideWidth: longint): TTensor;
 function Cos(A: TTensor): TTensor;
 function Cosh(A: TTensor): TTensor;
 function DegToRad(A: TTensor): TTensor;
@@ -148,6 +149,14 @@ function SoftMax(A: TVariable; axis: byte): TVariable;
 
 { If target is the result of broadcasting, reduce to its original shape }
 function ReduceTo(Target, Other: TTensor): TTensor;
+
+
+function Im2Col(img: TTensor; Channels, Height, Width, FilterH, FilterW,
+  PaddingHeight, PaddingWidth, StrideHeight, StrideWidth: longint): TTensor;
+function Im2ColBatch(X: TTensor;
+  FilterH, FilterW, PaddingHeight, PaddingWidth, StrideHeight, StrideWidth:
+  longint): TTensor;
+
 
 implementation
 
@@ -484,6 +493,54 @@ begin
   Result := ApplyUfunc(A, @Math.sinh);
 end;
 
+{ copy entire items in `Src` to `Dest` at position `offset` }
+procedure CopyArrayAt(var Src, Dest: TFloatVector; offset: longint);
+var
+  i: longint;
+begin
+  for i := 0 to High(Src) do
+    Dest[i + offset] := Src[i];
+end;
+
+function Conv2D(X, w: TTensor;
+  PaddingHeight, PaddingWidth, StrideHeight, StrideWidth: longint): TTensor;
+var
+  m, i, Channels, Height, Width, ConvOutHeight, ConvOutWidth, FilterH,
+  FilterW, offset: longint;
+  W_, res: TTensor;
+begin
+  m      := X.Shape[0];
+  Channels := X.Shape[1];
+  Height := X.Shape[2];
+  Width  := X.Shape[3];
+  FilterH := W.Shape[2];
+  FilterW := W.Shape[3];
+  ConvOutHeight := (Height + 2 * PaddingHeight - FilterH) div StrideHeight + 1;
+  ConvOutWidth := (Width + 2 * PaddingWidth - FilterW) div StrideWidth + 1;
+  W_     := W.Reshape([W.Shape[0], ConvOutHeight * ConvOutWidth]);
+
+  SetLength(Result.Val, m * Channels * FilterH * FilterW * ConvOutHeight *
+    ConvOutWidth);
+  offset := 0;
+  for i := 0 to m - 1 do
+  begin
+    res := W_.Dot(Im2Col(X.GetAt([i]), Channels, Height, Width, FilterH,
+      FilterW, PaddingHeight, PaddingWidth, StrideHeight, StrideWidth)).T;
+
+    CopyArrayAt(res.Val, Result.Val, offset);
+
+    offset := offset + res.Size;
+  end;
+
+  {plus}
+  {bias}
+  {here}
+
+  Result.ReshapeInplace([m, res.Shape[0], res.Shape[1]]);
+  Result := Transpose(Result, [0, 2, 1]);
+  Result.ReshapeInplace([m, W.Shape[0], ConvOutWidth, ConvOutHeight]);
+end;
+
 function Cos(A: TTensor): TTensor;
 begin
   Result := ApplyUfunc(A, @Cos_F);
@@ -701,6 +758,79 @@ begin
       ax := i;
   if ax > -1 then
     Result := Sum(Target, ax);
+end;
+
+function Im2ColGetPixel(img: TTensor;
+  Height, Width, channels, row, col, channel, padH, padW: longint): double;
+var
+  r, c: longint;
+begin
+  r := row - padH;
+  c := col - padW;
+
+  if ((r < 0) or (c < 0) or (r >= Height) or (c >= Width)) then
+    Exit(0);
+  Exit(img.Val[c + Width * (r + Height * channel)]);
+end;
+
+function Im2Col(img: TTensor;
+  Channels, Height, Width, FilterH, FilterW, PaddingHeight, PaddingWidth,
+  StrideHeight, StrideWidth: longint): TTensor;
+var
+  ConvOutHeight, ConvOutWidth: longint;
+  ChannelsCol, c, h, w, wOffset, hOffset, cIm: longint;
+  ImRow, ImCol, colIdx: longint;
+begin
+  ConvOutHeight := (Height + 2 * PaddingHeight - FilterH) div StrideHeight + 1;
+  ConvOutWidth  := (Width + 2 * PaddingWidth - FilterW) div StrideWidth + 1;
+  ChannelsCol   := Channels * FilterH * FilterW;
+
+  SetLength(Result.Val, Channels * FilterH * FilterW * ConvOutHeight * ConvOutWidth);
+  Result.ReshapeInplace([Channels * FilterH * FilterW, ConvOutHeight * ConvOutWidth]);
+  for c := 0 to ChannelsCol - 1 do
+  begin
+    wOffset := c mod FilterW;
+    hOffset := (c div FilterW) mod FilterH;
+    cIm     := c div FilterH div FilterW;
+    for h := 0 to ConvOutHeight - 1 do
+      for w := 0 to ConvOutWidth - 1 do
+      begin
+        ImRow  := hOffset + h * StrideHeight;
+        ImCol  := wOffset + w * StrideWidth;
+        colIdx := (c * ConvOutHeight + h) * ConvOutWidth + w;
+
+        Result.Val[colIdx] := Im2ColGetPixel(img, Height, Width,
+          Channels, ImRow, ImCol, cIm, PaddingHeight, PaddingWidth);
+      end;
+  end;
+end;
+
+function Im2ColBatch(X: TTensor;
+  FilterH, FilterW, PaddingHeight, PaddingWidth, StrideHeight, StrideWidth:
+  longint): TTensor;
+var
+  i, m, offset, Im2ColSz, Channels, Height, Width, ConvOutHeight, ConvOutWidth: longint;
+begin
+  m      := X.Shape[0];
+  Channels := X.Shape[1];
+  Height := X.Shape[2];
+  Width  := X.Shape[3];
+  ConvOutHeight := (Height + 2 * PaddingHeight - FilterH) div StrideHeight + 1;
+  ConvOutWidth := (Width + 2 * PaddingWidth - FilterW) div StrideWidth + 1;
+  Im2ColSz := Channels * FilterH * FilterW * ConvOutHeight * ConvOutWidth;
+
+  SetLength(Result.Val, m * Im2ColSz);
+
+  offset := 0;
+  for i := 0 to m - 1 do
+  begin
+    CopyArrayAt(Im2Col(X.GetAt([i]), Channels, Height, Width, FilterH,
+      FilterW, PaddingHeight, PaddingWidth, StrideHeight, StrideWidth).Val,
+      Result.Val, offset);
+    offset := offset + Im2ColSz;
+  end;
+
+  Result.ReshapeInplace([m, Channels * FilterH * FilterW, ConvOutHeight * ConvOutWidth]);
 end;
 
 procedure BackwardAdd(arr: TVariableArr; ADy: TTensor);
