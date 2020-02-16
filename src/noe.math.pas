@@ -99,6 +99,8 @@ function Einsum(Subscripts: string; Pots: array of TTensor): TTensor;
  { TVariable math --------------------------------------------------------------}
  { forward mode }
 function Add(A, B: TVariable): TVariable;
+function Conv2D(X, w: TVariable;
+  PaddingHeight, PaddingWidth, StrideHeight, StrideWidth: longint): TVariable;
 function Cosh(A: TVariable): TVariable;
 function Divide(A, B: TVariable): TVariable;
 function Exp(A: TVariable): TVariable;
@@ -124,6 +126,7 @@ function Tanh(A: TVariable): TVariable;
 
 { backward mode }
 procedure BackwardAdd(arr: TVariableArr; ADy: TTensor);
+procedure BackwardConv2D(arr: TVariableArr; ADy: TTensor);
 procedure BackwardDivide(arr: TVariableArr; ADy: TTensor);
 procedure BackwardSubtract(arr: TVariableArr; ADy: TTensor);
 procedure BackwardMultiply(arr: TVariableArr; ADy: TTensor);
@@ -150,9 +153,12 @@ function SoftMax(A: TVariable; axis: byte): TVariable;
 { If target is the result of broadcasting, reduce to its original shape }
 function ReduceTo(Target, Other: TTensor): TTensor;
 
+procedure CopyArrayAt(var Src, Dest: TFloatVector; offset: longint);
 
-function Im2Col(img: TTensor; Channels, Height, Width, FilterH, FilterW,
-  PaddingHeight, PaddingWidth, StrideHeight, StrideWidth: longint): TTensor;
+
+function Im2Col(img: TTensor;
+  Channels, Height, Width, FilterH, FilterW, PaddingHeight, PaddingWidth,
+  StrideHeight, StrideWidth: longint): TTensor;
 function Im2ColBatch(X: TTensor;
   FilterH, FilterW, PaddingHeight, PaddingWidth, StrideHeight, StrideWidth:
   longint): TTensor;
@@ -655,6 +661,13 @@ begin
   CreateOrUpdateOpNode(Result, 'ForwardNegate', [A], -A.Data, @BackwardNegate);
 end;
 
+function Conv2D(X, w: TVariable;
+  PaddingHeight, PaddingWidth, StrideHeight, StrideWidth: longint): TVariable;
+begin
+  CreateOrUpdateOpNode(Result, 'ForwardConv2D', [X, w],
+    Conv2D(X.Data, w.Data, 0, 0, 1, 1), @BackwardConv2D);
+end;
+
 function Cosh(A: TVariable): TVariable;
 begin
   CreateOrUpdateOpNode(Result, 'ForwardCosh', [A], Cosh(A.Data), @BackwardCosh);
@@ -841,6 +854,10 @@ begin
     arr[1].Grad := arr[1].Grad + ReduceTo(ADy, arr[1].Data);
 end;
 
+procedure BackwardConv2D(arr: TVariableArr; ADy: TTensor);
+begin
+
+end;
 
 procedure BackwardDivide(arr: TVariableArr; ADy: TTensor);
 var
