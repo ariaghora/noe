@@ -18,8 +18,6 @@ uses
 type
   TIntVector   = array of longint;
   TFloatVector = array of double;
-
-  TTensorProxy = class;
   TVariable    = class;
 
   { TTensor }
@@ -59,35 +57,6 @@ type
 
   PTensor    = ^TTensor;
   TTensorArr = array of TTensor;
-
-  { A proxy of a tensor broadcasted to a specific dimension. The proxies are
-    created whenever a broadcasting is needed to prevent the creation of exact
-    copy of a tensor }
-
-  { TTensorProxy }
-
-  TTensorProxy = class
-    FRef:      TTensor;
-    { Adjusted reference dimension (prepending the dimension when needed) }
-    FRefShape: TIntVector;
-    FIndices:  TIntVector;
-    FTargetShape: TIntVector;
-  public
-    constructor Create(var ref: TTensor; targetShape: TIntVector);
-
-    { Get the value pointing to FRef at the (mapped) offset.
-      TODO in the future, precompute the mapping in the constructor. Or not? }
-    function GetValByOffset(offset: longint): double;
-    function MapOffset(offset: longint): longint;
-    procedure GenerateIndex;
-    property Val[i: longint]: double read GetValByOffset;
-  end;
-
-  TBroadcastResult = record
-    A: TTensorProxy;
-    B: TTensorProxy;
-    broadcastShape: TIntVector;
-  end;
 
   TConfig = record
     debug:   boolean;
@@ -236,7 +205,6 @@ function BroadcastTo(X: TTensor; TargetShape: array of longint): TTensor;
 { Check if two tensors are broadcasatable }
 function IsBroadcastable(A, B: TTensor): boolean;
 function GetBroadcastDims(A, B: TTensor): TIntVector;
-function Broadcast(A, B: TTensor): TBroadcastResult;
 
 { Tile column tensor A n times to the right }
 { HACK: it works, but certainly can be improved }
@@ -509,72 +477,6 @@ begin
     if self.Items[i].TrackingID = TrackingID then
       exit(i);
   end;
-end;
-
-{ TTensorProxy }
-
-constructor TTensorProxy.Create(var ref: TTensor; targetShape: TIntVector);
-var
-  i, nExtraDim: longint;
-begin
-  FRef := ref;
-  FTargetShape := targetShape;
-
-  nExtraDim := Length(targetShape) - Length(ref.Shape);
-  SetLength(FRefShape, Length(ref.Shape) + nExtraDim);
-  for i := 0 to Length(FRefShape) - 1 do
-    FRefShape[i] := 1;
-  for i := 0 to length(ref.Shape) - 1 do
-    FRefShape[i] := ReverseIntArr(ref.Shape)[i];
-  FRefShape      := ReverseIntArr(FRefShape);
-end;
-
-function TTensorProxy.GetValByOffset(offset: longint): double;
-var
-  expectedIndex, mappedIndex: TIntVector;
-  i: longint;
-begin
-  //Writeln('TTensorProxy.GetValByOffset was called');
-  expectedIndex := OffsetToIndex(offset, FTargetShape);
-
-  SetLength(mappedIndex, Length(expectedIndex));
-
-  { map expected index to the proper index }
-  for i := 0 to Length(expectedIndex) - 1 do
-    if expectedIndex[i] > FRefShape[i] - 1 then
-      mappedIndex[i] := 0
-    else
-      mappedIndex[i] := expectedIndex[i];
-
-  Result := FRef.Val[IndexToOffset(mappedIndex, FRefShape)];
-end;
-
-function TTensorProxy.MapOffset(offset: longint): longint;
-var
-  expectedIndex, mappedIndex: TIntVector;
-  i: longint;
-begin
-  expectedIndex := OffsetToIndex(offset, FTargetShape);
-
-  SetLength(mappedIndex, Length(expectedIndex));
-
-  { map expected index to the proper index }
-  for i := 0 to Length(expectedIndex) - 1 do
-    if expectedIndex[i] > FRefShape[i] - 1 then
-      mappedIndex[i] := 0
-    else
-      mappedIndex[i] := expectedIndex[i];
-
-  Result := IndexToOffset(mappedIndex, FRefShape);
-end;
-
-procedure TTensorProxy.GenerateIndex;
-var
-  i: longint;
-begin
-  SetLength(FIndices, Length(FRef.Val));
-  for i := 0 to Length(FRef.Val) - 1 do
-    FIndices[i] := MapOffset(i);
 end;
 
 function TTensor.GetAt(Index: array of longint): TTensor;
@@ -1327,22 +1229,10 @@ begin
     Result[i] := max(revA[i], revB[i]);
 end;
 
-function Broadcast(A, B: TTensor): TBroadcastResult;
-var
-  outDim: TIntVector;
-begin
-  outDim   := GetBroadcastDims(A, B);
-  Result.A := TTensorProxy.Create(A, outDim);
-  Result.B := TTensorProxy.Create(B, outDim);
-  Result.broadcastShape := copy(outDim);
-
-end;
-
 function TileColumn(A: TTensor; n: longint): TTensor;
 var
-  i, j, OutSize: longint;
+  i, j: longint;
 begin
-  OutSize := A.Size * n;
   Result := CreateEmptyTensor([A.Shape[0], n]);
   for i := 0 to A.Shape[0] - 1 do
     for j := 0 to n-1 do

@@ -1299,7 +1299,6 @@ end;
 function ApplyBfunc(A, B: TTensor; Func: TBFunc): TTensor;
 var
   i: longint;
-  br: TBroadcastResult;
   A_bcast, B_bcast: TTensor;
   outdim: TIntVector;
 begin
