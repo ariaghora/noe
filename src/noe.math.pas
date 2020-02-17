@@ -1306,7 +1306,6 @@ begin
   { if the dimensions are the same, perform usual element-wise operation }
   if IntVectorEquals(A.Shape, B.Shape) then
   begin
-
     { ---------- If you can BLAS it, BLAS it ---------- }
     if (Func = @AddF) and IsBlasfuncAvailable(blas_daxpy) then
       exit(Add_BLAS(A, B));
@@ -1325,10 +1324,8 @@ begin
     { If either one is a scalar, i.e., A.Size=1 or B.Size=1 }
     if (B.Size = 1) then
     begin
-      //Writeln('tensor-scalar broadcasting');
+      { tensor-scalar broadcasting. }
       Result := CreateEmptyTensor(A.Shape);
-      //SetLength(Result.Val, ShapeToSize(A.Shape));
-      //Result.ReshapeInplace(A.Shape);
       for i := 0 to Length(A.Val) - 1 do
         Result.Val[i] := Func(A.Val[i], B.Val[0]);
       exit;
@@ -1336,10 +1333,8 @@ begin
 
     if (A.Size = 1) then
     begin
-      //Writeln('scalar-tensor broadcasting');
+      { scalar-tensor broadcasting. }
       Result := CreateEmptyTensor(B.Shape);
-      //SetLength(Result.Val, ShapeToSize(B.Shape));
-      //Result.ReshapeInplace(B.Shape);
       for i := 0 to Length(B.Val) - 1 do
         Result.Val[i] := Func(A.Val[0], B.Val[i]);
       exit;
@@ -1351,11 +1346,10 @@ begin
       "tile" it to match the output shape. The trade-off is storage complexity. }
     if (A.NDims = 2) and (B.NDims = 2) then
     begin
-      //Writeln('2-tensor-2-tenspr tensor broadcast bfunc.');
-      //Writeln('Correcting...');
-
+      { 2-tensor-2-tenspr tensor broadcast bfunc. }
       outdim := GetBroadcastDims(a, b);
-      //handle A
+
+      // handle A
       if A.Shape[0] < outdim[0] then
         A_bcast := TileRow(A, outdim[0])
       else if A.Shape[1] < outdim[1] then
@@ -1363,7 +1357,7 @@ begin
       else
         A_bcast := A;
 
-      //handle B
+      // handle B
       if B.Shape[0] < outdim[0] then
         B_bcast := TileRow(B, outdim[0])
       else if B.Shape[1] < outdim[1] then
@@ -1376,17 +1370,14 @@ begin
     end
     else
     begin
-      //Writeln('General tensor broadcast bfunc');
+      { General tensor broadcast bfunc }
+      outdim := GetBroadcastDims(A, B);
+      if not IntVectorEquals(A.Shape, outdim) then
+         A := BroadcastTo(A, outdim);
+      if not IntVectorEquals(B.Shape, outdim) then
+         B := BroadcastTo(B, outdim);
 
-      { Otherwise, perform general broadcasting with any dimension }
-      br := Broadcast(A, B);
-
-      Result.ReshapeInplace(br.broadcastShape);
-      SetLength(Result.Val, ShapeToSize(br.broadcastShape));
-
-      { apply binary function }
-      for i := 0 to ShapeToSize(br.broadcastShape) - 1 do
-        Result.Val[i] := Func(br.A.Val[i], br.B.Val[i]);
+      Result := ApplyBfunc(A, B, Func);
     end;
   end;
 end;

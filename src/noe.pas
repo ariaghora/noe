@@ -230,6 +230,9 @@ function VFlip(T: TTensor): TTensor;
 
 { Broadcasting ----------------------------------------------------------------}
 
+function AsStrided(X: TTensor; TargetShape, Strides: array of longint): TTensor;
+function BroadcastTo(X: TTensor; TargetShape: array of longint): TTensor;
+
 { Check if two tensors are broadcasatable }
 function IsBroadcastable(A, B: TTensor): boolean;
 function GetBroadcastDims(A, B: TTensor): TIntVector;
@@ -1229,6 +1232,53 @@ begin
   for dtIter := 0 to n - 1 do
     dimTracker[dtIter] := 0;
   iterate(0, res);
+end;
+
+procedure cbAsStrided(val: double; offset: longint; idx: TIntVector;
+    currDim: longint; var T, OutT: TTensor);
+begin
+  OutT.Val[offset] := val;
+end;
+function AsStrided(X: TTensor; TargetShape, Strides: array of longint): TTensor;
+var
+  i: longint;
+  OutStrides: TIntVector;
+begin
+  SetLength(Result.Val, ShapeToSize(TargetShape));
+
+  X.ReshapeInplace(TargetShape);
+  SetLength(OutStrides, Length(strides));
+  for i := 0 to length(Strides) - 1 do
+    OutStrides[i] := Strides[i];
+  X.Strides := OutStrides;
+
+  IterateTensor(X, Result, @cbAsStrided);
+  Result.ReshapeInplace(TargetShape);
+end;
+
+function BroadcastTo(X: TTensor; TargetShape: array of longint): TTensor;
+var
+  OutShape, OutStrides: TIntVector;
+  i: longint;
+begin
+  OutShape   := ReverseIntArr(X.Shape);
+  OutStrides := ReverseIntArr(X.Strides);
+  while length(OutShape) < Length(TargetShape) do
+  begin
+    SetLength(OutShape, Length(OutShape) + 1);
+    OutShape[Length(OutShape) - 1] := 1;
+
+    SetLength(OutStrides, Length(OutStrides) + 1);
+    OutStrides[Length(OutStrides) - 1] := 0;
+  end;
+  OutShape   := ReverseIntArr(OutShape);
+  OutStrides := ReverseIntArr(OutStrides);
+
+  for i := 0 to Length(TargetShape) - 1 do
+    if TargetShape[i] <> OutShape[i] then
+      OutStrides[i] := 0;
+
+  Result := AsStrided(X, TargetShape, OutStrides);
 end;
 
 function IsBroadcastable(A, B: TTensor): boolean;
