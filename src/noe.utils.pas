@@ -49,6 +49,7 @@ procedure VisualizeMatrix(T: TTensor);
 operator in (substr, mainstr: string) b: boolean;
 operator in (str: string; arr: array of string) b: boolean;
 operator in (x: double; arr: array of double) b: boolean;
+operator in (x: longint; arr: array of longint) b: boolean;
 operator = (a, b: array of longint) c: boolean;
 
 implementation
@@ -186,6 +187,19 @@ begin
 end;
 
 operator in(x: double; arr: array of double)b: boolean;
+var
+  i: longint;
+begin
+  result := false;
+  for i:=0 to length(arr)-1 do
+    if x = arr[i] then
+    begin
+      result := true;
+      exit;
+    end;
+end;
+
+operator in(x: longint; arr: array of longint)b: boolean;
 var
   i: longint;
 begin

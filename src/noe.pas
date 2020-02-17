@@ -226,7 +226,7 @@ function CreateTensor(Shape: array of longint; Vals: array of float): TTensor; o
 function Ones(Shape: array of longint): TTensor;
 function RandomTensorNormal(Shape: array of longint): TTensor;
 function RandomTensorBinomial(Shape: array of longint; p: double): TTensor;
-function ReadCSV(fileName: string): TTensor;
+function ReadCSV(fileName: string; NRowSkip: longint = 0): TTensor;
 function Zeros(Shape: array of longint): TTensor;
 
 
@@ -819,12 +819,12 @@ begin
     Result.Val[i] := ifthen(random > p, 0, 1);
 end;
 
-function ReadCSV(fileName: string): TTensor;
+function ReadCSV(fileName: string; NRowSkip: longint): TTensor;
 var
   s, number: string;
   sl: TStringList;
   InFile: Text;
-  RowCount, ColCount, offset: longint;
+  i, RowCount, ColCount, offset: longint;
 begin
   Assert(FileExists(filename), 'File does not exist.');
   Assign(InFile, fileName);
@@ -845,12 +845,18 @@ begin
     ReadLn(InFile);
   end;
 
+  Dec(RowCount, NRowSkip);
+
   { actual data handle }
   Result.ReshapeInplace([RowCount, ColCount]);
   SetLength(Result.Val, RowCount * ColCount);
 
   offset := 0;
   Reset(InFile);
+
+  for i := 0 to NRowSkip - 1 do
+    ReadLn(InFile);
+
   while not EOF(InFile) do
   begin
     ReadLn(InFile, s);

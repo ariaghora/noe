@@ -82,7 +82,8 @@ function SoftMax(A: TTensor; axis: byte): TTensor;
 function Subtract(A, B: TTensor): TTensor;
 function Sum(M: TTensor): TTensor;
 function Sum(M: TTensor; axis: byte): TTensor; overload;
-function SumAlongDimension(X: TTensor; dim: longint; KeepDims: boolean = False): TTensor;
+function Sum(X: TTensor; dim: longint; KeepDims: boolean = False): TTensor;
+function Sum(X: TTensor; dims: array of longint; KeepDims: boolean = False): TTensor;
 function Tan(A: TTensor): TTensor;
 function Tanh(A: TTensor): TTensor;
 function Transpose(T: TTensor; dims: array of longint): TTensor;
@@ -558,7 +559,7 @@ begin
   Result := ApplyUfunc(A, @Math.cosh);
 end;
 
-function SumAlongDimension(X: TTensor; dim: longint; KeepDims: boolean): TTensor;
+function Sum(X: TTensor; dim: longint; KeepDims: boolean): TTensor;
 var
   i, j, tmp, DimSize, remSize, outSize, Offset, rep, stride: longint;
   outShape, newDims: TIntVector;
@@ -633,6 +634,38 @@ begin
     end;
     Inc(Offset, remSize);
   end;
+
+  Result.ReshapeInplace(outShape);
+end;
+
+function Sum(X: TTensor; dims: array of longint; KeepDims: boolean): TTensor;
+var
+  i, dim: integer;
+  outShape: TIntVector;
+begin
+  Result := X;
+  for dim in dims do
+    Result := Sum(Result, dim, True);
+
+  outShape := nil;
+
+  if KeepDims then
+    SetLength(outShape, X.NDims);
+
+  for i := 0 to X.NDims - 1 do
+    if not KeepDims then
+    begin
+      if not (i in dims) then
+      begin
+        SetLength(outShape, Length(outShape) + 1);
+        outShape[Length(outShape) - 1] := X.Shape[i];
+      end;
+    end
+    else
+    if (i in dims) then
+      outShape[i] := 1
+    else
+      outShape[i] := X.Shape[i];
 
   Result.ReshapeInplace(outShape);
 end;
@@ -835,22 +868,48 @@ function SoftMax(A: TVariable; axis: byte): TVariable;
 var
   X, Y: TVariable;
 begin
-  //X      := ;
-  //Y      := ;
   Result := Exp((A - Max(A, axis))) / sum(Exp((A - Max(A, axis))), axis);
 end;
 
+//function ReduceTo(Target, Other: TTensor): TTensor;
+//var
+//  ax, i: longint;
+//begin
+//  Result := Target;
+//  ax     := -1;
+//  for i := 0 to Length(Target.Shape) - 1 do
+//    if Target.Shape[i] > Other.Shape[i] then
+//      ax := i;
+//  if ax > -1 then
+//    Result := Sum(Target, ax);
+//end;
+
 function ReduceTo(Target, Other: TTensor): TTensor;
 var
-  ax, i: longint;
+  i: integer;
+  dims, shape1, shape2: array of longint;
 begin
   Result := Target;
-  ax     := -1;
-  for i := 0 to Length(Target.Shape) - 1 do
-    if Target.Shape[i] > Other.Shape[i] then
-      ax := i;
-  if ax > -1 then
-    Result := Sum(Target, ax);
+
+  shape1 := (Target.Shape);
+  shape2 := (Other.Shape);
+
+  SetLength(shape1, Math.Max(Length(shape1), length(shape2)));
+  SetLength(shape2, Math.Max(Length(shape1), length(shape2)));
+
+  dims := nil;
+  for i := 0 to Length(shape2) - 1 do
+    if Shape2[i] <> Shape1[i] then
+    begin
+      SetLength(dims, Length(dims) + 1);
+      dims[Length(dims) - 1] := i;
+    end;
+
+  if Length(dims) > 0 then
+  begin
+    Result := Sum(Result, dims);
+    Result.ReshapeInplace(other.shape);
+  end;
 end;
 
 function Im2ColGetPixel(img: TTensor;
@@ -1372,9 +1431,9 @@ begin
       { General tensor broadcast bfunc }
       outdim := GetBroadcastDims(A, B);
       if not IntVectorEquals(A.Shape, outdim) then
-         A := BroadcastTo(A, outdim);
+        A := BroadcastTo(A, outdim);
       if not IntVectorEquals(B.Shape, outdim) then
-         B := BroadcastTo(B, outdim);
+        B := BroadcastTo(B, outdim);
 
       Result := ApplyBfunc(A, B, Func);
     end;
