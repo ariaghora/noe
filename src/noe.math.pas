@@ -82,6 +82,7 @@ function SoftMax(A: TTensor; axis: byte): TTensor;
 function Subtract(A, B: TTensor): TTensor;
 function Sum(M: TTensor): TTensor;
 function Sum(M: TTensor; axis: byte): TTensor; overload;
+function SumAlongDimension(X: TTensor; dim: longint; KeepDims: boolean = False): TTensor;
 function Tan(A: TTensor): TTensor;
 function Tanh(A: TTensor): TTensor;
 function Transpose(T: TTensor; dims: array of longint): TTensor;
@@ -451,7 +452,7 @@ begin
   IterateTensor(X, Result, @cbTranspose);
 
   Result.ReshapeInplace(OutShape);
-  Result.Strides := outStrides;
+  //Result.Strides := outStrides;
 end;
 
 function ReLU(T: TTensor): TTensor;
@@ -555,6 +556,85 @@ end;
 function Cosh(A: TTensor): TTensor;
 begin
   Result := ApplyUfunc(A, @Math.cosh);
+end;
+
+function SumAlongDimension(X: TTensor; dim: longint; KeepDims: boolean): TTensor;
+var
+  i, j, tmp, DimSize, remSize, outSize, Offset, rep, stride: longint;
+  outShape, newDims: TIntVector;
+  tmpTensor: TTensor;
+begin
+  Assert(dim < X.NDims, 'Dimension out of bound');
+
+  { HACK: if `dim` is the highest dimension, permute tensor w.r.t. two last
+    dimensions. }
+  if dim = X.NDims - 1 then
+  begin
+    dim := dim - 1;
+    SetLength(newDims, X.NDims);
+    for i := 0 to X.NDims - 1 do
+      newDims[i] := i;
+    tmp := newDims[High(newDims)];
+    newDims[High(newDims)] := newDims[High(newDims) - 1];
+    newDims[High(newDims) - 1] := tmp;
+    X   := Transpose(X, newDims);
+  end;
+
+  { The first `dim` is a special case }
+  if dim > 0 then
+    stride := X.Strides[dim - 1]
+  else
+    stride := X.Strides[dim];
+
+  { number of 'raw' rows }
+  rep := 1;
+  if (X.NDims > 1) and (dim <> 0) then
+    if (dim = high(X.Shape)) then
+      rep := X.Shape[dim - 1]
+    else if (dim = 0) then
+      rep := X.Shape[dim + 1]
+    else
+      for i := 0 to dim - 1 do
+        rep := rep * X.Shape[i];
+
+  { given the offset at which we start, determine the block size that should
+    be grouped together }
+  remSize := 1;
+  for i := dim + 1 to X.NDims - 1 do
+    remSize := remSize * X.Shape[i];
+
+  outSize  := 1;    // the resulting size (of `Result.Val`)
+  outShape := nil;  // the resulting shape
+  for i := 0 to High(X.Shape) do
+    if dim <> i then
+    begin
+      outSize := outSize * X.Shape[i];
+      SetLength(outShape, Length(outShape) + 1);
+      outShape[Length(outShape) - 1] := X.Shape[i];
+    end
+    { do not squeeze w.r.t. `dim` if `KeepDims` is true. }
+    else if KeepDims then
+    begin
+      SetLength(outShape, Length(outShape) + 1);
+      outShape[Length(outShape) - 1] := 1;
+    end;
+
+  SetLength(Result.Val, outSize);
+  DimSize := X.Shape[dim];
+  Offset  := 0;
+  for j := 0 to rep - 1 do
+  begin
+    tmpTensor := Zeros([remSize]);
+    for i := 0 to DimSize - 1 do
+    begin
+      tmpTensor := tmpTensor + CreateTensor([remSize], Copy(X.Val, i * X.Strides[dim] +
+        j * stride, remSize));
+      CopyArrayAt(tmpTensor.Val, Result.Val, Offset);
+    end;
+    Inc(Offset, remSize);
+  end;
+
+  Result.ReshapeInplace(outShape);
 end;
 
 function Tan(A: TTensor): TTensor;
