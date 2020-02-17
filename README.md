@@ -12,7 +12,7 @@
 </div>
 
 Noe is a framework to build neural networks (and hence, the name — noe (뇌): brain: 🧠) in pure object pascal. Yes, pascal, so you will have readable codes and pretty fast compiled executable binary. Some of its key features:
-- Automatic gradient computation
+- Automatic differentiation
 - Creation of arbitrary rank tensor (a.k.a. ndarray)
 - Numpy-style broadcasting
 - Interface with *OpenBLAS* for some heavy-lifting
@@ -32,7 +32,7 @@ y   := Enc.Encode(Squeeze(y));
 ```
 
 ## High-level neural network API
-With autograd, it is possible to make of neural networks in various degree of abstraction. You can control the flow of of the network, even design a custom fancy loss function. For the high level API, there are several implementation of neural network layers, optimizers, along with `TModel` class helper, so you can prototype your network quickly.
+With automatic differentiation, it is possible to make of neural networks in various degree of abstraction. You can control the flow of of the network, even design a custom fancy loss function. For the high level API, there are several implementation of neural network layers, optimizers, along with `TModel` class helper, so you can prototype your network quickly.
 ```delphi
 { Initialize the model. }
 NNModel := TModel.Create([
