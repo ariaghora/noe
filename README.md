@@ -15,8 +15,8 @@ Noe is a framework to build neural networks (and hence, the name — noe (뇌): 
 - Automatic differentiation
 - Creation of arbitrary rank tensor (a.k.a. ndarray)
 - Numpy-style broadcasting
-- Interface with *OpenBLAS* for some heavy-lifting
-- Interface with *GNU plot* for plotting
+- (Optional) interface with *OpenBLAS* for some heavy-lifting
+- (Optional) interface with *GNU plot* for plotting
 
 Batteries are also included. Noe provides several tensor creation and preprocessing helper functionalities.
 
