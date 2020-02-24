@@ -46,8 +46,6 @@ var
   optimizer: TAdamOptimizer;
   TrainingAcc, TestingAcc: double;
 
-  foo : TTensor;
-
 begin
   RandSeed := 1;
 
