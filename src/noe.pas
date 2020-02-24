@@ -16,7 +16,7 @@ uses
   Classes, Math, strutils, SysUtils, fgl;
 
 type
-  NFloat = double;
+  NFloat = single;
 
   TIntVector   = array of longint;
   TFloatVector = array of NFloat;
