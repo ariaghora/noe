@@ -26,10 +26,10 @@ uses
 
 type
   { Wrapping FPC's f:R->R unary functions in math unit }
-  TUFunc = function(v: float): float;
+  TUFunc = function(v: NFloat): NFloat;
 
   { Wrapping FPC's f:RxR->R binary functions in math unit }
-  TBFunc = function(v1, v2: float): float;
+  TBFunc = function(v1, v2: NFloat): NFloat;
 
 { Helper to apply a function on each tensor's element }
 function ApplyUfunc(A: TTensor; Func: TUFunc): TTensor;
@@ -38,15 +38,24 @@ function IsBlasfuncAvailable(Func: Pointer): boolean;
 
 { Some of functions belong to system unit are in different format. Hence, they
   need to be wrapped to make them compatible. They are given suffix "F"
-  (indicating float-valued function) to avoid confusion. }
-function Sin_F(x: float): float;
-function Cos_F(x: float): float;
-function Exp_F(x: float): float;
-function Ln_F(x: float): float;
-function AddF(v1, v2: float): float;
-function SubtractF(v1, v2: float): float;
-function DivideF(v1, v2: float): float;
-function MultiplyF(v1, v2: float): float;
+  (indicating NFloat-valued function) to avoid confusion. }
+function Sin_F(x: NFloat): NFloat;
+function Cos_F(x: NFloat): NFloat;
+function Cosh_F(x: NFloat): NFloat;
+function Exp_F(x: NFloat): NFloat;
+function Ln_F(x: NFloat): NFloat;
+function Log2_F(x: NFloat):NFloat;
+function Log10_F(x: NFloat):NFloat;
+function Add_F(v1, v2: NFloat): NFloat;
+function Subtract_F(v1, v2: NFloat): NFloat;
+function Divide_F(v1, v2: NFloat): NFloat;
+function DegToRad_F(x: NFloat): NFloat;
+function Multiply_F(v1, v2: NFloat): NFloat;
+function Power_F(v1, v2: NFloat): NFloat;
+function RadToDeg_F(x: NFloat): NFloat;
+function Sinh_F(x: NFloat): NFloat;
+function Tan_F(x: NFloat): NFloat;
+function Tanh_F(x: NFloat): NFloat;
 
 { TTensor math ----------------------------------------------------------------}
 
@@ -60,7 +69,7 @@ function Cosh(A: TTensor): TTensor;
 function DegToRad(A: TTensor): TTensor;
 function Divide(A, B: TTensor): TTensor;
 function Exp(A: TTensor): TTensor;
-function LeakyReLU(A: TTensor; v: float): TTensor;
+function LeakyReLU(A: TTensor; v: NFloat): TTensor;
 function Log10(A: TTensor): TTensor;
 function Log2(A: TTensor): TTensor;
 function Log(A: TTensor): TTensor;
@@ -71,7 +80,7 @@ function Max(M: TTensor; axis: byte): TTensor;
 function Mean(M: TTensor): TTensor;
 function Mean(M: TTensor; axis: byte): TTensor;
 function Multiply(A, B: TTensor): TTensor;
-function Power(A: TTensor; exponent: float): TTensor; overload;
+function Power(A: TTensor; exponent: NFloat): TTensor; overload;
 function Power(A, B: TTensor): TTensor; overload;
 function RadToDeg(A: TTensor): TTensor;
 function ReLU(T: TTensor): TTensor;
@@ -106,14 +115,14 @@ function Conv2D(X, w: TVariable;
 function Cosh(A: TVariable): TVariable;
 function Divide(A, B: TVariable): TVariable;
 function Exp(A: TVariable): TVariable;
-function LeakyReLU(A: TVariable; v: float): TVariable; overload;
+function LeakyReLU(A: TVariable; v: NFloat): TVariable; overload;
 function Log(A: TVariable): TVariable;
 function Max(A: TVariable): TVariable;
 function Max(A: TVariable; axis: byte): TVariable; overload;
 function Mean(A: TVariable; axis: byte): TVariable;
 function Mean(A: TVariable): TVariable; overload;
 function Multiply(A, B: TVariable): TVariable;
-function MultiplyC(A: TVariable; x: float): TVariable;
+function MultiplyC(A: TVariable; x: NFloat): TVariable;
 function MatMul(A, B: TVariable): TVariable;
 function Negate(A: TVariable): TVariable;
 function ReLU(A: TVariable): TVariable;
@@ -168,29 +177,69 @@ function Im2ColBatch(X: TTensor;
 
 implementation
 
-function AddF(v1, v2: float): float;
+function Log2_F(x: NFloat): NFloat;
+begin
+  Result := Math.log2(x);
+end;
+
+function Log10_F(x: NFloat): NFloat;
+begin
+  Result := Math.log10(x);
+end;
+
+function Add_F(v1, v2: NFloat): NFloat;
 begin
   Result := v1 + v2;
 end;
 
-function SubtractF(v1, v2: float): float;
+function Subtract_F(v1, v2: NFloat): NFloat;
 begin
   Result := v1 - v2;
 end;
 
-function DivideF(v1, v2: float): float;
+function Divide_F(v1, v2: NFloat): NFloat;
 begin
   Result := v1 / v2;
 end;
 
-function MultiplyF(v1, v2: float): float;
+function DegToRad_F(x: NFloat): NFloat;
+begin
+  Result := Math.degtograd(x);
+end;
+
+function Multiply_F(v1, v2: NFloat): NFloat;
 begin
   Result := v1 * v2;
 end;
 
+function Power_F(v1, v2: NFloat): NFloat;
+begin
+  Result := Math.power(v1, v2);
+end;
+
+function RadToDeg_F(x: NFloat): NFloat;
+begin
+  Result := Math.radtodeg(x);
+end;
+
+function Sinh_F(x: NFloat): NFloat;
+begin
+  Result := Math.sinh(x);
+end;
+
+function Tan_F(x: NFloat): NFloat;
+begin
+  Result := Math.tan(x);
+end;
+
+function Tanh_F(x: NFloat): NFloat;
+begin
+  Result := Math.tanh(x);
+end;
+
 function Add(A, B: TTensor): TTensor;
 begin
-  Result := ApplyBfunc(A, B, @AddF);
+  Result := ApplyBfunc(A, B, @Add_F);
 end;
 
 //function Convolve2D(A, w: TTensor): TTensor;
@@ -200,17 +249,17 @@ end;
 
 function Subtract(A, B: TTensor): TTensor;
 begin
-  Result := ApplyBfunc(A, B, @SubtractF);
+  Result := ApplyBfunc(A, B, @Subtract_F);
 end;
 
 function Divide(A, B: TTensor): TTensor;
 begin
-  Result := ApplyBfunc(A, B, @DivideF);
+  Result := ApplyBfunc(A, B, @Divide_F);
 end;
 
 function Multiply(A, B: TTensor): TTensor;
 begin
-  Result := ApplyBfunc(A, B, @MultiplyF);
+  Result := ApplyBfunc(A, B, @Multiply_F);
 end;
 
 function MatMul(A, B: TTensor): TTensor;
@@ -357,15 +406,15 @@ end;
 
 function DegToRad(A: TTensor): TTensor;
 begin
-  Result := ApplyUfunc(A, @Math.degtorad);
+  Result := ApplyUfunc(A, @DegToRad_F);
 end;
 
 function RadToDeg(A: TTensor): TTensor;
 begin
-  Result := ApplyUfunc(A, @Math.radtodeg);
+  Result := ApplyUfunc(A, @RadToDeg_F);
 end;
 
-function LeakyReLU(A: TTensor; v: float): TTensor;
+function LeakyReLU(A: TTensor; v: NFloat): TTensor;
 var
   i: longint;
 begin
@@ -376,12 +425,12 @@ end;
 
 function Log10(A: TTensor): TTensor;
 begin
-  Result := ApplyUfunc(A, @Math.log10);
+  Result := ApplyUfunc(A, @Log10_F);
 end;
 
 function Log2(A: TTensor): TTensor;
 begin
-  Result := ApplyUfunc(A, @Math.log2);
+  Result := ApplyUfunc(A, @Log2_F);
 end;
 
 function Log(A: TTensor): TTensor;
@@ -425,7 +474,7 @@ begin
       Result.Val[j * T.Shape[0] + i] := T.Val[i * T.Shape[1] + j];
 end;
 
-procedure cbTranspose(val: float; offset: longint; idx: TIntVector;
+procedure cbTranspose(val: NFloat; offset: longint; idx: TIntVector;
   currDim: longint; var T, OutT: TTensor);
 begin
   OutT.Val[offset] := val;
@@ -466,22 +515,27 @@ begin
     Result.Val[i] := Max(0, T.Val[i]);
 end;
 
-function Sin_F(x: float): float;
+function Sin_F(x: NFloat): NFloat;
 begin
   Result := System.Sin(x);
 end;
 
-function Cos_F(x: float): float;
+function Cos_F(x: NFloat): NFloat;
 begin
   Result := System.Cos(x);
 end;
 
-function Exp_F(x: float): float;
+function Cosh_F(x: NFloat): NFloat;
+begin
+  Result := Math.Cosh(x);
+end;
+
+function Exp_F(x: NFloat): NFloat;
 begin
   Result := System.exp(x);
 end;
 
-function Ln_F(x: float): float;
+function Ln_F(x: NFloat): NFloat;
 begin
   Result := system.ln(x);
 end;
@@ -498,7 +552,7 @@ end;
 
 function Sinh(A: TTensor): TTensor;
 begin
-  Result := ApplyUfunc(A, @Math.sinh);
+  Result := ApplyUfunc(A, @Sinh_F);
 end;
 
 { copy entire items in `Src` to `Dest` at position `offset` }
@@ -556,7 +610,7 @@ end;
 
 function Cosh(A: TTensor): TTensor;
 begin
-  Result := ApplyUfunc(A, @Math.cosh);
+  Result := ApplyUfunc(A, @Cosh_F);
 end;
 
 function Sum(X: TTensor; dim: longint; KeepDims: boolean): TTensor;
@@ -672,22 +726,22 @@ end;
 
 function Tan(A: TTensor): TTensor;
 begin
-  Result := ApplyUfunc(A, @Math.tan);
+  Result := ApplyUfunc(A, @Tan_F);
 end;
 
 function Tanh(A: TTensor): TTensor;
 begin
-  Result := ApplyUfunc(A, @Math.tanh);
+  Result := ApplyUfunc(A, @Tanh_F);
 end;
 
-function Power(A: TTensor; exponent: float): TTensor;
+function Power(A: TTensor; exponent: NFloat): TTensor;
 begin
-  Result := ApplyBfunc(A, exponent, @Math.power);
+  Result := ApplyBfunc(A, exponent, @Power_F);
 end;
 
 function Power(A, B: TTensor): TTensor;
 begin
-  Result := ApplyBfunc(A, B, @Math.power);
+  Result := ApplyBfunc(A, B, @Power_F);
 end;
 
 function Exp(A: TTensor): TTensor;
@@ -749,7 +803,7 @@ begin
     @BackwardMultiply);
 end;
 
-function MultiplyC(A: TVariable; x: float): TVariable;
+function MultiplyC(A: TVariable; x: NFloat): TVariable;
 begin
   Result := TVariable.Create(noe.Math.Multiply(A.Data, x), 'ForwardMultiplyC',
     @BackwardMultiplyC);
@@ -786,7 +840,7 @@ begin
   CreateOrUpdateOpNode(Result, 'ForwardCosh', [A], Cosh(A.Data), @BackwardCosh);
 end;
 
-function LeakyReLU(A: TVariable; v: float): TVariable;
+function LeakyReLU(A: TVariable; v: NFloat): TVariable;
 begin
   CreateOrUpdateOpNode(Result, 'ForwardLeakyReLU', [A, v], LeakyReLU(A.Data, v),
     @BackwardLeakyReLU);
@@ -913,7 +967,7 @@ begin
 end;
 
 function Im2ColGetPixel(img: TTensor;
-  Height, Width, channels, row, col, channel, padH, padW: longint): float;
+  Height, Width, channels, row, col, channel, padH, padW: longint): NFloat;
 var
   r, c: longint;
 begin
@@ -1137,7 +1191,7 @@ end;
 
 procedure BackwardMax(arr: TVariableArr; ADy: TTensor);
 var
-  maxval: float;
+  maxval: NFloat;
   A: TTensor;
   i: integer;
 begin
@@ -1186,7 +1240,7 @@ var
   forMultiPlying: TFloatVector;
   dims, combos, broadcastCombos: TIntVectorArr;
   s: string;
-  plug, Value, v: float;
+  plug, Value, v: NFloat;
 
   function Combo(dimension: array of longint): TIntVectorArr;
   var
@@ -1365,7 +1419,7 @@ begin
   if IntVectorEquals(A.Shape, B.Shape) then
   begin
     { ---------- If you can BLAS it, BLAS it ---------- }
-    if (Func = @AddF) and IsBlasfuncAvailable(blas_daxpy) then
+    if (Func = @Add_F) and IsBlasfuncAvailable(blas_daxpy) then
       exit(Add_BLAS(A, B));
 
     { ---------- Otherwise, go vanilla ---------- }

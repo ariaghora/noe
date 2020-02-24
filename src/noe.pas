@@ -16,8 +16,10 @@ uses
   Classes, Math, strutils, SysUtils, fgl;
 
 type
+  NFloat = double;
+
   TIntVector   = array of longint;
-  TFloatVector = array of double;
+  TFloatVector = array of NFloat;
   TVariable    = class;
 
   { TTensor }
@@ -65,7 +67,7 @@ type
     BLASFileName: string;
   end;
 
-  TCallback = procedure(val: float; offset:longint; idx: TIntVector; currDim: longint; var T, OutT: TTensor);
+  TCallback = procedure(val: NFloat; offset:longint; idx: TIntVector; currDim: longint; var T, OutT: TTensor);
 
   { The wrapper of TTensor that also acts as a single node in a computaional graph }
   PVariable = ^TVariable;
@@ -221,8 +223,8 @@ procedure IterateTensor(T, OutT: TTensor; Callback: TCallback);
 { Tensor creation ------------------------------------------------------------ }
 function CopyTensor(A: TTensor): TTensor;
 function CreateEmptyTensor(Shape: array of longint): TTensor;
-function CreateTensor(Shape: array of longint; Val: float): TTensor; overload;
-function CreateTensor(Shape: array of longint; Vals: array of float): TTensor; overload;
+function CreateTensor(Shape: array of longint; Val: NFloat): TTensor; overload;
+function CreateTensor(Shape: array of longint; Vals: array of NFloat): TTensor; overload;
 function Ones(Shape: array of longint): TTensor;
 function RandomTensorNormal(Shape: array of longint): TTensor;
 function RandomTensorBinomial(Shape: array of longint; p: double): TTensor;
@@ -881,7 +883,7 @@ begin
   Result.Strides := ShapeToStride(Shape);
 end;
 
-function CreateTensor(Shape: array of longint; Val: float): TTensor;
+function CreateTensor(Shape: array of longint; Val: NFloat): TTensor;
 var
   i: longint;
 begin
@@ -890,7 +892,7 @@ begin
     Result.Val[i] := Val;
 end;
 
-function CreateTensor(Shape: array of longint; Vals: array of float): TTensor;
+function CreateTensor(Shape: array of longint; Vals: array of NFloat): TTensor;
 var
   i, size: longint;
 begin
@@ -1142,7 +1144,7 @@ begin
   iterate(0, res);
 end;
 
-procedure cbAsStrided(val: double; offset: longint; idx: TIntVector;
+procedure cbAsStrided(val: NFloat; offset: longint; idx: TIntVector;
     currDim: longint; var T, OutT: TTensor);
 begin
   OutT.Val[offset] := val;
@@ -1323,7 +1325,7 @@ var
     end;
   end;
 
-  function MaxAbs(arr: array of double): double;
+  function MaxAbs(arr: array of NFloat): double;
   var
     i: double;
   begin

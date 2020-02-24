@@ -65,13 +65,13 @@ type
 
   TDropoutLayer = class(TLayer)
   private
-    FDropoutRate: double;
+    FDropoutRate: float;
     FUseDropout:  boolean;
     function GetUseDropout: boolean;
   public
-    constructor Create(ADropoutRate: double);
+    constructor Create(ADropoutRate: float);
     function Eval(X: TVariable): TVariable; override;
-    property DropoutRate: double read FDropoutRate write FDropoutRate;
+    property DropoutRate: float read FDropoutRate write FDropoutRate;
     property UseDropout: boolean read GetUseDropout write FUseDropout;
   end;
 
@@ -79,11 +79,11 @@ type
 
   TLeakyReLULayer = class(TLayer)
   private
-    FAlpha: double;
+    FAlpha: float;
   public
-    constructor Create(AAlpha: double);
+    constructor Create(AAlpha: float);
     function Eval(X: TVariable): TVariable; override;
-    property Alpha: double read FAlpha write FAlpha;
+    property Alpha: float read FAlpha write FAlpha;
   end;
 
   { TReLULayer }
@@ -137,10 +137,10 @@ type
   end;
 
 { Loss functions }
-function AccuracyScore(predicted, actual: TTensor): double;
+function AccuracyScore(predicted, actual: TTensor): float;
 function BinaryCrossEntropyLoss(ypred, ytrue: TVariable): TVariable;
 function CrossEntropyLoss(ypred, ytrue: TVariable): TVariable;
-function L2Regularization(Model: TModel; Lambda: double = 0.001): TVariable;
+function L2Regularization(Model: TModel; Lambda: float = 0.001): TVariable;
 
 { Utilities }
 function CreateBatch(X: TTensor; BatchSize: integer): TTensorArr;
@@ -167,7 +167,7 @@ begin
   Result := -Sum(ytrue * Log(ypred)) / ypred.Shape[0];
 end;
 
-function L2Regularization(Model: TModel; Lambda: double): TVariable;
+function L2Regularization(Model: TModel; Lambda: float): TVariable;
 var
   param: TVariable;
 begin
@@ -212,9 +212,6 @@ begin
 
 end;
 
-
-
-
 function JSONArrayToFloatVector(arr: TJSONArray): TFloatVector;
 var
   i: longint;
@@ -224,7 +221,7 @@ begin
     Result[i] := arr[i].AsFloat;
 end;
 
-function FloatVectorToJSONArray(arr: array of double): TJSONArray;
+function FloatVectorToJSONArray(arr: array of NFloat): TJSONArray;
 var
   i: longint;
 begin
@@ -370,10 +367,10 @@ begin
   LayersJSONArr.Free;
 end;
 
-function AccuracyScore(predicted, actual: TTensor): double;
+function AccuracyScore(predicted, actual: TTensor): float;
 var
   i: integer;
-  tot: double;
+  tot: float;
 begin
   tot := 0;
   for i := 0 to predicted.Size - 1 do
@@ -422,7 +419,7 @@ end;
 
 { TLeakyReLULayer }
 
-constructor TLeakyReLULayer.Create(AAlpha: double);
+constructor TLeakyReLULayer.Create(AAlpha: float);
 begin
   self.Alpha := AAlpha;
 end;
@@ -449,7 +446,7 @@ begin
     Result := self.FUseDropout;
 end;
 
-constructor TDropoutLayer.Create(ADropoutRate: double);
+constructor TDropoutLayer.Create(ADropoutRate: float);
 begin
   self.DropoutRate := ADropoutRate;
   self.UseDropout  := True;
