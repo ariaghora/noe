@@ -29,7 +29,7 @@ type
   TUFunc = function(v: float): float;
 
   { Wrapping FPC's f:RxR->R binary functions in math unit }
-  TBFunc = function(v1, v2: double): double;
+  TBFunc = function(v1, v2: float): float;
 
 { Helper to apply a function on each tensor's element }
 function ApplyUfunc(A: TTensor; Func: TUFunc): TTensor;
@@ -38,15 +38,15 @@ function IsBlasfuncAvailable(Func: Pointer): boolean;
 
 { Some of functions belong to system unit are in different format. Hence, they
   need to be wrapped to make them compatible. They are given suffix "F"
-  (indicating double-valued function) to avoid confusion. }
-function Sin_F(x: double): double;
-function Cos_F(x: double): double;
-function Exp_F(x: double): double;
-function Ln_F(x: double): double;
-function AddF(v1, v2: double): double;
-function SubtractF(v1, v2: double): double;
-function DivideF(v1, v2: double): double;
-function MultiplyF(v1, v2: double): double;
+  (indicating float-valued function) to avoid confusion. }
+function Sin_F(x: float): float;
+function Cos_F(x: float): float;
+function Exp_F(x: float): float;
+function Ln_F(x: float): float;
+function AddF(v1, v2: float): float;
+function SubtractF(v1, v2: float): float;
+function DivideF(v1, v2: float): float;
+function MultiplyF(v1, v2: float): float;
 
 { TTensor math ----------------------------------------------------------------}
 
@@ -60,7 +60,7 @@ function Cosh(A: TTensor): TTensor;
 function DegToRad(A: TTensor): TTensor;
 function Divide(A, B: TTensor): TTensor;
 function Exp(A: TTensor): TTensor;
-function LeakyReLU(A: TTensor; v: double): TTensor;
+function LeakyReLU(A: TTensor; v: float): TTensor;
 function Log10(A: TTensor): TTensor;
 function Log2(A: TTensor): TTensor;
 function Log(A: TTensor): TTensor;
@@ -71,7 +71,7 @@ function Max(M: TTensor; axis: byte): TTensor;
 function Mean(M: TTensor): TTensor;
 function Mean(M: TTensor; axis: byte): TTensor;
 function Multiply(A, B: TTensor): TTensor;
-function Power(A: TTensor; exponent: double): TTensor; overload;
+function Power(A: TTensor; exponent: float): TTensor; overload;
 function Power(A, B: TTensor): TTensor; overload;
 function RadToDeg(A: TTensor): TTensor;
 function ReLU(T: TTensor): TTensor;
@@ -106,14 +106,14 @@ function Conv2D(X, w: TVariable;
 function Cosh(A: TVariable): TVariable;
 function Divide(A, B: TVariable): TVariable;
 function Exp(A: TVariable): TVariable;
-function LeakyReLU(A: TVariable; v: double): TVariable; overload;
+function LeakyReLU(A: TVariable; v: float): TVariable; overload;
 function Log(A: TVariable): TVariable;
 function Max(A: TVariable): TVariable;
 function Max(A: TVariable; axis: byte): TVariable; overload;
 function Mean(A: TVariable; axis: byte): TVariable;
 function Mean(A: TVariable): TVariable; overload;
 function Multiply(A, B: TVariable): TVariable;
-function MultiplyC(A: TVariable; x: double): TVariable;
+function MultiplyC(A: TVariable; x: float): TVariable;
 function MatMul(A, B: TVariable): TVariable;
 function Negate(A: TVariable): TVariable;
 function ReLU(A: TVariable): TVariable;
@@ -168,22 +168,22 @@ function Im2ColBatch(X: TTensor;
 
 implementation
 
-function AddF(v1, v2: double): double;
+function AddF(v1, v2: float): float;
 begin
   Result := v1 + v2;
 end;
 
-function SubtractF(v1, v2: double): double;
+function SubtractF(v1, v2: float): float;
 begin
   Result := v1 - v2;
 end;
 
-function DivideF(v1, v2: double): double;
+function DivideF(v1, v2: float): float;
 begin
   Result := v1 / v2;
 end;
 
-function MultiplyF(v1, v2: double): double;
+function MultiplyF(v1, v2: float): float;
 begin
   Result := v1 * v2;
 end;
@@ -365,7 +365,7 @@ begin
   Result := ApplyUfunc(A, @Math.radtodeg);
 end;
 
-function LeakyReLU(A: TTensor; v: double): TTensor;
+function LeakyReLU(A: TTensor; v: float): TTensor;
 var
   i: longint;
 begin
@@ -425,7 +425,7 @@ begin
       Result.Val[j * T.Shape[0] + i] := T.Val[i * T.Shape[1] + j];
 end;
 
-procedure cbTranspose(val: double; offset: longint; idx: TIntVector;
+procedure cbTranspose(val: float; offset: longint; idx: TIntVector;
   currDim: longint; var T, OutT: TTensor);
 begin
   OutT.Val[offset] := val;
@@ -466,22 +466,22 @@ begin
     Result.Val[i] := Max(0, T.Val[i]);
 end;
 
-function Sin_F(x: double): double;
+function Sin_F(x: float): float;
 begin
   Result := System.Sin(x);
 end;
 
-function Cos_F(x: double): double;
+function Cos_F(x: float): float;
 begin
   Result := System.Cos(x);
 end;
 
-function Exp_F(x: double): double;
+function Exp_F(x: float): float;
 begin
   Result := System.exp(x);
 end;
 
-function Ln_F(x: double): double;
+function Ln_F(x: float): float;
 begin
   Result := system.ln(x);
 end;
@@ -680,7 +680,7 @@ begin
   Result := ApplyUfunc(A, @Math.tanh);
 end;
 
-function Power(A: TTensor; exponent: double): TTensor;
+function Power(A: TTensor; exponent: float): TTensor;
 begin
   Result := ApplyBfunc(A, exponent, @Math.power);
 end;
@@ -749,7 +749,7 @@ begin
     @BackwardMultiply);
 end;
 
-function MultiplyC(A: TVariable; x: double): TVariable;
+function MultiplyC(A: TVariable; x: float): TVariable;
 begin
   Result := TVariable.Create(noe.Math.Multiply(A.Data, x), 'ForwardMultiplyC',
     @BackwardMultiplyC);
@@ -786,7 +786,7 @@ begin
   CreateOrUpdateOpNode(Result, 'ForwardCosh', [A], Cosh(A.Data), @BackwardCosh);
 end;
 
-function LeakyReLU(A: TVariable; v: double): TVariable;
+function LeakyReLU(A: TVariable; v: float): TVariable;
 begin
   CreateOrUpdateOpNode(Result, 'ForwardLeakyReLU', [A, v], LeakyReLU(A.Data, v),
     @BackwardLeakyReLU);
@@ -913,7 +913,7 @@ begin
 end;
 
 function Im2ColGetPixel(img: TTensor;
-  Height, Width, channels, row, col, channel, padH, padW: longint): double;
+  Height, Width, channels, row, col, channel, padH, padW: longint): float;
 var
   r, c: longint;
 begin
@@ -1137,7 +1137,7 @@ end;
 
 procedure BackwardMax(arr: TVariableArr; ADy: TTensor);
 var
-  maxval: double;
+  maxval: float;
   A: TTensor;
   i: integer;
 begin
@@ -1186,7 +1186,7 @@ var
   forMultiPlying: TFloatVector;
   dims, combos, broadcastCombos: TIntVectorArr;
   s: string;
-  plug, Value, v: double;
+  plug, Value, v: float;
 
   function Combo(dimension: array of longint): TIntVectorArr;
   var
