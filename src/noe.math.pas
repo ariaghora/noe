@@ -168,7 +168,7 @@ procedure CopyArrayAt(var Src, Dest: TFloatVector; offset: longint);
 
 { Ported from Darknet
   https://github.com/pjreddie/darknet/blob/master/src/col2im.c }
-function Col2Im(imgcol: TTensor; Channels, Height, Width, FilterH, FilterW,
+function Col2Im(var imgcol: TTensor; Channels, Height, Width, FilterH, FilterW,
   PaddingHeight, PaddingWidth, StrideHeight, StrideWidth: longint): TTensor;
 
 { Ported from Darknet
@@ -981,9 +981,12 @@ begin
   r := row - padH;
   c := col - padW;
 
+  if ((r < 0) or (c < 0) or (r >= Height) or (c >= Width)) then
+    Exit;
+  img.Val[c + Width * (r + Height * channel)] := img.Val[c + Width * (r + Height * channel)] + val;
 end;
 
-function Col2Im(imgcol: TTensor; Channels, Height, Width, FilterH, FilterW,
+function Col2Im(var imgcol: TTensor; Channels, Height, Width, FilterH, FilterW,
   PaddingHeight, PaddingWidth, StrideHeight, StrideWidth: longint): TTensor;
 var
   ColHeight, ColWidth: longint;
@@ -1011,8 +1014,8 @@ begin
         colIdx := (c * ColHeight + h) * ColWidth + w;
 
         val := imgcol.Val[colIdx];
-        //Result.Val[colIdx] := Im2ColGetPixel(img, Height, Width,
-        //  Channels, ImRow, ImCol, cIm, PaddingHeight, PaddingWidth);
+        Col2ImAddPixel(imgcol, Height, Width, Channels, ImRow, ImCol, cIm,
+          PaddingHeight, PaddingWidth, val);
       end;
   end;
 
