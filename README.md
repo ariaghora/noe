@@ -52,8 +52,8 @@ optimizer.LearningRate := 0.003;
 for i := 0 to MAX_EPOCH - 1 do
 begin
   { Make a prediction and compute the loss }
-  yPred := NNModel.Eval(XVar);
-  Loss  := CrossEntropyLoss(yPred, yVar) + L2Regularization(NNModel);
+  yPred := NNModel.Eval(X);
+  Loss  := CrossEntropyLoss(yPred, y) + L2Regularization(NNModel);
   
   { Update model parameter w.r.t. the loss }
   optimizer.UpdateParams(Loss, NNModel.Params);
@@ -81,10 +81,10 @@ Optimizer.LearningRate := 0.003;
 for i := 0 to MAX_EPOCH - 1 do
 begin
   { Make the prediction. }
-  ypred := SoftMax(ReLU(XVar.Dot(W1) + b1).Dot(W2) + b2, 1);
+  yPred := SoftMax(ReLU(X.Dot(W1) + b1).Dot(W2) + b2, 1);
 
   { Compute the cross-entropy loss. }
-  CrossEntropyLoss := -Sum(yVar * Log(ypred)) / M;
+  CrossEntropyLoss := -Sum(y * Log(yPred)) / M;
 
   { Your usual L2 regularization term. }
   L2Reg := Sum(W1 * W1) + Sum(W2 * W2);
