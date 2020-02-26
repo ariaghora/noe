@@ -983,7 +983,7 @@ begin
 
   if ((r < 0) or (c < 0) or (r >= Height) or (c >= Width)) then
     Exit;
-  img.Val[c + Width * (r + Height * channel)] := img.Val[c + Width * (r + Height * channel)] + val;
+  img.Val[c + Width * (r + Height * channel)] :=  val;
 end;
 
 function Col2Im(var imgcol: TTensor; Channels, Height, Width, FilterH, FilterW,
@@ -998,8 +998,8 @@ begin
   ColWidth  := (Width + 2 * PaddingWidth - FilterW) div StrideWidth + 1;
   ChannelsCol   := Channels * FilterH * FilterW;
 
-  SetLength(Result.Val, Channels * FilterH * FilterW * ColHeight * ColWidth);
-  Result.ReshapeInplace([Channels * FilterH * FilterW, ColHeight * ColWidth]);
+  SetLength(Result.Val, Channels * Height * Width);
+  Result.ReshapeInplace([Channels, Height, Width]);
 
   for c := 0 to ChannelsCol - 1 do
   begin
@@ -1014,7 +1014,7 @@ begin
         colIdx := (c * ColHeight + h) * ColWidth + w;
 
         val := imgcol.Val[colIdx];
-        Col2ImAddPixel(imgcol, Height, Width, Channels, ImRow, ImCol, cIm,
+        Col2ImAddPixel(Result, Height, Width, Channels, ImRow, ImCol, cIm,
           PaddingHeight, PaddingWidth, val);
       end;
   end;
