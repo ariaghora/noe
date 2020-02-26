@@ -166,10 +166,17 @@ function ReduceTo(Target, Other: TTensor): TTensor;
 
 procedure CopyArrayAt(var Src, Dest: TFloatVector; offset: longint);
 
+{ Ported from Darknet
+  https://github.com/pjreddie/darknet/blob/master/src/col2im.c }
+function Col2Im(imgcol: TTensor; Channels, Height, Width, FilterH, FilterW,
+  PaddingHeight, PaddingWidth, StrideHeight, StrideWidth: longint): TTensor;
 
+{ Ported from Darknet
+  https://github.com/pjreddie/darknet/blob/master/src/im2col.c }
 function Im2Col(img: TTensor;
   Channels, Height, Width, FilterH, FilterW, PaddingHeight, PaddingWidth,
   StrideHeight, StrideWidth: longint): TTensor;
+
 function Im2ColBatch(X: TTensor;
   FilterH, FilterW, PaddingHeight, PaddingWidth, StrideHeight, StrideWidth:
   longint): TTensor;
@@ -925,19 +932,6 @@ begin
   Result := Exp((A - Max(A, axis))) / sum(Exp((A - Max(A, axis))), axis);
 end;
 
-//function ReduceTo(Target, Other: TTensor): TTensor;
-//var
-//  ax, i: longint;
-//begin
-//  Result := Target;
-//  ax     := -1;
-//  for i := 0 to Length(Target.Shape) - 1 do
-//    if Target.Shape[i] > Other.Shape[i] then
-//      ax := i;
-//  if ax > -1 then
-//    Result := Sum(Target, ax);
-//end;
-
 function ReduceTo(Target, Other: TTensor): TTensor;
 var
   i: integer;
@@ -977,6 +971,51 @@ begin
   if ((r < 0) or (c < 0) or (r >= Height) or (c >= Width)) then
     Exit(0);
   Exit(img.Val[c + Width * (r + Height * channel)]);
+end;
+
+procedure Col2ImAddPixel(var img: TTensor;
+  Height, Width, channels, row, col, channel, padH, padW: longint; val: NFloat);
+var
+  r, c: longint;
+begin
+  r := row - padH;
+  c := col - padW;
+
+end;
+
+function Col2Im(imgcol: TTensor; Channels, Height, Width, FilterH, FilterW,
+  PaddingHeight, PaddingWidth, StrideHeight, StrideWidth: longint): TTensor;
+var
+  ColHeight, ColWidth: longint;
+  ChannelsCol, c, h, w, wOffset, hOffset, cIm: longint;
+  ImRow, ImCol, colIdx: longint;
+  val: NFloat;
+begin
+  ColHeight := (Height + 2 * PaddingHeight - FilterH) div StrideHeight + 1;
+  ColWidth  := (Width + 2 * PaddingWidth - FilterW) div StrideWidth + 1;
+  ChannelsCol   := Channels * FilterH * FilterW;
+
+  SetLength(Result.Val, Channels * FilterH * FilterW * ColHeight * ColWidth);
+  Result.ReshapeInplace([Channels * FilterH * FilterW, ColHeight * ColWidth]);
+
+  for c := 0 to ChannelsCol - 1 do
+  begin
+    wOffset := c mod FilterW;
+    hOffset := (c div FilterW) mod FilterH;
+    cIm     := c div FilterH div FilterW;
+    for h := 0 to ColHeight - 1 do
+      for w := 0 to ColWidth - 1 do
+      begin
+        ImRow  := hOffset + h * StrideHeight;
+        ImCol  := wOffset + w * StrideWidth;
+        colIdx := (c * ColHeight + h) * ColWidth + w;
+
+        val := imgcol.Val[colIdx];
+        //Result.Val[colIdx] := Im2ColGetPixel(img, Height, Width,
+        //  Channels, ImRow, ImCol, cIm, PaddingHeight, PaddingWidth);
+      end;
+  end;
+
 end;
 
 function Im2Col(img: TTensor;
