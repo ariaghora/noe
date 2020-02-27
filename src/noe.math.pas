@@ -588,8 +588,9 @@ begin
   ConvOutWidth := (Width + 2 * PaddingWidth - FilterW) div StrideWidth + 1;
   W_     := W.Reshape([W.Shape[0], ConvOutHeight * ConvOutWidth]);
 
-  SetLength(Result.Val, m * Channels * FilterH * FilterW * ConvOutHeight *
+  SetLength(Result.Val, m * W.Shape[0] * ConvOutHeight *
     ConvOutWidth);
+
   offset := 0;
   for i := 0 to m - 1 do
   begin
@@ -839,7 +840,8 @@ function Conv2D(X, w: TVariable;
   PaddingHeight, PaddingWidth, StrideHeight, StrideWidth: longint): TVariable;
 begin
   CreateOrUpdateOpNode(Result, 'ForwardConv2D', [X, w],
-    Conv2D(X.Data, w.Data, 0, 0, 1, 1), @BackwardConv2D);
+    Conv2D(X.Data, w.Data, PaddingHeight, PaddingWidth, StrideHeight,
+    StrideWidth), @BackwardConv2D);
 end;
 
 function Cosh(A: TVariable): TVariable;
