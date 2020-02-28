@@ -975,6 +975,21 @@ begin
   Exit(img.Val[c + Width * (r + Height * channel)]);
 end;
 
+function Im2ColGetPixel(img: TTensor; imgIdx,
+  Height, Width, channels, row, col, channel, padH, padW: longint): NFloat;
+var
+  r, c: longint;
+begin
+  r := row - padH;
+  c := col - padW;
+
+  writeln(Height);
+
+  if ((r < 0) or (c < 0) or (r >= Height) or (c >= Width)) then
+    Exit(0);
+  Exit(img.Val[c + Width * (r + Height * channel)]);
+end;
+
 procedure Col2ImAddPixel(var img: TTensor;
   Height, Width, channels, row, col, channel, padH, padW: longint; val: NFloat);
 var
@@ -1060,8 +1075,8 @@ function Im2ColBatch(X: TTensor;
   longint): TTensor;
 var
   m, ConvOutHeight, ConvOutWidth: longint;
-  ChannelsCol, i, c, h, w, wOffset, hOffset, cIm: longint;
-  ImRow, ImCol, colIdx, Height, Width, channels: longint;
+  i: longint;
+  Height, Width, channels, Offset, sz: longint;
 begin
   m        := X.Shape[0];
   Height   := X.Shape[2];
@@ -1069,27 +1084,19 @@ begin
   channels := X.Shape[1];
   ConvOutHeight := (Height + 2 * PaddingHeight - FilterH) div StrideHeight + 1;
   ConvOutWidth  := (Width + 2 * PaddingWidth - FilterW) div StrideWidth + 1;
-  ChannelsCol   := Channels * FilterH * FilterW;
 
-  SetLength(Result.Val, Channels * FilterH * FilterW * ConvOutHeight * ConvOutWidth * m);
-  Result.ReshapeInplace([Channels * FilterH * FilterW, m*ConvOutHeight * ConvOutWidth]);
+  sz := Channels * FilterH * FilterW * ConvOutHeight * ConvOutWidth;
+
+  SetLength(Result.Val, sz * m);
+  Result.ReshapeInplace([m, Channels * FilterH * FilterW, ConvOutHeight * ConvOutWidth]);
+  Offset := 0;
   for i := 0 to m - 1 do
-  for c := 0 to ChannelsCol - 1 do
   begin
-    wOffset := c mod FilterW;
-    hOffset := (c div FilterW) mod FilterH;
-    cIm     := c div FilterH div FilterW;
-    for h := 0 to ConvOutHeight - 1 do
-      for w := 0 to ConvOutWidth - 1 do
-      begin
-        ImRow  := hOffset + h * StrideHeight;
-        ImCol  := wOffset + w * StrideWidth;
-        colIdx := ((c * ConvOutHeight + h) * ConvOutWidth + w) + (m * Height * Width);
-
-        Result.Val[colIdx] := Im2ColGetPixel(X, Height, Width,
-          Channels, ImRow, ImCol, cIm, PaddingHeight, PaddingWidth);
-      end;
+    CopyArrayAt(Im2Col(X.GetAt([i]), channels, Height, Width, FilterH, FilterW, PaddingHeight, PaddingWidth, StrideHeight, StrideWidth).Val, Result.Val, Offset);
+    Offset := Offset + sz;
   end;
+
+  Result := Transpose(Result, [1,0,2]).Reshape([Channels * FilterH * FilterW, m*ConvOutHeight * ConvOutWidth]);
 end;
 
 procedure BackwardAdd(arr: TVariableArr; ADy: TTensor);
