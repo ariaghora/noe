@@ -1059,28 +1059,37 @@ function Im2ColBatch(X: TTensor;
   FilterH, FilterW, PaddingHeight, PaddingWidth, StrideHeight, StrideWidth:
   longint): TTensor;
 var
-  i, m, offset, Im2ColSz, Channels, Height, Width, ConvOutHeight, ConvOutWidth: longint;
+  m, ConvOutHeight, ConvOutWidth: longint;
+  ChannelsCol, i, c, h, w, wOffset, hOffset, cIm: longint;
+  ImRow, ImCol, colIdx, Height, Width, channels: longint;
 begin
-  m      := X.Shape[0];
-  Channels := X.Shape[1];
-  Height := X.Shape[2];
-  Width  := X.Shape[3];
+  m        := X.Shape[0];
+  Height   := X.Shape[2];
+  Width    := X.Shape[3];
+  channels := X.Shape[1];
   ConvOutHeight := (Height + 2 * PaddingHeight - FilterH) div StrideHeight + 1;
-  ConvOutWidth := (Width + 2 * PaddingWidth - FilterW) div StrideWidth + 1;
-  Im2ColSz := Channels * FilterH * FilterW * ConvOutHeight * ConvOutWidth;
+  ConvOutWidth  := (Width + 2 * PaddingWidth - FilterW) div StrideWidth + 1;
+  ChannelsCol   := Channels * FilterH * FilterW;
 
-  SetLength(Result.Val, m * Im2ColSz);
-
-  offset := 0;
+  SetLength(Result.Val, Channels * FilterH * FilterW * ConvOutHeight * ConvOutWidth * m);
+  Result.ReshapeInplace([Channels * FilterH * FilterW, m*ConvOutHeight * ConvOutWidth]);
   for i := 0 to m - 1 do
+  for c := 0 to ChannelsCol - 1 do
   begin
-    CopyArrayAt(Im2Col(X.GetAt([i]), Channels, Height, Width, FilterH,
-      FilterW, PaddingHeight, PaddingWidth, StrideHeight, StrideWidth).Val,
-      Result.Val, offset);
-    offset := offset + Im2ColSz;
-  end;
+    wOffset := c mod FilterW;
+    hOffset := (c div FilterW) mod FilterH;
+    cIm     := c div FilterH div FilterW;
+    for h := 0 to ConvOutHeight - 1 do
+      for w := 0 to ConvOutWidth - 1 do
+      begin
+        ImRow  := hOffset + h * StrideHeight;
+        ImCol  := wOffset + w * StrideWidth;
+        colIdx := ((c * ConvOutHeight + h) * ConvOutWidth + w) + (m * Height * Width);
 
-  Result.ReshapeInplace([m, Channels * FilterH * FilterW, ConvOutHeight * ConvOutWidth]);
+        Result.Val[colIdx] := Im2ColGetPixel(X, Height, Width,
+          Channels, ImRow, ImCol, cIm, PaddingHeight, PaddingWidth);
+      end;
+  end;
 end;
 
 procedure BackwardAdd(arr: TVariableArr; ADy: TTensor);
