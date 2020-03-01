@@ -45,7 +45,7 @@ NNModel := TModel.Create([
   TSoftMaxLayer.Create(1)
 ]);
 
-{ Initialize the optimizer. There are several other optimizer too. }
+{ Initialize the optimizer. There are several other optimizers too. }
 optimizer := TAdamOptimizer.Create;
 optimizer.LearningRate := 0.003;
 for i := 0 to MAX_EPOCH - 1 do
