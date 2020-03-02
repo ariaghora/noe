@@ -13,7 +13,7 @@ unit noe.optimizer;
 interface
 
 uses
-  Classes, noe, noe.utils, sysutils;
+  Classes, noe, noe.math, noe.utils, SysUtils;
 
 procedure DefaultOptimizerCallback(Loss: TVariable; iteration: longint;
   Params: array of TVariable);
@@ -75,7 +75,19 @@ type
     Beta2:   double;
     constructor Create;
     procedure UpdateParams(Loss: TVariable; ModelParams: array of TVariable);
+  end;
 
+  { TRMSPropOptimizer }
+
+  TRMSPropOptimizer = class(TBaseOptimizer)
+  private
+    V: array of TTensor;
+    VPopulated: boolean;
+  public
+    Epsilon: double;
+    Gamma:   double;
+    constructor Create;
+    procedure UpdateParams(Loss: TVariable; ModelParams: array of TVariable);
   end;
 
 implementation
@@ -85,6 +97,43 @@ procedure DefaultOptimizerCallback(Loss: TVariable; iteration: longint;
 begin
   NoeLog('Debug', 'Epoch ' + IntToStr(iteration) + ': loss = ' +
     FloatToStrF(Loss.Data.GetAt(0), ffFixed, 2, 5));
+end;
+
+{ TRMSPropOptimizer }
+
+constructor TRMSPropOptimizer.Create;
+begin
+  inherited;
+  self.LearningRate := 0.001;
+  self.Epsilon    := 10E-8;
+  self.Gamma      := 0.99;
+  self.VPopulated := False;
+end;
+
+procedure TRMSPropOptimizer.UpdateParams(Loss: TVariable;
+  ModelParams: array of TVariable);
+var
+  i: longint;
+begin
+  inherited;
+  if not self.VPopulated then
+  begin
+    SetLength(self.V, Length(ModelParams));
+    for i := 0 to Length(ModelParams) - 1 do
+    begin
+      self.V[i] := Zeros(ModelParams[i].Data.Shape);
+    end;
+    self.VPopulated := True;
+  end;
+
+  for i := 0 to Length(ModelParams) - 1 do
+  begin
+    self.V[i] := self.Gamma * self.V[i] + (1 - self.Gamma) * (ModelParams[i].Grad ** 2);
+
+    { Model parameter update }
+    ModelParams[i].Data := ModelParams[i].Data - self.LearningRate *
+      ModelParams[i].Grad / ((self.V[i]) ** 0.5 + self.Epsilon);
+  end;
 end;
 
 { TBaseOptimizer }
