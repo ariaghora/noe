@@ -13,7 +13,7 @@ unit noe.neuralnet;
 interface
 
 uses
-  Classes, fgl, fpjson, jsonparser, math, noe, noe.Math, SysUtils;
+  Classes, fgl, fpjson, jsonparser, Math, noe, noe.Math, SysUtils;
 
 type
   TLayer = class;
@@ -26,6 +26,7 @@ type
   TConv2dLayer    = class;
   TDenseLayer     = class;
   TDropoutLayer   = class;
+  TFlattenLayer   = class;
   TLeakyReLULayer = class;
   TReLULayer      = class;
   TSigmoidLayer   = class;
@@ -82,6 +83,13 @@ type
     function Eval(X: TVariable): TVariable; override;
     property DropoutRate: float read FDropoutRate write FDropoutRate;
     property UseDropout: boolean read GetUseDropout write FUseDropout;
+  end;
+
+  { TFlattenLayer }
+
+  TFlattenLayer = class(TLayer)
+  public
+    function Eval(X: TVariable): TVariable; override;
   end;
 
   { TLeakyReLULayer }
@@ -251,10 +259,10 @@ end;
 function LoadModel(filename: string): TModel;
 var
   JData: TJSONData;
-  o: TJSONEnum;
+  o:     TJSONEnum;
   LayerName: string;
   layer: TLayer;
-  sl: TStringList;
+  sl:    TStringList;
   DenseIn, DenseOut: longint;
 begin
   Result := TModel.Create;
@@ -276,26 +284,22 @@ begin
 
         layer.Params[0] :=
           CreateTensor([DenseIn, DenseOut], JSONArrayToFloatVector(
-          TJSONArray(o.Value.FindPath('layer_data.weight_val')))
-          ).ToVariable(True);
+          TJSONArray(o.Value.FindPath('layer_data.weight_val')))).ToVariable(True);
         layer.Params[1] :=
           CreateTensor(layer.Params[1].Shape, JSONArrayToFloatVector(
-          TJSONArray(o.Value.FindPath('layer_data.bias_val')))
-          ).ToVariable(True);
+          TJSONArray(o.Value.FindPath('layer_data.bias_val')))).ToVariable(True);
         Result.AddLayer(layer);
       end;
       'Dropout':
       begin
         layer := TDropoutLayer.Create(
-          o.Value.FindPath('layer_data.DropoutRate').AsFloat
-          );
+          o.Value.FindPath('layer_data.DropoutRate').AsFloat);
         Result.AddLayer(layer);
       end;
       'LeakyReLU':
       begin
         layer := TLeakyReLULayer.Create(
-          o.Value.FindPath('layer_data.leakiness').AsFloat
-          );
+          o.Value.FindPath('layer_data.leakiness').AsFloat);
         Result.AddLayer(layer);
       end;
       'ReLU':
@@ -306,8 +310,7 @@ begin
       'SoftMax':
       begin
         layer := TSoftMaxLayer.Create(
-          o.Value.FindPath('layer_data.axis').AsInteger
-          );
+          o.Value.FindPath('layer_data.axis').AsInteger);
         Result.AddLayer(layer);
       end;
     end;
@@ -321,8 +324,8 @@ var
   layer: TLayer;
   o, LayerData: TJSONObject;
   LayersJSONArr: TJSONArray;
-  a: array[0..1] of integer;
-  sl: TStringList;
+  a:     array[0..1] of integer;
+  sl:    TStringList;
 begin
   LayersJSONArr := TJSONArray.Create;
 
@@ -331,12 +334,10 @@ begin
     if layer is TDenseLayer then
     begin
       LayerData := TJSONObject.Create(
-        [
-        'weight_val', FloatVectorToJSONArray(layer.Params[0].Data.val),
+        ['weight_val', FloatVectorToJSONArray(layer.Params[0].Data.val),
         'weight_shape', IntVectorToJSONArray(layer.Params[0].Data.Shape),
         'bias_val', FloatVectorToJSONArray(layer.Params[1].Data.Val),
-        'bias_shape', IntVectorToJSONArray(layer.Params[1].Data.Shape)
-        ]);
+        'bias_shape', IntVectorToJSONArray(layer.Params[1].Data.Shape)]);
       LayersJSONArr.Add(TJSONObject.Create(['layer_name', 'Dense',
         'layer_data', LayerData]));
     end;
@@ -360,9 +361,8 @@ begin
 
     if layer is TSoftMaxLayer then
     begin
-      LayerData := TJSONObject.Create([
-        'axis', TSoftMaxLayer(layer).Axis
-        ]);
+      LayerData := TJSONObject.Create(['axis',
+        TSoftMaxLayer(layer).Axis]);
       LayersJSONArr.Add(TJSONObject.Create(['layer_name', 'SoftMax',
         'layer_data', LayerData]));
     end;
@@ -378,7 +378,7 @@ end;
 
 function AccuracyScore(predicted, actual: TTensor): float;
 var
-  i: integer;
+  i:   integer;
   tot: float;
 begin
   tot := 0;
@@ -387,6 +387,18 @@ begin
     if predicted.GetAt(i) = actual.GetAt(i) then
       tot := tot + 1;
   Result  := tot / predicted.Size;
+end;
+
+{ TFlattenLayer }
+
+function TFlattenLayer.Eval(X: TVariable): TVariable;
+var
+  i, sz: longint;
+begin
+  sz := 1;
+  for i := 1 to X.NDims - 1 do
+    sz := sz * X.Shape[i];
+  Result := Reshape(X, [X.Shape[0], sz]);
 end;
 
 { TConv2dLayer }
