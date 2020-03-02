@@ -24,6 +24,9 @@ var
 begin
   randomize;
   WriteLn('Loading datasets...');
+
+  { Joseph Redmond's CSV version, https://pjreddie.com/projects/mnist-in-csv/.
+    They are not included in noe repository due to the size. }
   DatasetTrain := ReadCSV('mnist_train.csv');
   DatasetTest  := ReadCSV('mnist_test.csv');
 
@@ -37,7 +40,10 @@ begin
 
   NNModel := TModel.Create([
     TDenseLayer.Create(28 * 28, 512),
-    TReLULayer.Create(),
+    TReLULayer.Create,
+    TDropoutLayer.Create(0.2),
+    TDenseLayer.Create(512, 512),
+    TReLULayer.Create,
     TDropoutLayer.Create(0.2),
     TDenseLayer.Create(512, 10),
     TSoftMaxLayer.Create(1)
@@ -47,10 +53,11 @@ begin
   Xtrain.Free;
 
   optim := TAdamOptimizer.Create;
+  optim.LearningRate := 0.0001;
   optim.Verbose := False;
 
   WriteLn('Start training.');
-  for i := 1 to 10 do
+  for i := 1 to 50 do
   begin
     BatchLoss := 0;
     for j := 0 to br.BatchCount - 1 do
