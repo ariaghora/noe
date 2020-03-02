@@ -839,10 +839,24 @@ end;
 
 function Conv2D(X, w: TVariable;
   PaddingHeight, PaddingWidth, StrideHeight, StrideWidth: longint): TVariable;
+var
+  HOut, WOut: longint;
+  XCol, WCol, XOut: TTensor;
 begin
-  CreateOrUpdateOpNode(Result, 'ForwardConv2D', [X, w],
-    Conv2D(X.Data, w.Data, PaddingHeight, PaddingWidth, StrideHeight,
-    StrideWidth), @BackwardConv2D);
+  HOut := (X.Shape[2] - w.Shape[2] + 2 * PaddingHeight) div StrideHeight + 1;
+  WOut := (X.Shape[3] - w.Shape[3] + 2 * PaddingWidth) div StrideWidth + 1;
+
+  XCol := Im2ColBatch(X.Data, w.Shape[2], w.Shape[3], PaddingHeight,
+    PaddingWidth, StrideHeight, StrideWidth);
+  WCol := w.Data.Reshape([w.Shape[0], w.Shape[1] * w.Shape[2] * w.Shape[3]]);
+  XOut := WCol.Dot(XCol).Reshape([w.Shape[0], HOut, WOut, X.Shape[0]]);
+  XOut := Transpose(XOut, [3, 0, 1, 2]);
+
+  writeln('im2col shape: ', XCol.Shape[0], ' ', XCol.Shape[1]);
+
+  CreateOrUpdateOpNode(Result, 'ForwardConv2D', [X, w, PaddingHeight,
+    PaddingWidth, StrideHeight, StrideWidth, XCol],
+    XOut, @BackwardConv2D);
 end;
 
 function Cosh(A: TVariable): TVariable;
@@ -1009,9 +1023,7 @@ function Col2Im(imgcol: TTensor;
   StrideHeight, StrideWidth: longint): TTensor;
 var
   ColHeight, ColWidth: longint;
-  ChannelsCol, c, h, w, wOffset, hOffset, cIm: longint;
-  ImRow, ImCol, colIdx, row_, col_: longint;
-  val: NFloat;
+  ChannelsCol, c, h, w, wOffset, hOffset, cIm, hIm, wIm: longint;
 begin
   ColHeight   := (Height + 2 * PaddingHeight - FilterH) div StrideHeight + 1;
   ColWidth    := (Width + 2 * PaddingWidth - FilterW) div StrideWidth + 1;
@@ -1026,21 +1038,18 @@ begin
     hOffset := (c div FilterW) mod FilterH;
     cIm     := c div FilterH div FilterW;
     for h := 0 to ColHeight - 1 do
+    begin
+      hIm := h * StrideHeight - PaddingHeight + hOffset;
       for w := 0 to ColWidth - 1 do
       begin
-        ImRow  := hOffset + h * StrideHeight;
-        ImCol  := wOffset + w * StrideWidth;
-        colIdx := (c * ColHeight + h) * ColWidth + w;
+        wIm := w * StrideWidth - PaddingWidth + wOffset;
 
-        val := imgcol.Val[colIdx];
-
-        row_ := ImRow - PaddingHeight;
-        col_ := ImCol - PaddingWidth;
-
-        if ((row_ < 0) or (col_ < 0) or (row_ >= Height) or (col_ >= Width)) then
-          Exit;
-        Result.Val[col_ + Width * (row_ + Height * cIm)] := val;
+        if (hIm >= 0) and (hIm < Height) and (wIm >= 0) and (wIm < Width) then
+          Result.Val[(cIm * Height + hIm) * Width + wIm] :=
+            Result.Val[(cIm * Height + hIm) * Width + wIm] + imgcol.Val[
+            (c * ColHeight + h) * ColWidth + w];
       end;
+    end;
   end;
 
 end;
@@ -1150,8 +1159,31 @@ begin
 end;
 
 procedure BackwardConv2D(arr: TVariableArr; ADy: TTensor);
+var
+  DyReshaped, dX, dW, dXCol, wReshape: TTensor;
+  i: longint;
 begin
+  { Note the passed sequence from forward pass:
+    arr -->[X, w, PaddingHeight, PaddingWidth, StrideHeight, StrideWidth, XCol],
+            0  1        2             3             4            5         6}
 
+  DyReshaped := Transpose(ADy, [1, 2, 3, 0]).Reshape([arr[1].Shape[0],
+    ADy.Size div arr[1].Shape[0]]);
+  wReshape := arr[1].Data.Reshape([arr[1].Shape[0], arr[1].Shape[1] *
+    arr[1].Shape[2] * arr[1].Shape[3]]);
+  dXCol := wReshape.T.Dot(DyReshaped);
+  dX := Col2ImBatch(dXCol,
+    arr[0].Shape[1], arr[0].Shape[2], arr[0].Shape[3],
+    arr[1].Shape[2], arr[1].Shape[3],
+    round(arr[2].Data.Val[0]), round(arr[3].Data.Val[0]),
+    round(arr[4].Data.Val[0]), round(arr[5].Data.Val[0]));
+
+  dW := DyReshaped.Dot(arr[6].Data.T).Reshape(arr[1].Shape);
+
+  if arr[0].RequiresGrad then
+    arr[0].Grad := arr[0].Grad + dX;
+  if arr[1].RequiresGrad then
+    arr[1].Grad := arr[1].Grad + dW;
 end;
 
 procedure BackwardDivide(arr: TVariableArr; ADy: TTensor);

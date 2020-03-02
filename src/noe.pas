@@ -498,9 +498,11 @@ begin
     OutShape[i - Length(Index)] := Self.Shape[i];
   end;
 
-  SetLength(Result.Val, amount);
+  SetLength(Result.Val, amount+10);
   for i := offset to offset + amount - 1 do
+  begin
     Result.Val[i - offset] := Self.Val[i];
+  end;
 
   Result.ReshapeInplace(OutShape);
 end;
@@ -710,6 +712,7 @@ begin
 
   self.ZeroGrad;
 
+  { we need to keep track every single node created, e.g., for later removal }
   GlobalNodeTracker.NodeSpace.Add(self);
 
   self.FID := GLOBAL_NODE_COUNT;
@@ -1116,7 +1119,6 @@ var
         begin
           dimTracker[j] := res[j];
 
-          //NewlineNum := n - j - 1;
           ithDimChanged := j; // in which dimension there is a change?
         end;
 

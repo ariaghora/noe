@@ -23,6 +23,7 @@ type
   TLayerList    = specialize TFPGList<TLayer>;
 
   TBatchNormLayer = class;
+  TConv2dLayer    = class;
   TDenseLayer     = class;
   TDropoutLayer   = class;
   TLeakyReLULayer = class;
@@ -51,6 +52,14 @@ type
     function Eval(X: TVariable): TVariable; override;
     property Gamma: TVariable read FGamma write FGamma;
     property Beta: TVariable read FBeta write FBeta;
+  end;
+
+  { TConv2dLayer }
+
+  TConv2dLayer = class(TLayer)
+    constructor Create(InChannels, OutChannels, KernelSize: longint;
+      Strides: longint = 1; Padding: longint = 0);
+    function Eval(X: TVariable): TVariable; override;
   end;
 
   { TDenseLayer, or fully-connected layer }
@@ -378,6 +387,33 @@ begin
     if predicted.GetAt(i) = actual.GetAt(i) then
       tot := tot + 1;
   Result  := tot / predicted.Size;
+end;
+
+{ TConv2dLayer }
+
+constructor TConv2dLayer.Create(InChannels, OutChannels, KernelSize: longint;
+  Strides: longint; Padding: longint);
+var
+  W, b: TVariable;
+begin
+  inherited Create;
+  { Xavier weight initialization }
+  W := RandomTensorNormal([OutChannels, InChannels, KernelSize, KernelSize]) *
+    ((2 / (InChannels * KernelSize * KernelSize)) ** 0.5);
+  b := CreateTensor([1, OutChannels, 1, 1], 0);
+
+  b.Name := 'Bias' + IntToStr(b.ID);
+  SetRequiresGrad([W, b], True);
+
+  SetLength(self.Params, 2);
+  self.Params[0] := W;
+  self.Params[1] := b;
+end;
+
+function TConv2dLayer.Eval(X: TVariable): TVariable;
+begin
+  //PrintTensor(Conv2D(self.Params[0], self.Params[1], 0, 0, 1, 1));
+  Result := Conv2D(X, self.Params[0], 0, 0, 1, 1) + self.Params[1];
 end;
 
 { TBatchNormLayer }
