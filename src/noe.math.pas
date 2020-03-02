@@ -126,6 +126,7 @@ function MultiplyC(A: TVariable; x: NFloat): TVariable;
 function MatMul(A, B: TVariable): TVariable;
 function Negate(A: TVariable): TVariable;
 function ReLU(A: TVariable): TVariable;
+function Reshape(A: TVariable; Shape: array of longint): TVariable;
 function Sigmoid(A: TVariable): TVariable;
 function Sinh(A: TVariable): TVariable;
 function Sqr(A: TVariable): TVariable;
@@ -151,6 +152,7 @@ procedure BackwardMax(arr: TVariableArr; ADy: TTensor);
 procedure BackwardMean(arr: TVariableArr; ADy: TTensor);
 procedure BackwardNegate(arr: TVariableArr; ADy: TTensor);
 procedure BackwardReLU(arr: TVariableArr; ADy: TTensor);
+procedure BackwardReshape(arr: TVariableArr; ADy: TTensor);
 procedure BackwardSigmoid(arr: TVariableArr; ADy: TTensor);
 procedure BackwardSinh(arr: TVariableArr; ADy: TTensor);
 procedure BackwardSqr(arr: TVariableArr; ADy: TTensor);
@@ -852,7 +854,7 @@ begin
   XOut := WCol.Dot(XCol).Reshape([w.Shape[0], HOut, WOut, X.Shape[0]]);
   XOut := Transpose(XOut, [3, 0, 1, 2]);
 
-  writeln('im2col shape: ', XCol.Shape[0], ' ', XCol.Shape[1]);
+  //writeln('im2col shape: ', XCol.Shape[0], ' ', XCol.Shape[1]);
 
   CreateOrUpdateOpNode(Result, 'ForwardConv2D', [X, w, PaddingHeight,
     PaddingWidth, StrideHeight, StrideWidth, XCol],
@@ -873,6 +875,11 @@ end;
 function Log(A: TVariable): TVariable;
 begin
   CreateOrUpdateOpNode(Result, 'ForwardLog', [A], Log(A.Data), @BackwardLn);
+end;
+
+function Reshape(A: TVariable; Shape: array of longint): TVariable;
+begin
+  CreateOrUpdateOpNode(Result, 'ForwardReshape', [A], A.Data.Reshape(Shape), @BackwardReshape);
 end;
 
 function Sigmoid(A: TVariable): TVariable;
@@ -1244,6 +1251,12 @@ procedure BackwardCosh(arr: TVariableArr; ADy: TTensor);
 begin
   if arr[0].RequiresGrad then
     arr[0].Grad := arr[0].Grad + (ADy * noe.Math.Sinh(arr[0].Data));
+end;
+
+procedure BackwardReshape(arr: TVariableArr; ADy: TTensor);
+begin
+  if arr[0].RequiresGrad then
+    arr[0].Grad := arr[0].Grad + ADy.Reshape(arr[0].Shape);
 end;
 
 procedure BackwardSigmoid(arr: TVariableArr; ADy: TTensor);
