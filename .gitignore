@@ -4,5 +4,6 @@
 *.exe
 *.lps
 *.tmp
+*.model
 backup/
 lib/
