@@ -16,7 +16,7 @@ uses
   Classes, Math, strutils, SysUtils, fgl;
 
 type
-  NFloat = single;
+  NFloat = double;
 
   TIntVector   = array of longint;
   TFloatVector = array of NFloat;
@@ -143,6 +143,8 @@ const
   MSG_ASSERTION_DIFFERENT_LENGTH = 'Two arrays have different length.';
   MSG_ASSERTION_RANK_2_TENSORS_ONLY = 'This function can be used only on rank-2 tensors';
   MSG_ASSERTION_RANK_1_TENSORS_ONLY = 'This function can be used only on rank-1 tensors';
+
+  EPS_TOL = 1e-5;
 
 var
   NoeConfig: TConfig;
