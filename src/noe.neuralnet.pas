@@ -173,7 +173,7 @@ end;
 function CrossEntropyLoss(ypred, ytrue: TVariable): TVariable;
 begin
   Assert(ypred.Size = ytrue.Size, MSG_ASSERTION_DIFFERENT_LENGTH);
-  Result := -Sum(ytrue * Log(ypred)) / ypred.Shape[0];
+  Result := -Mean(ytrue * Log(ypred));
 end;
 
 function L2Regularization(Model: TModel; Lambda: float): TVariable;
