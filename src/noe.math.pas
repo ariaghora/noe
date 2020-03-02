@@ -545,7 +545,7 @@ end;
 
 function Ln_F(x: NFloat): NFloat;
 begin
-  Result := system.ln(x);
+  Result := system.ln(Math.Max(x, EPS_TOL));
 end;
 
 function Sin(A: TTensor): TTensor;
