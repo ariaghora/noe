@@ -103,6 +103,7 @@ type
       ABackwardFunc: TBackwardFunc); overload;
     constructor Create(ATensor: TTensor; AName: string;
       ABackwardFunc: TBackwardFunc; AIsLeaf: boolean); overload;
+    destructor Cleanup;
     procedure AddPrev(AVariable: TVariable);
     procedure AddPrev(arr: array of TVariable);
     procedure Backpropagate;
@@ -559,6 +560,8 @@ end;
 procedure TTensor.Free;
 begin
   SetLength(self.Val, 0);
+  SetLength(self.FShape, 0);
+  SetLength(self.FStrides, 0);
 end;
 
 function TTensor.GetAt(i: longint): double;
@@ -675,7 +678,6 @@ var
   T: TTensor;
 begin
   self.Create(T, AName, nil, True);
-  //self.FID := -2;
 end;
 
 constructor TVariable.Create(ATensor: TTensor);
@@ -686,10 +688,6 @@ end;
 constructor TVariable.Create(ATensor: TTensor; AName: string);
 begin
   self.Create(ATensor, AName, nil, True);
-  //if ATensor.Size = 1 then
-  //  self.FID := -1;
-  //else
-    //self.FID := -2;
 end;
 
 constructor TVariable.Create(ATensor: TTensor; AName: string;
@@ -717,6 +715,12 @@ begin
 
   self.FID := GLOBAL_NODE_COUNT;
   Inc(GLOBAL_NODE_COUNT);
+end;
+
+destructor TVariable.Cleanup;
+begin
+  self.Data.Free;
+  self.Grad.Free;
 end;
 
 procedure TVariable.AddPrev(AVariable: TVariable);
