@@ -247,6 +247,9 @@ procedure ClearIntermediaryNodes;
 procedure SetRequiresGrad(arr: array of TVariable; val: boolean);
 procedure ZeroGradGraph(const T: TVariable);
 
+{ Auxilaries ------------------------------------------------------------------}
+procedure Cleanup;
+
 implementation
 
 uses
@@ -720,9 +723,12 @@ begin
 end;
 
 destructor TVariable.Cleanup;
+var
+  v: TVariable;
 begin
   self.Data.Free;
   self.Grad.Free;
+  self.TrackingID:='';
 end;
 
 procedure TVariable.AddPrev(AVariable: TVariable);
@@ -804,6 +810,14 @@ begin
   arr := TopologicalSort(T);
   for i := 0 to length(arr) - 1 do
     arr[i].ZeroGrad;
+end;
+
+procedure Cleanup;
+var
+  N: TVariable;
+begin
+  for N in GlobalNodeTracker.NodeSpace do
+    N.Cleanup;
 end;
 
 function CopyTensor(A: TTensor): TTensor;
