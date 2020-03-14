@@ -103,8 +103,8 @@ end;
 initialization
   libHandle := LoadLibrary(BLAS_FILENAME);
 
-  Pointer(blas_dgemm) := (GetProcedureAddress(libHandle, 'cblas_sgemm'));
-  Pointer(blas_daxpy) := (GetProcedureAddress(libHandle, 'cblas_saxpy'));
+  Pointer(blas_dgemm) := (GetProcedureAddress(libHandle, 'cblas_dgemm'));
+  Pointer(blas_daxpy) := (GetProcedureAddress(libHandle, 'cblas_daxpy'));
 
   if IsConsole then
   begin
