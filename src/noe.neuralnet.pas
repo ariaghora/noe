@@ -41,6 +41,7 @@ type
   public
     function Eval(X: TVariable): TVariable; virtual; abstract;
     function GetParams: TVariableArr;
+    procedure Cleanup;
   end;
 
   { TBatchNormLayer }
@@ -598,16 +599,15 @@ end;
 procedure TModel.Cleanup;
 var
   l: TLayer;
-  v: TVariable;
-  i: integer;
 begin
-  //for l in LayerList do
-  //begin
-  //  writeln(Length(l.Params));
-  //  for i := 0 to length(l.Params) - 1 do
-  //    FreeAndNil(l.Params[i]);
-  //end;
+  Params := nil;
+  for l in LayerList do
+  begin
+    l.Cleanup;
+    l.Free;
+  end;
   FreeAndNil(LayerList);
+  FreeAndNil(self);
 end;
 
 { TLayer }
@@ -615,6 +615,11 @@ end;
 function TLayer.GetParams: TVariableArr;
 begin
   Result := self.Params;
+end;
+
+procedure TLayer.Cleanup;
+begin
+  Params := nil;
 end;
 
 end.
