@@ -473,6 +473,8 @@ begin
     // for now idk why cannot destroy :(
     //w.Destroy;
   end;
+
+  FreeAndNil(TobeRemoved);
 end;
 
 function TNodeTracker.FindByTrackingID(TrackingID: string): longint;

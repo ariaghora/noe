@@ -27,10 +27,14 @@ type
   TDoubleIntMap = specialize TFPGMap<double, longint>;
 
   { One-hot encode categorical labels }
+
+  { TOneHotEncoder }
+
   TOneHotEncoder = class
     unique: TDoubleList;
     function Encode(T: TTensor): TTensor;
     function Decode(T: TTensor): TTensor;
+    procedure Cleanup;
   private
     LabelToIndexMap: TDoubleIntMap;
   end;
@@ -268,6 +272,12 @@ begin
   SetLength(Result.Val, Indices.Size);
   for i := 0 to Indices.Size - 1 do
     Result.SetAt(i, unique[Round(Indices.GetAt(i))]);
+end;
+
+procedure TOneHotEncoder.Cleanup;
+begin
+  FreeAndNil(unique);
+  FreeAndNil(LabelToIndexMap);
 end;
 
 

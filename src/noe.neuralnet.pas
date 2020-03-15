@@ -146,6 +146,7 @@ type
     function Eval(X: TVariable): TVariable;
     procedure AddLayer(Layer: TLayer);
     procedure AddParam(param: TVariable);
+    procedure Cleanup;
   end;
 
   TBatchingResult = record
@@ -259,10 +260,10 @@ end;
 function LoadModel(filename: string): TModel;
 var
   JData: TJSONData;
-  o:     TJSONEnum;
+  o: TJSONEnum;
   LayerName: string;
   layer: TLayer;
-  sl:    TStringList;
+  sl: TStringList;
   DenseIn, DenseOut: longint;
 begin
   Result := TModel.Create;
@@ -324,8 +325,8 @@ var
   layer: TLayer;
   o, LayerData: TJSONObject;
   LayersJSONArr: TJSONArray;
-  a:     array[0..1] of integer;
-  sl:    TStringList;
+  a: array[0..1] of integer;
+  sl: TStringList;
 begin
   LayersJSONArr := TJSONArray.Create;
 
@@ -378,7 +379,7 @@ end;
 
 function AccuracyScore(predicted, actual: TTensor): float;
 var
-  i:   integer;
+  i: integer;
   tot: float;
 begin
   tot := 0;
@@ -397,7 +398,7 @@ var
 begin
   sz := 1;
   for i := 1 to X.NDims - 1 do
-    sz := sz * X.Shape[i];
+    sz   := sz * X.Shape[i];
   Result := Reshape(X, [X.Shape[0], sz]);
 end;
 
@@ -592,6 +593,21 @@ procedure TModel.AddParam(param: TVariable);
 begin
   SetLength(self.Params, Length(self.Params) + 1);
   self.Params[Length(self.Params) - 1] := param;
+end;
+
+procedure TModel.Cleanup;
+var
+  l: TLayer;
+  v: TVariable;
+  i: integer;
+begin
+  //for l in LayerList do
+  //begin
+  //  writeln(Length(l.Params));
+  //  for i := 0 to length(l.Params) - 1 do
+  //    FreeAndNil(l.Params[i]);
+  //end;
+  FreeAndNil(LayerList);
 end;
 
 { TLayer }

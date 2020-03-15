@@ -67,6 +67,7 @@
     </CodeGeneration>
     <Linking>
       <Debugging>
+        <UseHeaptrc Value="True"/>
         <StripSymbols Value="True"/>
       </Debugging>
     </Linking>
