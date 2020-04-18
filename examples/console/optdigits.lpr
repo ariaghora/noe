@@ -34,7 +34,7 @@ uses
   noe.plot.gnuplot;
 
 const
-  MAX_EPOCH = 150;
+  MAX_EPOCH = 5;
 
 var
   DatasetTrain, DatasetTest, FeatsTrain, LabelsTrain, EncodedLabelsTrain,
@@ -84,10 +84,14 @@ var
 
     Figure.AddPlot(Plot);
     Figure.Show;
+
+    Figure.Cleanup;
   end;
 
 begin
   RandSeed := 1;
+
+  //globali
 
   { Load the DatasetTrain from CSV. Noe has a built-in function to do so. }
   DatasetTrain := ReadCSV('../datasets/optdigits-train.csv');
@@ -201,5 +205,9 @@ begin
     '; Actual: ' + IntToStr(ActualLabel), ptImage);
 
   ReadLn;
+
+  noe.Cleanup;
+  LabelEncoder.Cleanup;
+  Optimizer.Cleanup;
 end.
 

@@ -24,6 +24,8 @@ type
 
   { The base class for optimizer. All optimizers should extend this class. }
 
+  { TBaseOptimizer }
+
   TBaseOptimizer = class
   private
     FCallback:     TOptimizerCallbackProc;
@@ -33,6 +35,7 @@ type
   public
     constructor Create;
     procedure UpdateParams(Loss: TVariable; ModelParams: array of TVariable);
+    procedure Cleanup;
     property LearningRate: double read FLearningRate write FLearningRate;
     property Iteration: longint read FIteration write FIteration;
     property Verbose: boolean read FVerbose write FVerbose;
@@ -153,6 +156,11 @@ begin
     self.FCallback(Loss, self.FIteration, ModelParams);
 
   Inc(FIteration);
+end;
+
+procedure TBaseOptimizer.Cleanup;
+begin
+  FreeAndNil(self);
 end;
 
 { TSGDMomentumOptimizer }

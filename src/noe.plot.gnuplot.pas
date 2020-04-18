@@ -31,6 +31,9 @@ type
   end;
 
   { @abstract(A class that holds information of data points to plot, including its style) }
+
+  { TPlot }
+
   TPlot = class
     PlotStyle: TPlotStyle;
     Title:     string;
@@ -39,6 +42,7 @@ type
   public
     Values: TTensor;
     constructor Create;
+    procedure Cleanup;
     { Set the data points to plot
       @param(x only accepts TDTMatrix with size of 1 by m or m by 1) }
     procedure SetDataPoints(x: TTensor); overload;
@@ -52,6 +56,9 @@ type
   end;
 
   { @abstract(A class that holds information of a single figure) }
+
+  { TFigure }
+
   TFigure = class(TObject)
     Title:   string;
     XLabel:  string;
@@ -59,6 +66,7 @@ type
     Palette: string;
   public
     constructor Create;
+    procedure Cleanup;
     procedure AddPlot(Plot: TPlot);
     procedure Show;
   private
@@ -144,6 +152,11 @@ begin
   PlotStyle.PointSize := 1;
 end;
 
+procedure TPlot.Cleanup;
+begin
+  FreeAndNil(self);
+end;
+
 procedure TPlot.RemoveDataStringTableFile;
 begin
   if FileExists(self.FileName) then
@@ -213,6 +226,17 @@ constructor TFigure.Create;
 begin
   self.PlotList := TList.Create;
   self.Palette  := 'rgbformulae 7,5,15';
+end;
+
+procedure TFigure.Cleanup;
+var
+  i: integer;
+begin
+  for i:=0 to PlotList.Count - 1 do
+    TPlot(PlotList.Items[i]).Cleanup;
+  FreeAndNil(PlotList);
+
+  FreeAndNil(self);
 end;
 
 function TFigure.GenerateScript: string;

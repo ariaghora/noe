@@ -43,7 +43,7 @@ begin
   { To show loss value at each iteration. Default: True }
   opt.Verbose := True;
 
-  for i := 0 to 1 do
+  for i := 0 to 100 do
   begin
     yPred := MyModel.Eval(X);
     Loss  := CrossEntropyLoss(yPred, y);
@@ -56,6 +56,7 @@ begin
   noe.Cleanup;
   Enc.Cleanup;
   MyModel.Cleanup;
+  opt.Cleanup;
 
   ReadLn;
 end.

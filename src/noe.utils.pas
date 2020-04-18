@@ -278,6 +278,7 @@ procedure TOneHotEncoder.Cleanup;
 begin
   FreeAndNil(unique);
   FreeAndNil(LabelToIndexMap);
+  FreeAndNil(self);
 end;
 
 
