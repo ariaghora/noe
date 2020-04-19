@@ -1,64 +1,61 @@
 unit noe2;
 
-{$mode objfpc}{$H+}{$modeSwitch advancedRecords}
+{$mode objfpc}{$H+}
 
 interface
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils, fgl, noe.utils, Math, noe.ndarr, noe.types;
 
 type
-  NFloat = double;
-
-  TIntVector   = array of longint;
-  TFloatVector = array of NFloat;
   TTensor      = class;
 
-  { TTensor }
-
-  { TNdArr }
-
-  TNdArr = record
-  private
-    FShape: array of longint;
-    FStrides: array of longint;
-    function GetNDims: longint;
-    function GetSize: longint;
-  public
-    Val:     TFloatVector;
-    function Dot(Other: TTensor): TTensor;
-    function DumpCSV(Sep: string = ','): string;
-    function GetAt(Index: array of longint): TTensor;
-    function GetShape: TIntVector;
-    function Reshape(ShapeVals: array of longint): TTensor;
-    function T: TTensor;
-    function ToTensor(RequiresGrad: boolean = False): TTensor;
-    procedure Fill(v: double);
-    procedure Cleanup;
-    procedure SetAt(Index: array of longint; x: double);
-    procedure WriteToCSV(FileName: string);
-    procedure ReshapeInplace(NewShape: array of longint);
-    property NDims: longint read GetNDims;
-    property Shape: TIntVector read FShape write FShape;
-    property Size: longint read GetSize;
-    property Strides: TIntVector read FStrides write FStrides;
-  end;
-
   TTensor = class
+  private
     Data: TNdArr;
+    fRequiresGrad: boolean;
+    function GetNDims: longint;
+    function GetShape: TIntVector;
+  public
+    constructor Create;
     procedure Cleanup;
+    property RequiresGrad: boolean read fRequiresGrad write fRequiresGrad;
+    property Shape: TIntVector read GetShape;
+    property NDims: longint read GetNDims;
   end;
 
+  TTensorList = specialize TFPGList<TTensor>;
+
+
+  procedure Cleanup;
   procedure PrintTensor2D(T: TTensor);
 
-  function CreateEmptyNdArr(Shape: array of longint): TNdArr;
   function CreateEmptyTensor(Shape: array of longint): TTensor;
+  function CreateTensor(Data: TNdArr): TTensor;
   function CreateTensor(Shape: array of longint; v: NFloat): TTensor;
 
-  function ShapeToSize(Shape: array of longint): longint;
-  function ShapeToStride(Shape: array of longint): TIntVector;
+  function Add(A, B: TTensor): TTensor;
+
+  operator +(A, B: TTensor) C: TTensor;
 
 implementation
+
+uses
+  noe.mathwrapper;
+
+var
+  tensorList: TTensorList;
+
+
+
+procedure Cleanup;
+var
+  t: TTensor;
+begin
+  for t in tensorList do
+    t.Cleanup;
+  FreeAndNil(tensorList);
+end;
 
 procedure PrintTensor2D(T: TTensor);
 var
@@ -79,20 +76,16 @@ begin
   WriteLn(s);
 end;
 
-function CreateEmptyNdArr(Shape: array of longint): TNdArr;
-var
-  size: LongInt;
-begin
-  size := ShapeToSize(Shape);
-  SetLength(Result.Val, size);
-  Result.ReshapeInplace(Shape);
-  Result.Strides := ShapeToStride(Shape);
-end;
-
 function CreateEmptyTensor(Shape: array of longint): TTensor;
 begin
   Result := TTensor.Create();
   Result.Data := CreateEmptyNdArr(Shape);
+end;
+
+function CreateTensor(Data: TNdArr): TTensor;
+begin
+  Result := CreateEmptyTensor(Data.Shape);
+  Result.Data := Data;
 end;
 
 function CreateTensor(Shape: array of longint; v: NFloat): TTensor;
@@ -101,32 +94,34 @@ begin
   Result.Data.Fill(v);
 end;
 
-function ShapeToSize(Shape: array of longint): longint;
-var
-  i, size: longint;
+
+function Add(A, B: TTensor): TTensor;
 begin
-  size := 1;
-  for i := 0 to Length(Shape) - 1 do
-    size := size * shape[i];
-  Result := size;
+  Result := CreateTensor(ApplyBfunc(A.Data, B.Data, @Add_F));
 end;
 
-function ShapeToStride(Shape: array of longint): TIntVector;
-var
-  k, j, prod: longint;
+operator+(A, B: TTensor)C: TTensor;
 begin
-  SetLength(Result, Length(Shape));
-
-  for k := 0 to Length(Shape) - 1 do
-  begin
-    prod := 1;
-    for j := k + 1 to Length(Shape) - 1 do
-      prod := prod * Shape[j];
-    Result[k] := prod;
-  end;
+  C := Add(A, B);
 end;
 
 { TTensor }
+
+function TTensor.GetShape: TIntVector;
+begin
+  Exit(Self.Data.Shape);
+end;
+
+constructor TTensor.Create;
+begin
+  inherited;
+  tensorList.Add(Self);
+end;
+
+function TTensor.GetNDims: longint;
+begin
+  Exit(self.Data.NDims);
+end;
 
 procedure TTensor.Cleanup;
 begin
@@ -136,86 +131,11 @@ end;
 
 { TNdArr }
 
-function TNdArr.GetNDims: longint;
-begin
-  Exit(Length(Self.Shape));
-end;
 
-function TNdArr.GetSize: longint;
-begin
-  Exit(Length(self.Val));
-end;
 
-function TNdArr.Dot(Other: TTensor): TTensor;
-begin
+initialization
 
-end;
-
-function TNdArr.DumpCSV(Sep: string): string;
-begin
-
-end;
-
-function TNdArr.GetAt(Index: array of longint): TTensor;
-begin
-
-end;
-
-function TNdArr.GetShape: TIntVector;
-begin
-
-end;
-
-function TNdArr.Reshape(ShapeVals: array of longint): TTensor;
-begin
-
-end;
-
-function TNdArr.T: TTensor;
-begin
-
-end;
-
-function TNdArr.ToTensor(RequiresGrad: boolean): TTensor;
-begin
-
-end;
-
-procedure TNdArr.Fill(v: double);
-var
-  i: longint;
-begin
-  for i := 0 to Self.Size - 1 do
-    self.Val[i] := v;
-end;
-
-procedure TNdArr.Cleanup;
-begin
-  self.val := nil;
-  self.Shape := nil;
-  self.Strides := nil;
-end;
-
-procedure TNdArr.SetAt(Index: array of longint; x: double);
-begin
-
-end;
-
-procedure TNdArr.WriteToCSV(FileName: string);
-begin
-
-end;
-
-procedure TNdArr.ReshapeInplace(NewShape: array of longint);
-var
-  i: longint;
-begin
-  SetLength(self.FShape, Length(NewShape));
-  for i := 0 to Length(NewShape) - 1 do
-    self.FShape[i] := NewShape[i];
-  self.Strides := ShapeToStride(NewShape);
-end;
-
+tensorList := TTensorList.Create;
 
 end.
 
