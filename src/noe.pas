@@ -1173,6 +1173,7 @@ procedure cbAsStrided(val: NFloat; offset: longint; idx: TIntVector;
 begin
   OutT.Val[offset] := val;
 end;
+
 function AsStrided(X: TTensor; TargetShape, Strides: array of longint): TTensor;
 var
   i: longint;
