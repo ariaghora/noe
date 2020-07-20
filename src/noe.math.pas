@@ -1084,10 +1084,10 @@ begin
   SetLength(Result.Val, m * Channels * Height * Width);
   for i := 0 to m - 1 do
   begin
-    CopyArrayAt(Col2Im(tmpImgCol.GetAt([i]), Channels, Height, Width,
-      FilterH, FilterW, PaddingHeight, PaddingWidth, StrideHeight, StrideWidth).val,
-      Result.Val, Offset);
-    Inc(Offset, Channels * Height * Width);
+    //CopyArrayAt(Col2Im(tmpImgCol.GetAt([i]), Channels, Height, Width,
+    //  FilterH, FilterW, PaddingHeight, PaddingWidth, StrideHeight, StrideWidth).val,
+    //  Result.Val, Offset);
+    //Inc(Offset, Channels * Height * Width);
   end;
   Result.ReshapeInplace([m, Channels, Height, Width]);
 end;
@@ -1147,9 +1147,9 @@ begin
   Offset := 0;
   for i := 0 to m - 1 do
   begin
-    CopyArrayAt(Im2Col(X.GetAt([i]), channels, Height, Width, FilterH,
-      FilterW, PaddingHeight, PaddingWidth, StrideHeight, StrideWidth).Val,
-      Result.Val, Offset);
+    //CopyArrayAt(Im2Col(X.GetAt([i]), channels, Height, Width, FilterH,
+    //  FilterW, PaddingHeight, PaddingWidth, StrideHeight, StrideWidth).Val,
+    //  Result.Val, Offset);
     Offset := Offset + sz;
   end;
 

@@ -5,21 +5,25 @@ unit noe.ndarr;
 interface
 
 uses
-  Classes, Math, SysUtils, noe.types, noe.utils;
+  Classes, Math, SysUtils, noe.types, noe.utils, strutils;
 
 type
 
   TUFunc = function(v: NFloat): NFloat;
   TBFunc = function(v1, v2: NFloat): NFloat;
 
+  { TNdArr }
+
   TNdArr = record
   private
-    FShape: array of longint;
-    FStrides: array of longint;
+    fIsContiguous: boolean;
+    fShape: array of longint;
+    fStrides: array of longint;
     function GetNDims: longint;
     function GetSize: longint;
   public
     Val:     TFloatVector;
+    function Contiguous: TNdArr;
     function Dot(Other: TNdArr): TNdArr;
     function DumpCSV(Sep: string = ','): string;
     function GetAt(Index: array of longint): TNdArr;
@@ -32,6 +36,7 @@ type
     procedure SetAt(Index: array of longint; x: double);
     procedure WriteToCSV(FileName: string);
     procedure ReshapeInplace(NewShape: array of longint);
+    property IsContiguous: boolean read fIsContiguous write fIsContiguous;
     property NDims: longint read GetNDims;
     property Shape: TIntVector read FShape write FShape;
     property Size: longint read GetSize;
@@ -45,8 +50,43 @@ type
   function ApplyBfunc(A, B: TNdArr; Func: TBFunc): TNdArr;
   function ApplyUfunc(A: TNdArr; Func: TUFunc): TNdArr;
 
+  procedure Print2DArray(T: TNdArr);
+
 
 implementation
+
+procedure Print2DArray(T: TNdArr);
+var
+  i, j: integer;
+  s: string;
+begin
+  Assert(T.NDims <= 2, 'Can only print a tensor with NDims = 2.');
+  s := '';
+
+  if T.NDims = 0 then
+    s := s + FloatToStr(T.Val[0])
+  else if T.NDims = 1 then
+  begin
+    for i := 0 to T.Shape[0] - 1 do
+    begin
+      s := s + FloatToStr(T.Val[i]);   // ENSURE CONTIGUOUS
+      if i < T.Shape[0] - 1 then s := s + ' ';
+    end;
+  end
+  else
+  begin
+    for i := 0 to T.Shape[0] - 1 do
+    begin
+      for j := 0 to T.Shape[1] - 1 do
+      begin
+        s := s + FloatToStr(T.Val[i * T.Shape[1] + j]);
+        if j < T.Shape[1] - 1 then s := s + ' ';
+      end;
+      s := s + sLineBreak;
+    end;
+  end;
+  WriteLn(s);
+end;
 
 function ApplyUfunc(A: TNdArr; Func: TUFunc): TNdArr;
 var
@@ -258,6 +298,7 @@ begin
   SetLength(Result.Val, size);
   Result.ReshapeInplace(Shape);
   Result.Strides := ShapeToStride(Shape);
+  Result.IsContiguous := True;
 end;
 
 function TNdArr.GetNDims: longint;
@@ -268,6 +309,15 @@ end;
 function TNdArr.GetSize: longint;
 begin
   Exit(Length(self.Val));
+end;
+
+function TNdArr.Contiguous: TNdArr;
+begin
+  if Self.IsContiguous then Exit(Self)
+  else
+  begin
+    Exit(AsStrided(Self, Self.Shape, Self.Strides));
+  end;
 end;
 
 function TNdArr.Dot(Other: TNdArr): TNdArr;
@@ -281,23 +331,50 @@ begin
 end;
 
 function TNdArr.GetAt(Index: array of longint): TNdArr;
+var
+  i, offset, amount: longint;
+  OutShape: TIntVector;
 begin
+  offset := 0;
+  for i := 0 to Length(Index) - 1 do
+    offset := offset + Self.Strides[i] * Index[i];
 
+  SetLength(OutShape, Length(Self.Shape) - Length(Index));
+  amount := 1;
+  for i := Length(Index) to Length(Self.Shape) - 1 do
+  begin
+    amount := amount * Self.Shape[i];
+    OutShape[i - Length(Index)] := Self.Shape[i];
+  end;
+
+  SetLength(Result.Val, amount+10);
+  for i := offset to offset + amount - 1 do
+  begin
+    Result.Val[i - offset] := Self.Val[i];
+  end;
+
+  Result.ReshapeInplace(OutShape);
 end;
 
 function TNdArr.GetShape: TIntVector;
 begin
-
+  Exit(Self.Shape);
 end;
 
 function TNdArr.Reshape(ShapeVals: array of longint): TNdArr;
+var
+  i: longint;
 begin
-
+  SetLength(Result.fShape, Length(ShapeVals));
+  for i := 0 to Length(ShapeVals) -1 do
+    Result.Shape[i] := ShapeVals[i];
+  Result.Val := copy(Self.Val);
+  Result.Strides := ShapeToStride(ShapeVals);
 end;
 
 function TNdArr.T: TNdArr;
 begin
-
+  Result := AsStrided(Self, ReverseIntArr(Self.Shape), ReverseIntArr(Self.Strides));
 end;
 
 function TNdArr.ToTensor(RequiresGrad: boolean): TNdArr;
