@@ -38,11 +38,12 @@ procedure PrintTensor(T: TTensor);
 function CreateTensor(Data: TMultiArray; RequiresGrad: boolean=False): TTensor;
 
 function Add(A, B: TTensor): TTensor; overload;
+function Multiply(A, B: TTensor): TTensor; overload;
 
 operator :=(A: TMultiArray) B: TTensor;
 
-
 var
+  NoeLastPassTensorList: TTensorList;
   NoeGlobalTensorList: TTensorList;
 
 implementation
@@ -69,15 +70,56 @@ begin
     self.Grad := AllocateMultiArray(0);
 end;
 
+function TopologicalSort(T: TTensor): TTensorList;
+var
+  Seen, Sorted: TTensorList;
+  prv: TTensor;
+
+  procedure TopoHelper(v: TTensor);
+  begin
+    if Seen.IndexOf(v) = -1 then
+    begin
+      Seen.Add(v);
+      for prv in v.Deps do
+        TopoHelper(prv);
+
+      if v.RequiresGrad then
+        Sorted.Add(v);
+    end;
+  end;
+
+begin
+  Seen := TTensorList.Create(False);
+  Sorted := TTensorList.Create(False);
+  TopoHelper(T);
+
+  Result := Sorted;
+  Seen.Free;
+end;
+
+
 procedure TTensor.Backward(G: TMultiArray);
 var
-  Dep: TTensor;
+  i: integer;
+  Sorted: TTensorList;
 begin
+  Sorted := TopologicalSort(self);
   self.Grad := G;
-  TBackwardFunc(Self.FBackwardFunc)(Self.Deps, Self.Grad);
-  for Dep in Self.Deps do
-    if Assigned(Dep.FBackwardFunc) then
-      TBackwardFunc(Dep.FBackwardFunc)(Dep.Deps, Dep.Grad);
+
+  for i := Sorted.Count - 1 downto 0 do
+  begin
+    if Assigned(Sorted[i].FBackwardFunc) then
+    begin
+      TBackwardFunc(Sorted[i].FBackwardFunc)(Sorted[i].Deps, Sorted[i].Grad);
+    end;
+  end;
+
+  { Remove the unused Tensors in the previous pass }
+  for i := NoeGlobalTensorList.Count - 1 downto 0 do
+    if Sorted.IndexOf(NoeGlobalTensorList[i]) = -1 then
+      NoeGlobalTensorList.Remove(NoeGlobalTensorList[i]);
+
+  Sorted.free;
 end;
 
 destructor TTensor.Destroy;
@@ -96,7 +138,15 @@ begin
   Result.RequiresGrad := RequiresGrad;
   Result.Data := Data;
   Result.FBackwardFunc := nil;
+
   NoeGlobalTensorList.Add(Result);
+end;
+
+function CreateOpNode(Val: TTensor; Deps: array of TTensor; BackwardFunc: TBackwardFunc): TTensor;
+begin
+  Result := Val;
+  Result.AddDependencies(Deps);
+  Result.FBackwardFunc := BackwardFunc;
 end;
 
 function ReduceGradToShape(Grad: TMultiArray; Shape: TLongVector): TMultiArray;
@@ -123,9 +173,20 @@ end;
 
 function Add(A, B: TTensor): TTensor;
 begin
-  Result := A.Data + B.Data;
-  Result.AddDependencies([A, B]);
-  Result.FBackwardFunc := @AddBackward;
+  Exit(CreateOpNode(A.Data + B.Data, [A, B], @AddBackward));
+end;
+
+procedure MultiplyBackward(var Deps: array of TTensor; G: TMultiArray);
+begin
+  if Deps[0].RequiresGrad then
+    Deps[0].Grad := Deps[0].Grad + ReduceGradToShape(G * Deps[1].Data, Deps[0].Shape);
+  if Deps[1].RequiresGrad then
+    Deps[1].Grad := Deps[1].Grad + ReduceGradToShape(G * Deps[0].Data, Deps[1].Shape);
+end;
+
+function Multiply(A, B: TTensor): TTensor;
+begin
+  Exit(CreateOpNode(A.Data * B.Data, [A, B], @MultiplyBackward));
 end;
 
 operator +(A, B: TTensor)C: TTensor;
@@ -144,11 +205,12 @@ begin
 end;
 
 initialization
-
+  NoeLastPassTensorList := TTensorList.Create;
   NoeGlobalTensorList := TTensorList.Create;
 
 finalization
   NoeGlobalTensorList.Free;
+  NoeLastPassTensorList.Free;
 
 end.
 
