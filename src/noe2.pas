@@ -1,180 +1,154 @@
 unit noe2;
 
 {$mode objfpc}{$H+}
+{$modeswitch advancedRecords}
 
 interface
 
 uses
-  Classes, SysUtils, fgl, noe.utils, Math, noe.ndarr, noe.types;
+  Classes, SysUtils, multiarray, numerik, fgl;
 
 type
-  TTensor     = class;
-  TTensorList = specialize TFPGList<TTensor>;
-
-  { TTensor }
 
   TTensor = class
+    Data: TMultiArray;
+    FBackwardFunc: Pointer;
+
+    Deps: array of TTensor;
   private
-    fDependencies: TTensorList;
-    fRequiresGrad: boolean;
-    function GetNDims: longint;
-    function GetShape: TIntVector;
+
+    FGrad: TMultiArray;
+    FRequiresGrad: boolean;
+    function GetShape: TLongVector;
+    procedure AddDependencies(ADeps: array of TTensor);
+    procedure SetRequiresGrad(val: boolean);
   public
-    Data: TNdArr;
-    constructor Create;
-    function Reshape(NewShape: array of longint): TTensor;
-    function T: TTensor;
-    procedure AddDependency(Deps: array of TTensor);
-    procedure Cleanup;
-    property Dependencies: TTensorList read fDependencies write fDependencies;
-    property RequiresGrad: boolean read fRequiresGrad write fRequiresGrad;
-    property Shape: TIntVector read GetShape;
-    property NDims: longint read GetNDims;
+    procedure Backward(G: TMultiArray);
+    destructor Destroy; override;
+    property Grad: TMultiArray read FGrad write FGrad;
+    property RequiresGrad: boolean read FRequiresGrad write SetRequiresGrad;
+    property Shape: TLongVector read GetShape;
   end;
 
-  procedure Cleanup;
-  procedure PrintTensor2D(T: TTensor);
+  TBackwardFunc = procedure(var arr: array of TTensor; G: TMultiArray);
+  TTensorList = specialize TFPGObjectList<TTensor>;
 
-  function CreateEmptyTensor(Shape: array of longint): TTensor;
-  function CreateTensor(Data: TNdArr): TTensor;
-  function CreateTensor(Data: array of NFloat): TTensor;
-  function CreateTensor(Shape: array of longint; v: NFloat): TTensor;
+procedure PrintTensor(T: TTensor);
 
-  function Add(A, B: TTensor): TTensor;
+function CreateTensor(Data: TMultiArray; RequiresGrad: boolean=False): TTensor;
 
-  operator +(A, B: TTensor) C: TTensor;
+function Add(A, B: TTensor): TTensor; overload;
+
+operator :=(A: TMultiArray) B: TTensor;
+
 
 var
-  tensorList: TTensorList;
+  NoeGlobalTensorList: TTensorList;
 
 implementation
 
-uses
-  noe.mathwrapper;
-
-procedure Cleanup;
+procedure TTensor.AddDependencies(ADeps: array of TTensor);
 var
-  t: TTensor;
+  i: integer;
 begin
-  for t in tensorList do
-    t.Cleanup;
-  FreeAndNil(tensorList);
-end;
-
-procedure PrintTensor2D(T: TTensor);
-var
-  i, j: integer;
-  s: string;
-begin
-  Assert(T.Data.NDims = 2, 'Can only print a tensor with NDims = 2.');
-  s := '';
-
-  if T.NDims = 0 then
-    s := s + FloatToStr(T.Data.Val[0])
-  else if T.NDims = 1 then
-    for i := 0 to T.Shape[0] - 1 do
-      s := s + FloatToStr(T.Data.Val[i]);   // ENSURE CONTIGUOUS
-
-  for i := 0 to T.Data.Shape[0] - 1 do
+  SetLength(Deps, Length(ADeps));
+  for i := 0 to High(ADeps) do
   begin
-    for j := 0 to T.Data.Shape[1] - 1 do
-    begin
-      s := s + FloatToStr(T.Data.Val[i * T.Data.Shape[1] + j]);
-      if j < T.Data.Shape[1] - 1 then s := s + ' ';
-    end;
-    s := s + sLineBreak;
+    Self.RequiresGrad := Self.RequiresGrad or ADeps[i].RequiresGrad;
+    if ADeps[i].RequiresGrad then
+      Deps[i] := ADeps[i];
   end;
-  WriteLn(s);
 end;
 
-function CreateEmptyTensor(Shape: array of longint): TTensor;
+procedure TTensor.SetRequiresGrad(val: boolean);
 begin
-  Result := TTensor.Create();
-  Result.Data := CreateEmptyNdArr(Shape);
-  Result.Dependencies := TTensorList.Create;
+  self.FRequiresGrad := val;
+  if val then
+    self.Grad := Zeros(Self.Data.Shape)
+  else
+    self.Grad := AllocateMultiArray(0);
 end;
 
-function CreateTensor(Data: TNdArr): TTensor;
-begin
-  Result := CreateEmptyTensor(Data.Shape);
-  Result.Data := Data;
-end;
-
-function CreateTensor(Data: array of NFloat): TTensor;
+procedure TTensor.Backward(G: TMultiArray);
 var
-  i: longint;
+  Dep: TTensor;
 begin
-  Result := CreateEmptyTensor([Length(Data)]);
-  for i := 0 to Result.Data.Size - 1 do
-    Result.Data.Val[i] := Data[i];
+  self.Grad := G;
+  TBackwardFunc(Self.FBackwardFunc)(Self.Deps, Self.Grad);
+  for Dep in Self.Deps do
+    if Assigned(Dep.FBackwardFunc) then
+      TBackwardFunc(Dep.FBackwardFunc)(Dep.Deps, Dep.Grad);
 end;
 
-function CreateTensor(Shape: array of longint; v: NFloat): TTensor;
+destructor TTensor.Destroy;
 begin
-  Result := CreateEmptyTensor(Shape);
-  Result.Data.Fill(v);
+  self.Deps := nil;
+end;
+
+procedure PrintTensor(T: TTensor);
+begin
+  PrintMultiArray(T.Data);
+end;
+
+function CreateTensor(Data: TMultiArray; RequiresGrad: boolean=False): TTensor;
+begin
+  Result := TTensor.Create;
+  Result.RequiresGrad := RequiresGrad;
+  Result.Data := Data;
+  Result.FBackwardFunc := nil;
+  NoeGlobalTensorList.Add(Result);
+end;
+
+function ReduceGradToShape(Grad: TMultiArray; Shape: TLongVector): TMultiArray;
+var
+  i, NDimsAdded: integer;
+begin
+  NDimsAdded := Grad.NDims - Length(Shape);
+  for i := 0 to NDimsAdded - 1 do
+    Grad := Sum(Grad, 0);
+
+  for i := 0 to High(Shape) do
+    if Shape[i] = 1 then
+      Grad := Sum(Grad, i, True);
+  Result := Grad;
+end;
+
+procedure AddBackward(var Deps: array of TTensor; G: TMultiArray);
+begin
+  if Deps[0].RequiresGrad then
+    Deps[0].Grad := Deps[0].Grad + ReduceGradToShape(G, Deps[0].Shape);
+  if Deps[1].RequiresGrad then
+    Deps[1].Grad := Deps[1].Grad + ReduceGradToShape(G, Deps[1].Shape);
 end;
 
 function Add(A, B: TTensor): TTensor;
 begin
-  Result := CreateTensor(ApplyBfunc(A.Data, B.Data, @Add_F));
-  Result.AddDependency([A, B]);
+  Result := A.Data + B.Data;
+  Result.AddDependencies([A, B]);
+  Result.FBackwardFunc := @AddBackward;
 end;
 
-operator+(A, B: TTensor)C: TTensor;
+operator +(A, B: TTensor)C: TTensor;
 begin
   C := Add(A, B);
 end;
 
-function TTensor.GetShape: TIntVector;
+function TTensor.GetShape: TLongVector;
 begin
   Exit(Self.Data.Shape);
 end;
 
-constructor TTensor.Create;
+operator :=(A: TMultiArray) B: TTensor;
 begin
-  inherited;
-  tensorList.Add(Self);
+  B := CreateTensor(A);
 end;
-
-function TTensor.Reshape(NewShape: array of longint): TTensor;
-begin
-  Result := CreateTensor(Self.Data.Reshape(NewShape));
-end;
-
-function TTensor.T: TTensor;
-begin
-  Result := CreateTensor(Self.Data.T.Contiguous());
-end;
-
-procedure TTensor.AddDependency(Deps: array of TTensor);
-var
-  d: TTensor;
-begin
-  for d in Deps do
-  begin
-    self.RequiresGrad := self.RequiresGrad or d.RequiresGrad;
-    if d.RequiresGrad then
-      self.Dependencies.Add(d);
-  end;
-end;
-
-function TTensor.GetNDims: longint;
-begin
-  Exit(self.Data.NDims);
-end;
-
-procedure TTensor.Cleanup;
-begin
-  self.Data.Cleanup;
-  FreeAndNil(self.fDependencies);
-  FreeAndNil(self);
-end;
-
 
 initialization
 
-tensorList := TTensorList.Create;
+  NoeGlobalTensorList := TTensorList.Create;
+
+finalization
+  NoeGlobalTensorList.Free;
 
 end.
 
