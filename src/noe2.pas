@@ -58,10 +58,12 @@ function Sqr(A: TTensor): TTensor; overload;
 function Sum(A: TTensor; axis: integer=-1; KeepDims: boolean=False): TTensor; overload;
 
 { @exclude } operator +(A, B: TTensor) C: TTensor;
+{ @exclude } operator -(A: TTensor) B: TTensor;
 { @exclude } operator -(A, B: TTensor) C: TTensor;
 { @exclude } operator *(A, B: TTensor) C: TTensor;
 { @exclude } operator /(A, B: TTensor) C: TTensor;
 { @exclude } operator :=(A: TMultiArray) B: TTensor;
+{ @exclude } operator :=(A: Single) B: TTensor;
 
 var
   NoeGlobalTensorList: TTensorList;
@@ -315,9 +317,10 @@ end;
 
 procedure MeanBackward(var Deps: array of TTensor; G: TMultiArray);
 begin
+  { NEED MORE TESTTTTT }
   if Deps[0].RequiresGrad then
     Deps[0].Grad := Deps[0].Grad + FullMultiArray(Deps[0].Data.Shape,
-      1 / (Deps[0].Data.Size));
+      1 / (Deps[0].Data.Size / G.Size));
 end;
 
 function Mean(A: TTensor): TTensor;
@@ -346,7 +349,7 @@ begin
   else
     Exit(CreateOpNode(tmp1, [A, tmp1],
          @MaxBackward));
-  Exit(Max(A.Data, axis, True))
+  //Exit(Max(A.Data, axis, True))
 end;
 
 function Multiply(A, B: TTensor): TTensor;
@@ -389,6 +392,8 @@ function Softmax(A: TTensor; axis: integer): TTensor; overload;
 begin
   Result := Exp(A - Max(A, axis, True));
   Result := Result / Sum(Result, axis, True);
+
+  //Result := Exp((A - Max(A, axis, True))) / sum(Exp((A - Max(A, axis, True))), axis, True);
 end;
 
 function Subtract(A, B: TTensor): TTensor;
@@ -410,7 +415,7 @@ end;
 procedure SumBackward(var Deps: array of TTensor; G: TMultiArray);
 begin
   if Deps[0].RequiresGrad then
-    Deps[0].Grad := Deps[0].Grad + Ones(Deps[0].Grad.Shape);
+    Deps[0].Grad := Deps[0].Grad + G;//Ones(Deps[0].Grad.Shape);
 end;
 
 
@@ -441,6 +446,11 @@ begin
   C := Add(A, B);
 end;
 
+operator -(A: TTensor) B: TTensor;
+begin
+  B := Negate(A);
+end;
+
 operator -(A, B: TTensor) C: TTensor;
 begin
   C := Subtract(A, B);
@@ -459,6 +469,11 @@ end;
 operator :=(A: TMultiArray) B: TTensor;
 begin
   B := CreateTensor(A);
+end;
+
+operator :=(A: Single) B: TTensor;
+begin
+  B := TMultiArray(A);
 end;
 
 initialization
