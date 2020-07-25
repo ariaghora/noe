@@ -6,7 +6,7 @@ unit noe2;
 interface
 
 uses
-  Classes, SysUtils, multiarray, numerik, fgl;
+  math, SysUtils, multiarray, numerik, fgl;
 
 type
 
@@ -24,6 +24,7 @@ type
     procedure SetRequiresGrad(val: boolean);
   public
     destructor Destroy; override;
+    function Matmul(T: TTensor): TTensor;
     procedure Backward(G: TMultiArray);
     procedure ZeroGrad;
     property Grad: TMultiArray read GetGrad write FGrad;
@@ -37,18 +38,30 @@ type
 procedure PrintTensor(T: TTensor);
 
 function CreateTensor(Data: TMultiArray; RequiresGrad: boolean=False): TTensor;
+function BinarizeLabel(T: TTensor): TTensor;
 
 function Add(A, B: TTensor): TTensor; overload;
+function Divide(A, B: TTensor): TTensor; overload;
+function Exp(A: TTensor): TTensor; overload;
+function LeakyReLU(A: TTensor; Leakiness: Single): TTensor; overload;
+function Ln(A: TTensor): TTensor; overload;
 function Matmul(A, B: TTensor): TTensor; overload;
+function Max(A: TTensor; axis: integer=-1; KeepDims: boolean=False): TTensor; overload;
 function Mean(A: TTensor): TTensor; overload;
 function Multiply(A, B: TTensor): TTensor; overload;
 function Negate(A: TTensor): TTensor; overload;
 function ReLU(A: TTensor): TTensor; overload;
+function Softmax(A: TTensor; axis: integer): TTensor; overload;
 function Subtract(A, B: TTensor): TTensor; overload;
 function Sqr(A: TTensor): TTensor; overload;
-function Sum(A: TTensor): TTensor; overload;
+//function Sum(A: TTensor): TTensor; overload;
+function Sum(A: TTensor; axis: integer=-1; KeepDims: boolean=False): TTensor; overload;
 
-operator :=(A: TMultiArray) B: TTensor;
+{ @exclude } operator +(A, B: TTensor) C: TTensor;
+{ @exclude } operator -(A, B: TTensor) C: TTensor;
+{ @exclude } operator *(A, B: TTensor) C: TTensor;
+{ @exclude } operator /(A, B: TTensor) C: TTensor;
+{ @exclude } operator :=(A: TMultiArray) B: TTensor;
 
 var
   NoeGlobalTensorList: TTensorList;
@@ -143,9 +156,27 @@ begin
   self.Deps := nil;
 end;
 
+function TTensor.Matmul(T: TTensor): TTensor;
+begin
+  Exit(noe2.Matmul(Self, T));
+end;
+
 procedure PrintTensor(T: TTensor);
 begin
   PrintMultiArray(T.Data);
+end;
+
+function BinarizeLabel(T: TTensor): TTensor;
+var
+  MaxVal: Single;
+  i: longint;
+begin
+  if T.Data.Squeeze.NDims > 1 then
+    raise Exception.Create('Can only accept a tensor with NDim=1 or a column tensor');
+  MaxVal := MaxValue(T.Data.Data);
+  Result := Zeros([T.Data.Size, Round(MaxVal) + 1]);
+  for i := 0 to Result.Data.Shape[0] do
+    Result.Data.Put([i, Round(T.Data.Get(i))], 1);
 end;
 
 function CreateTensor(Data: TMultiArray; RequiresGrad: boolean=False): TTensor;
@@ -194,6 +225,73 @@ begin
   Exit(CreateOpNode(A.Data + B.Data, [A, B], @AddBackward));
 end;
 
+procedure DivideBackward(var Deps: array of TTensor; G: TMultiArray);
+begin
+  if Deps[0].RequiresGrad then
+    //A := ADy / arr[1].Data;
+    //arr[0].Grad := arr[0].Grad + ReduceTo(A, arr[0].Data);
+    Deps[0].Grad := Deps[0].Grad + ReduceGradToShape(G / Deps[1].Data, Deps[0].Shape);
+  if Deps[1].RequiresGrad then
+    //B := -ADy * arr[0].Data / arr[1].Data ** 2;
+    //arr[1].Grad := arr[1].Grad + ReduceTo(B, arr[1].Data);
+    Deps[1].Grad := Deps[1].Grad + ReduceGradToShape(-G * Deps[0].Data / Deps[1].Data ** 2, Deps[1].Shape);
+end;
+
+function Divide(A, B: TTensor): TTensor;
+begin
+  Exit(CreateOpNode(A.Data / B.Data, [A, B], @DivideBackward));
+end;
+
+procedure ExpBackward(var Deps: array of TTensor; G: TMultiArray);
+begin
+  if Deps[0].RequiresGrad then
+    Deps[0].Grad := Deps[0].Grad + (G * Exp(Deps[0].Data));
+end;
+
+function Exp(A: TTensor): TTensor; overload;
+begin
+  Exit(CreateOpNode(Exp(A.Data), [A], @ExpBackward));
+end;
+
+procedure LnBackward(var Deps: array of TTensor; G: TMultiArray);
+begin
+  if Deps[0].RequiresGrad then
+    Deps[0].Grad := Deps[0].Grad + (G / Deps[0].Data);
+end;
+
+procedure LeakyReLUBackward(var Deps: array of TTensor; G: TMultiArray);
+var
+  i: longint;
+begin
+  if Deps[0].RequiresGrad then
+    for i := 0 to Deps[0].Data.Size - 1 do
+      if Deps[0].Data.Get(i) > 0 then
+        Deps[0].Grad.Data[i] := Deps[0].Grad.Data[i] + G.Data[i]
+      else
+        { arr[1].Data.Val[0] refers to v parameter in LeakyReLU }
+        Deps[0].Grad.Data[i] := Deps[0].Grad.Data[i] + G.Data[i] * Deps[1].Data.Get(0);
+end;
+
+function LeakyReLU(A: TTensor; Leakiness: Single): TTensor;
+var
+  OutArr: TMultiArray;
+  i: integer;
+  v: single;
+begin
+  OutArr := AllocateMultiArray(A.Data.Size).Reshape(A.Shape);
+  for i := 0 to A.Data.Size - 1 do
+  begin
+    v := A.Data.Get(i);
+    OutArr.Data[i] := IfThen(v < 0, v * Leakiness, v);
+  end;
+  Exit(CreateOpNode(OutArr, [A, TMultiArray(Leakiness)], @LeakyReluBackward));
+end;
+
+function Ln(A: TTensor): TTensor;
+begin
+  Exit(CreateOpNode(Ln(A.Data), [A], @LnBackward));
+end;
+
 procedure MatmulBackward(var Deps: array of TTensor; G: TMultiArray);
 begin
   if Deps[0].RequiresGrad then
@@ -219,12 +317,36 @@ procedure MeanBackward(var Deps: array of TTensor; G: TMultiArray);
 begin
   if Deps[0].RequiresGrad then
     Deps[0].Grad := Deps[0].Grad + FullMultiArray(Deps[0].Data.Shape,
-      G.Data[0] / (Deps[0].Data.Size / G.Size));
+      1 / (Deps[0].Data.Size));
 end;
 
 function Mean(A: TTensor): TTensor;
 begin
   Exit(CreateOpNode(Mean(A.Data), [A], @MeanBackward));
+end;
+
+procedure MaxBackward(var Deps: array of TTensor; G: TMultiArray);
+begin
+  if Deps[0].RequiresGrad then
+    Deps[0].Grad := Deps[0].Grad + (Deps[0].Data = Deps[1].Data) * G.Reshape(Deps[1].Shape);
+end;
+
+function Max(A: TTensor; axis: integer; KeepDims: boolean=False): TTensor;
+var
+  tmp1, tmp2: TMultiArray;
+begin
+  tmp1 := Max(A.Data, axis, True);
+  if not KeepDims then
+  begin
+    tmp2 := tmp1.Copy();
+    SqueezeMultiArrayAt(tmp2, axis);
+    Exit(CreateOpNode(tmp2, [A, tmp1],
+         @MaxBackward));
+  end
+  else
+    Exit(CreateOpNode(tmp1, [A, tmp1],
+         @MaxBackward));
+  Exit(Max(A.Data, axis, True))
 end;
 
 function Multiply(A, B: TTensor): TTensor;
@@ -246,7 +368,8 @@ end;
 procedure ReLUBackward(var Deps: array of TTensor; G: TMultiArray);
 begin
   if Deps[0].RequiresGrad then
-    Deps[0].Grad := Deps[0].Grad + (G > 0);
+    Deps[0].Grad := Deps[0].Grad + (Deps[0].Data > 0);
+  //PrintTensor((G > 0));
 end;
 
 function ReLU(A: TTensor): TTensor; overload;
@@ -262,15 +385,15 @@ begin
     Deps[1].Grad := Deps[1].Grad - ReduceGradToShape(G, Deps[1].Shape);
 end;
 
+function Softmax(A: TTensor; axis: integer): TTensor; overload;
+begin
+  Result := Exp(A - Max(A, axis, True));
+  Result := Result / Sum(Result, axis, True);
+end;
+
 function Subtract(A, B: TTensor): TTensor;
 begin
   Exit(CreateOpNode(A.Data - B.Data, [A, B], @SubtractBackward));
-end;
-
-procedure SumBackward(var Deps: array of TTensor; G: TMultiArray);
-begin
-  if Deps[0].RequiresGrad then
-    Deps[0].Grad := Deps[0].Grad + Ones(Deps[0].Grad.Shape);
 end;
 
 procedure SqrBackward(var Deps: array of TTensor; G: TMultiArray);
@@ -284,14 +407,22 @@ begin
   Exit(CreateOpNode((A.Data ** 2), [A], @SqrBackward));
 end;
 
+procedure SumBackward(var Deps: array of TTensor; G: TMultiArray);
+begin
+  if Deps[0].RequiresGrad then
+    Deps[0].Grad := Deps[0].Grad + Ones(Deps[0].Grad.Shape);
+end;
+
+
 function Sum(A: TTensor): TTensor;
 begin
   Exit(CreateOpNode(Sum(A.Data), [A], @SumBackward));
 end;
 
-operator +(A, B: TTensor)C: TTensor;
+function Sum(A: TTensor; axis: integer; KeepDims: boolean): TTensor;
 begin
-  C := Add(A, B);
+  Exit(CreateOpNode(Sum(A.Data, axis, KeepDims), [A, TMultiArray(axis),
+       TMultiArray(integer(KeepDims))], @SumBackward));
 end;
 
 function TTensor.GetGrad: TMultiArray;
@@ -303,6 +434,26 @@ end;
 function TTensor.GetShape: TLongVector;
 begin
   Exit(Self.Data.Shape);
+end;
+
+operator +(A, B: TTensor)C: TTensor;
+begin
+  C := Add(A, B);
+end;
+
+operator -(A, B: TTensor) C: TTensor;
+begin
+  C := Subtract(A, B);
+end;
+
+operator *(A, B: TTensor) C: TTensor;
+begin
+  C := Multiply(A, B);
+end;
+
+operator /(A, B: TTensor) C: TTensor;
+begin
+  C := Divide(A, B);
 end;
 
 operator :=(A: TMultiArray) B: TTensor;
