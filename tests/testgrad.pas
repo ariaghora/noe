@@ -37,7 +37,6 @@ begin
   T.RequiresGrad := True;
   U := Mean(T, 0);
   U.Backward(Ones(U.Shape));
-  PrintMultiArray(T.Grad);
   AssertTrue(ArrayEqual(T.Grad, Ones([2, 3]) / 2));
 end;
 
