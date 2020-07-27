@@ -218,7 +218,8 @@ begin
   //    x_ := x_.T;
   //  if y.Shape[1] > 1 then
   //    y_ := y_.T;
-  //  self.Values := AppendColumns(x, y);
+  //  column
+    //self.Values := AppendColumns(x, y);
   //end;
 end;
 
