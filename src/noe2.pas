@@ -54,7 +54,6 @@ function ReLU(A: TTensor): TTensor; overload;
 function Softmax(A: TTensor; axis: integer): TTensor; overload;
 function Subtract(A, B: TTensor): TTensor; overload;
 function Sqr(A: TTensor): TTensor; overload;
-//function Sum(A: TTensor): TTensor; overload;
 function Sum(A: TTensor; axis: integer = -1; KeepDims: boolean = False): TTensor; overload;
 
 { @exclude } operator +(A, B: TTensor) C: TTensor;
