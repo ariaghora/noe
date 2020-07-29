@@ -51,6 +51,7 @@ function Mean(A: TTensor; axis: integer = -1; KeepDims: boolean = False): TTenso
 function Multiply(A, B: TTensor): TTensor; overload;
 function Negate(A: TTensor): TTensor; overload;
 function ReLU(A: TTensor): TTensor; overload;
+function Sigmoid(A: TTensor): TTensor; overload;
 function Softmax(A: TTensor; axis: integer): TTensor; overload;
 function Subtract(A, B: TTensor): TTensor; overload;
 function Sqr(A: TTensor): TTensor; overload;
@@ -379,12 +380,27 @@ procedure ReLUBackward(var Deps: array of TTensor; G: TMultiArray);
 begin
   if Deps[0].RequiresGrad then
     Deps[0].Grad := Deps[0].Grad + (Deps[0].Data > 0);
-  //PrintTensor((G > 0));
 end;
 
 function ReLU(A: TTensor): TTensor; overload;
 begin
   Exit(CreateOpNode(Maximum(A.Data, 0), [A], @ReLUBackward));
+end;
+
+function _Sigmoid(A: TMultiArray): TMultiArray;
+begin
+  Exit(1/(1 + Exp(-A)));
+end;
+
+procedure SigmoidBackward(var Deps: array of TTensor; G: TMultiArray);
+begin
+  if Deps[0].RequiresGrad then
+    Deps[0].Grad := Deps[0].Grad + _Sigmoid(Deps[0].Data) * (1 - _Sigmoid(Deps[0].Data));
+end;
+
+function Sigmoid(A: TTensor): TTensor; overload;
+begin
+  Exit(CreateOpNode(_Sigmoid(A.Data), [A], @SigmoidBackward));
 end;
 
 procedure SubtractBackward(var Deps: array of TTensor; G: TMultiArray);
@@ -399,8 +415,6 @@ function Softmax(A: TTensor; axis: integer): TTensor; overload;
 begin
   Result := Exp(A - Max(A, axis, True));
   Result := Result / Sum(Result, axis, True);
-
-  //Result := Exp((A - Max(A, axis, True))) / sum(Exp((A - Max(A, axis, True))), axis, True);
 end;
 
 function Subtract(A, B: TTensor): TTensor;

@@ -13,6 +13,7 @@ type
   published
     procedure TestGradMean;
     procedure TestGradMeanAxis;
+    procedure TestGradSigmoid;
     procedure TestGradSum;
   end;
 
@@ -38,6 +39,18 @@ begin
   U := Mean(T, 0);
   U.Backward(Ones(U.Shape));
   AssertTrue(ArrayEqual(T.Grad, Ones([2, 3]) / 2));
+end;
+
+procedure TTestGrad.TestGradSigmoid;
+begin
+  T := TMultiArray([1, 2, 3, 4, 5, 6]).Reshape([2, 3]);
+  T.RequiresGrad := True;
+  U := Sigmoid(T);
+  U.Backward(Ones(U.Shape));
+  PrintTensor(T.Grad);
+  PrintTensor(TMultiArray([0.1966, 0.1050, 0.0452, 0.0177, 0.0066, 0.0025]).Reshape([2, 3]));
+  AssertTrue(ArrayEqual(T.Grad,
+       TMultiArray([0.1966, 0.1050, 0.0452, 0.0177, 0.0066, 0.0025]).Reshape([2, 3])));
 end;
 
 procedure TTestGrad.TestGradSum;
