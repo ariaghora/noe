@@ -25,6 +25,7 @@ type
   public
     destructor Destroy; override;
     function Matmul(T: TTensor): TTensor;
+    procedure Backward;
     procedure Backward(G: TMultiArray);
     procedure ZeroGrad;
     property Grad: TMultiArray read GetGrad write FGrad;
@@ -56,6 +57,9 @@ function Softmax(A: TTensor; axis: integer): TTensor; overload;
 function Subtract(A, B: TTensor): TTensor; overload;
 function Sqr(A: TTensor): TTensor; overload;
 function Sum(A: TTensor; axis: integer = -1; KeepDims: boolean = False): TTensor; overload;
+
+{ Cross entropy loss, with ground truth represented as one-hot matrix }
+function CrossEntropy(YPred, Y: TTensor; Tol: single=1e-8): TTensor;
 
 { @exclude } operator +(A, B: TTensor) C: TTensor;
 { @exclude } operator -(A: TTensor) B: TTensor;
@@ -163,6 +167,11 @@ end;
 function TTensor.Matmul(T: TTensor): TTensor;
 begin
   Exit(noe2.Matmul(Self, T));
+end;
+
+procedure TTensor.Backward;
+begin
+  self.Backward(1);
 end;
 
 procedure PrintTensor(T: TTensor);
@@ -461,6 +470,13 @@ end;
 function TTensor.GetShape: TLongVector;
 begin
   Exit(Self.Data.Shape);
+end;
+
+function CrossEntropy(YPred, Y: TTensor; Tol: single): TTensor;
+begin
+  if YPred.Data.Size <> Y.Data.Size then
+    raise Exception.Create('A and B have different size.');
+  Exit(-(Sum(Y * Ln(YPred + 1e-8))) / Y.Shape[0]);
 end;
 
 operator +(A, B: TTensor)C: TTensor;
