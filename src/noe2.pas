@@ -358,15 +358,10 @@ var
   tmp1, tmp2: TMultiArray;
 begin
   tmp1 := Max(A.Data, axis, True);
+  tmp2 := tmp1.Copy();
   if not KeepDims then
-  begin
-    tmp2 := tmp1.Copy();
     SqueezeMultiArrayAt(tmp2, axis);
-    Exit(CreateOpNode(tmp2, [A, tmp1], @MaxBackward));
-  end
-  else
-    Exit(CreateOpNode(tmp1, [A, tmp1], @MaxBackward));
-  //Exit(Max(A.Data, axis, True))
+  Exit(CreateOpNode(tmp2, [A, tmp1], @MaxBackward));
 end;
 
 function Multiply(A, B: TTensor): TTensor;
