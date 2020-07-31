@@ -48,7 +48,9 @@ begin
   U := Sigmoid(T);
   U.Backward(Ones(U.Shape));
   AssertTrue(ArrayEqual(T.Grad,
-       TMultiArray([0.1966, 0.1050, 0.0452, 0.0177, 0.0066, 0.0025]).Reshape([2, 3]), 1e-4));
+                        TMultiArray([0.1966, 0.1050, 0.0452,
+                                     0.0177, 0.0066, 0.0025]).Reshape([2, 3]),
+                        1e-4));
 end;
 
 procedure TTestGrad.TestGradSum;
