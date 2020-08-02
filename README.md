@@ -2,7 +2,6 @@
 <img src="assets/raster/logo-light.png" alt="logo" width="200px"></img>
 </div>
 
-***
 
 <div align="center">
   
