@@ -281,7 +281,7 @@ begin
       if Deps[0].Data.Get(i) > 0 then
         Deps[0].Grad.Data[i] := Deps[0].Grad.Data[i] + G.Data[i]
       else
-        { arr[1].Data.Val[0] refers to v parameter in LeakyReLU }
+        { Deps[1].Data.Get(0) refers to 'Leakiness' parameter in LeakyReLU }
         Deps[0].Grad.Data[i] := Deps[0].Grad.Data[i] + G.Data[i] * Deps[1].Data.Get(0);
 end;
 
@@ -384,9 +384,13 @@ begin
 end;
 
 procedure ReLUBackward(var Deps: array of TTensor; G: TMultiArray);
+var
+  i: longint;
 begin
   if Deps[0].RequiresGrad then
-    Deps[0].Grad := Deps[0].Grad + (Deps[0].Data > 0);
+    for i := 0 to Deps[0].Data.Size - 1 do
+      if Deps[0].Data.Get(i) > 0 then
+        Deps[0].Grad.Data[i] := Deps[0].Grad.Data[i] + G.Data[i];
 end;
 
 function ReLU(A: TTensor): TTensor; overload;
@@ -490,11 +494,11 @@ begin
   Exit(Self.Data.Shape);
 end;
 
-function CrossEntropy(YPred, Y: TTensor; Tol: single): TTensor;
+function CrossEntropy(YPred, Y: TTensor; Tol: single=1e-8): TTensor;
 begin
   if YPred.Data.Size <> Y.Data.Size then
     raise Exception.Create('A and B have different size.');
-  Exit(-(Sum(Y * Ln(YPred + 1e-8))) / Y.Shape[0]);
+  Exit(-(Sum(Y * Ln(YPred + Tol))) / Y.Shape[0]);
 end;
 
 operator +(A, B: TTensor)C: TTensor;
