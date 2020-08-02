@@ -17,21 +17,8 @@ Noe is a framework to build neural networks (and hence, the name — noe (뇌): 
 - (Optional) interface with *OpenBLAS* for some heavy-lifting
 - (Optional) interface with *GNU plot* for plotting
 
-Batteries are also included. Noe provides several tensor creation and preprocessing helper functionalities.
-
-```delphi
-{ Load and prepare the data. }
-Dataset := ReadCSV('data.csv');
-X       := GetColumnRange(Dataset, 0, 4);
-X       := StandardScaler(X);
-
-Enc := TOneHotEncoder.Create;    
-y   := GetColumn(Dataset, 4);
-y   := Enc.Encode(Squeeze(y));
-```
-
 ## High-level neural network API
-With automatic differentiation, it is possible to make of neural networks in various degree of abstraction. You can control the flow of of the network, even design a custom fancy loss function. For the high level API, there are several implementation of neural network layers, optimizers, along with `TModel` class helper, so you can prototype your network quickly.
+With automatic differentiation, it is possible to make of neural networks in various degree of abstraction. You can control the flow of of the network, even design a custom fancy loss function. For the high level API, there are several implementation of neural network layers, optimizers, along with `TNNModel` class helper, so you can prototype your network quickly.
 ```delphi
 program iris_classification;
 
@@ -91,7 +78,7 @@ end.
 Aaaand... you are good to go. More layers are coming soon (including convolutional layers).
 
 ## Touching the bare metal: Write your own math
-Noe is hackable. If you want more control, you can skip TModel and TLayer creation and define your own model from scratch. It is easy and straightforward, like how normal people do math. No random cryptic symbols. Following is an example of noe usage to solve XOR problem.
+Noe is hackable. If you want more control, you can skip `TNNModel` and `TLayer` creation and define your own model from scratch. It is easy and straightforward, like how normal people do math. No random cryptic symbols. Following is an example of noe usage to solve XOR problem.
 ```delphi
 program xor_example;
 
