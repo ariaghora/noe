@@ -16,7 +16,14 @@ type
     procedure TestGradMean;
     procedure TestGradMeanAxis;
     procedure TestGradSigmoid;
+    { Regular sum over elements }
     procedure TestGradSum;
+    { Sum with axis=0 }
+    procedure TestGradSumAxis1;
+    { Sum with axis=1 }
+    procedure TestGradSumAxis2;
+    { Sum with axis=1 and KeepDims=True }
+    procedure TestGradSumAxis3;
   end;
 
 var
@@ -83,6 +90,33 @@ begin
   T := TMultiArray([1, 2, 3, 4, 5, 6]).Reshape([2, 3]);
   T.RequiresGrad := True;
   U := Sum(T);
+  U.Backward(Ones(U.Shape));
+  AssertTrue(ArrayEqual(T.Grad, Ones([2, 3])));
+end;
+
+procedure TTestGrad.TestGradSumAxis1;
+begin
+  T := TMultiArray([1, 2, 3, 4, 5, 6]).Reshape([2, 3]);
+  T.RequiresGrad := True;
+  U := Sum(T, 0);
+  U.Backward(Ones(U.Shape));
+  AssertTrue(ArrayEqual(T.Grad, Ones([2, 3])));
+end;
+
+procedure TTestGrad.TestGradSumAxis2;
+begin
+  T := TMultiArray([1, 2, 3, 4, 5, 6]).Reshape([2, 3]);
+  T.RequiresGrad := True;
+  U := Sum(T, 1);
+  U.Backward(Ones(U.Shape));
+  AssertTrue(ArrayEqual(T.Grad, Ones([2, 3])));
+end;
+
+procedure TTestGrad.TestGradSumAxis3;
+begin
+  T := TMultiArray([1, 2, 3, 4, 5, 6]).Reshape([2, 3]);
+  T.RequiresGrad := True;
+  U := Sum(T, 1, True);
   U.Backward(Ones(U.Shape));
   AssertTrue(ArrayEqual(T.Grad, Ones([2, 3])));
 end;
