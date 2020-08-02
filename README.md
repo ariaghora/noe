@@ -61,7 +61,7 @@ end;
 Aaaand... you are good to go. More layers are coming soon (including convolutional layers).
 
 ## Touching the bare metal: Write your own math
-Noe is hackable. If you want more control, you can skip TModel and TLayer creation and define your own model from scratch. It is easy and straightforward, like how normal people do math. No random cryptic symbols.
+Noe is hackable. If you want more control, you can skip TModel and TLayer creation and define your own model from scratch. It is easy and straightforward, like how normal people do math. No random cryptic symbols. Following is an example of noe usage to solve XOR problem.
 ```delphi
 program xor_example;
 
@@ -122,6 +122,12 @@ begin
   Write('Press enter to exit'); ReadLn;
 end.  
 ```
+
+<div align="center">
+<img src="https://i.imgur.com/J6x6rNJ.png" alt="logo" width="400px"></img>
+</div>
+
+
 That said, you could have even defined your own custom layers and optimizers :metal:. Really. Even noe's layer implementations are pretty verbose and straightfowrward. Check the source code yourself whenever you have free time.
 
 You can also compute the loss function derivative with respect to all parameters to obtain the gradients... by your hands... But just stop there. Stop hurting yourself. Use more autograd.
