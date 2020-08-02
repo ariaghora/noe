@@ -13,7 +13,7 @@
 
 Noe is a framework to build neural networks (and hence, the name — noe (뇌): brain: 🧠) in pure object pascal. Yes, pascal, so you will have readable codes and pretty fast compiled executable binary. Some of its key features:
 - Automatic differentiation
-- Creation of arbitrary rank tensor (a.k.a. ndarray) that supports numpy-style broadcasting
+- Creation of arbitrary rank tensor (a.k.a. multidimensional array) that supports numpy-style broadcasting
 - (Optional) interface with *OpenBLAS* for some heavy-lifting
 - (Optional) interface with *GNU plot* for plotting
 
@@ -63,59 +63,64 @@ Aaaand... you are good to go. More layers are coming soon (including convolution
 ## Touching the bare metal: Write your own math
 Noe is hackable. If you want more control, you can skip TModel and TLayer creation and define your own model from scratch. It is easy and straightforward, like how normal people do math. No random cryptic symbols.
 ```delphi
-{ weights and biases }
-W1 := RandomTensorNormal([NInputNeuron, NHiddenNeuron]);
-W2 := RandomTensorNormal([NHiddenNeuron, NOutputNeuron]);
-b1 := CreateTensor([1, NHiddenNeuron], (1 / NHiddenNeuron ** 0.5));
-b2 := CreateTensor([1, NOutputNeuron], (1 / NOutputNeuron ** 0.5)); 
+program xor_example;
 
-{ Since we need the gradient of weights and biases, it is mandatory to set
-  RequiresGrad property to True. We can also set the parameter individually
-  for each parameter, e.g., `W1.RequiresGrad := True;`. }
-SetRequiresGrad([W1, W2, b1, b2], True);
+uses
+  multiarray, numerik, noe2;
 
-Optimizer := TAdamOptimizer.Create;
-Optimizer.LearningRate := 0.003;
+var
+  X, y, yPred, Loss: TTensor;
+  W1, W2, b1, b2: TTensor; // Weights and biases
+  LearningRate: Single;
+  i: integer;
 
-for i := 0 to MAX_EPOCH - 1 do
 begin
-  { Make the prediction. }
-  yPred := SoftMax(ReLU(X.Dot(W1) + b1).Dot(W2) + b2, 1);
+  Randomize;
 
-  { Compute the cross-entropy loss. }
-  CrossEntropyLoss := -Sum(y * Log(yPred)) / M;
+  X := CreateMultiArray([0, 0,
+                         0, 1,
+                         1, 0,
+                         1, 1]).Reshape([4, 2]);
+  y := CreateMultiArray([0, 1, 1, 0]).Reshape([4, 1]);
 
-  { Your usual L2 regularization term. }
-  L2Reg := Sum(W1 * W1) + Sum(W2 * W2);
+  W1 := Random([2, 5]); // Input to hidden
+  W2 := Random([5, 1]); // Hidden to output
+  W1.RequiresGrad := True;
+  W2.RequiresGrad := True;
 
-  TotalLoss := CrossEntropyLoss + Lambda * L2Reg;
+  b1 := Zeros([5]);
+  b2 := Zeros([1]);
+  b1.RequiresGrad := True;
+  b2.RequiresGrad := True;
 
-  { Update the network weight }
-  Optimizer.UpdateParams(TotalLoss, [W1, W2, b1, b2]);
-end;
-```
+  LearningRate := 0.01;
+  for i := 0 to 2000 do
+  begin
+    yPred := (ReLu(X.Matmul(W1) + b1)).Matmul(W2) + b2; // Prediction
+    Loss := Mean(Sqr(yPred - y)); // MSE error
 
-Of course you can go even more lower-level by ditching predefined optimizer and replacing `Optimizer.UpdateParams()` by your own weight update rule, like the good ol' day:
-```delphi
-{ Zero the gradient of all parameters from previous iteration. }
-ZeroGradGraph(TotalLoss);
+    W1.ZeroGrad;
+    W2.ZeroGrad;
+    b1.ZeroGrad;
+    b2.ZeroGrad;
 
-{ Compute all gradients by simply triggering `Backpropagate` method in the 
-  `TotalLoss`. }
-TotalLoss.Backpropagate;
+    Loss.Backward(); // Backpropagate the error and compute gradients
+    
+    { Update the parameters }
+    W1.Data := W1.Data - LearningRate * W1.Grad;
+    W2.Data := W2.Data - LearningRate * W2.Grad;
+    b1.Data := b1.Data - LearningRate * b1.Grad;
+    b2.Data := b2.Data - LearningRate * b2.Grad;
 
-{ Vanilla gradient descent update rule. }
-W1.Data := W1.Data - LearningRate * W1.Grad;
-W2.Data := W2.Data - LearningRate * W2.Grad;
-b1.Data := b1.Data - LearningRate * b1.Grad;
-b2.Data := b2.Data - LearningRate * b2.Grad;
+    if i mod 50 = 0 then
+      WriteLn('Loss at iteration ', i, ': ', Loss.Data.Get(0) : 5 : 2);
+  end;
 
-{ NOTE: Do not do something like this:
-  
-  W1 := W1 - LearningRate * W1.Grad;
-  
-  Because it will replace W1 including all its attribute values entirely.
-  We only want to update the data. }
+  WriteLn('Prediction:');
+  PrintTensor(YPred);
+
+  Write('Press enter to exit'); ReadLn;
+end.  
 ```
 That said, you could have even defined your own custom layers and optimizers :metal:. Really. Even noe's layer implementations are pretty verbose and straightfowrward. Check the source code yourself whenever you have free time.
 
