@@ -33,31 +33,61 @@ y   := Enc.Encode(Squeeze(y));
 ## High-level neural network API
 With automatic differentiation, it is possible to make of neural networks in various degree of abstraction. You can control the flow of of the network, even design a custom fancy loss function. For the high level API, there are several implementation of neural network layers, optimizers, along with `TModel` class helper, so you can prototype your network quickly.
 ```delphi
-{ Initialize the model. }
-NNModel := TModel.Create([
-  TDenseLayer.Create(NInputNeuron, 32),
-  TReLULayer.Create(),
-  TDropoutLayer.Create(0.2),
-  TDenseLayer.Create(32, 16),
-  TReLULayer.Create(),
-  TDropoutLayer.Create(0.2),
-  TDenseLayer.Create(16, NOutputNeuron),
-  TSoftMaxLayer.Create(1)
-]);
+program iris_classification;
 
-{ Initialize the optimizer. There are several other optimizers too. }
-optimizer := TAdamOptimizer.Create;
-optimizer.LearningRate := 0.003;
-for i := 0 to MAX_EPOCH - 1 do
+{$mode objfpc}{$H+}
+
+uses
+  SysUtils, DateUtils, multiarray, numerik,
+  noe2, noe2.optimizer, noe2.neuralnet;
+
+var
+  Dataset, X, Y, YBin, YPred, Loss: TTensor;
+  model: TNNModel;
+  opt: TOptRMSPROP;
+  i: integer;
+  t: TDateTime;
+
 begin
-  { Make a prediction and compute the loss }
-  yPred := NNModel.Eval(X);
-  Loss  := CrossEntropyLoss(yPred, y) + L2Regularization(NNModel);
-  
-  { Update model parameter w.r.t. the loss }
-  optimizer.UpdateParams(Loss, NNModel.Params);
-end;
+  Dataset := ReadCSV('iris.csv');
+
+  X := Dataset[[ _ALL_, Range(0, 4) ]]; // Get all rows and first four columns
+  Y := Dataset[[ _ALL_, 4 ]]; // Get all rows and a column with index 4
+  YBin := BinarizeLabel(Y); // Transform labels into one-hot vectors
+
+  model := TNNModel.Create;
+  model.AddLayer(TLayerDense.Create(4, 30));
+  model.AddLayer(TLayerReLU.Create());
+  model.AddLayer(TLayerDense.Create(30, 3));
+  model.AddLayer(TLayerSoftmax.Create(1));
+
+  opt := TOptRMSPROP.Create(model.Params); // RMSPROP optimizer
+  opt.LearningRate := 0.01;
+
+  t := Now;
+  for i := 0 to 100 do
+  begin
+    YPred := model.Eval(X);
+    Loss := CrossEntropy(YPred, YBin);
+    Loss.Backward();
+    opt.Step;
+
+    if i mod 10 = 0 then
+      WriteLn('Loss at iteration ', i, ': ', Loss.Data.Get(0) : 5 : 2);
+  end;
+
+  WriteLn('Training completed in ', MilliSecondsBetween(Now, t), ' ms');
+  WriteLn('Training accuracy: ', Mean(ArgMax(YPred.Data, 1, True)).Item : 5 : 2);
+  WriteLn('Press enter to exit'); ReadLn;
+
+  model.Free;
+  opt.Free;
+end.  
 ```
+<div align="center">
+<img src="https://i.imgur.com/HSNTF1h.png" alt="logo" width="640px"></img>
+</div>
+
 Aaaand... you are good to go. More layers are coming soon (including convolutional layers).
 
 ## Touching the bare metal: Write your own math
