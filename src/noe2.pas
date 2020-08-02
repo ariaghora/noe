@@ -188,7 +188,7 @@ begin
     raise Exception.Create('Can only accept a tensor with NDim=1 or a column tensor');
   MaxVal := MaxValue(T.Data.Data);
   Result := Zeros([T.Data.Size, Round(MaxVal) + 1]);
-  for i := 0 to Result.Data.Shape[0] do
+  for i := 0 to Result.Data.Shape[0] - 1 do
     Result.Data.Put([i, Round(T.Data.Get(i))], 1);
 end;
 
@@ -438,9 +438,26 @@ begin
 end;
 
 procedure SumBackward(var Deps: array of TTensor; G: TMultiArray);
+var
+  Shape: TLongVector;
+  Axis: integer;
 begin
   if Deps[0].RequiresGrad then
-    Deps[0].Grad := Deps[0].Grad + G;//Ones(Deps[0].Grad.Shape);
+  begin
+    WriteLn(Deps[1].Data.Get(0));
+
+    { If axis is specified, then G should be reshaped accordingly to comply
+      with broadcasting. }
+    Axis := Round(Deps[1].Data.Get(0));
+    if Axis > -1 then
+    begin
+      Shape := CopyVector(Deps[0].Shape);
+      Shape[Axis] := 1;
+      G := G.Reshape(Shape);
+    end;
+
+    Deps[0].Grad := Deps[0].Grad + G;
+  end;
 end;
 
 
