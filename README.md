@@ -30,7 +30,7 @@ uses
 var
   Dataset, X, Y, YBin, YPred, Loss: TTensor;
   model: TNNModel;
-  opt: TOptRMSPROP;
+  opt: TOptAdam;
   i: integer;
   t: TDateTime;
 
@@ -47,7 +47,7 @@ begin
   model.AddLayer(TLayerDense.Create(30, 3));
   model.AddLayer(TLayerSoftmax.Create(1));
 
-  opt := TOptRMSPROP.Create(model.Params); // RMSPROP optimizer
+  opt := TOptAdam.Create(model.Params); // Adam optimizer
   opt.LearningRate := 0.01;
 
   t := Now;
@@ -71,7 +71,7 @@ begin
 end.  
 ```
 <div align="center">
-<img src="https://i.imgur.com/HSNTF1h.png" alt="logo" width="640px"></img>
+<img src="https://i.imgur.com/0NngCHB.png" alt="logo" width="640px"></img>
 </div>
 
 Aaaand... you are good to go. More layers are coming soon (including convolutional layers).
