@@ -70,6 +70,7 @@ function CrossEntropy(YPred, Y: TTensor; Tol: single=1e-8): TTensor;
 { @exclude } operator / (A, B: TTensor) C: TTensor;
 { @exclude } operator := (A: TMultiArray) B: TTensor;
 { @exclude } operator := (A: single) B: TTensor;
+{ @exclude } operator := (A: TTensor) B: TMultiArray;
 
 var
   NoeGlobalTensorList: TTensorList;
@@ -545,6 +546,11 @@ end;
 operator := (A: single) B: TTensor;
 begin
   B := TMultiArray(A);
+end;
+
+operator := (A: TTensor) B: TMultiArray;
+begin
+  B := A.Data;
 end;
 
 initialization
