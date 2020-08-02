@@ -16,7 +16,7 @@ Noe is a framework to build neural networks (and hence, the name — noe (뇌): 
 - (Optional) interface with *GNU plot* for plotting
 
 ## Installation
-- Noe requires [numerik](https://github.com/ariaghora/numerik). Refer to numerik installation [guide](https://github.com/ariaghora/numerik#installation).
+- Noe requires [numerik](https://github.com/ariaghora/numerik), so you should install it first. Refer to numerik installation [guide](https://github.com/ariaghora/numerik#installation).
 - In lazarus, open "noe.source.lpk" package inside "pkg" directory. Open the package, compile, and add to project. Alternatively, you may also just include the "src" directory to the unit search path.
 
 ## High-level neural network API
