@@ -19,6 +19,7 @@ type
     FGrad: TMultiArray;
     FRequiresGrad: boolean;
     function GetGrad: TMultiArray;
+    function GetItems(idx: array of TLongVector): TMultiArray;
     function GetShape: TLongVector;
     procedure AddDependencies(ADeps: array of TTensor);
     procedure SetRequiresGrad(val: boolean);
@@ -29,6 +30,7 @@ type
     procedure Backward(G: TMultiArray);
     procedure ZeroGrad;
     property Grad: TMultiArray read GetGrad write FGrad;
+    property Items[idx: array of TLongVector]: TMultiArray read GetItems; default;
     property RequiresGrad: boolean read FRequiresGrad write SetRequiresGrad;
     property Shape: TLongVector read GetShape;
   end;
@@ -326,6 +328,7 @@ end;
 
 procedure MeanBackward(var Deps: array of TTensor; G: TMultiArray);
 begin
+  { NEED MORE TESTS }
   if Deps[0].RequiresGrad then
     if Deps[1].Data.Get(0) < 0 then
       Deps[0].Grad := Deps[0].Grad + FullMultiArray(Deps[0].Data.Shape,
@@ -444,8 +447,6 @@ var
 begin
   if Deps[0].RequiresGrad then
   begin
-    WriteLn(Deps[1].Data.Get(0));
-
     { If axis is specified, then G should be reshaped accordingly to comply
       with broadcasting. }
     Axis := Round(Deps[1].Data.Get(0));
@@ -477,6 +478,11 @@ begin
   if RequiresGrad then
     Exit(FGrad);
   raise Exception.Create('Trying to access Grad of a tensor that has no Grad.');
+end;
+
+function TTensor.GetItems(idx: array of TLongVector): TMultiArray;
+begin
+  Exit(Data[Idx]);
 end;
 
 function TTensor.GetShape: TLongVector;
