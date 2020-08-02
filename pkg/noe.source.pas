@@ -8,8 +8,7 @@ unit noe.source;
 interface
 
 uses
-  noe.backend.blas, noe.backend.native, noe.Math, noe.neuralnet, 
-  noe.optimizer, noe, noe.plot.gnuplot, noe.utils, LazarusPackageIntf;
+  noe.neuralnet, noe.optimizer, noe, LazarusPackageIntf;
 
 implementation
 
