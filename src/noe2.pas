@@ -327,15 +327,26 @@ begin
 end;
 
 procedure MeanBackward(var Deps: array of TTensor; G: TMultiArray);
+var
+  Shape: TLongVector;
+  Axis: integer;
 begin
-  { NEED MORE TESTS }
   if Deps[0].RequiresGrad then
-    if Deps[1].Data.Get(0) < 0 then
-      Deps[0].Grad := Deps[0].Grad + FullMultiArray(Deps[0].Data.Shape,
-        1 / (Deps[0].Data.Size))
+  begin
+    { If axis is specified, then G should be reshaped accordingly to comply
+      with broadcasting. }
+    Axis := Round(Deps[1].Data.Get(0));
+    if Axis > -1 then
+    begin
+      Shape := CopyVector(Deps[0].Shape);
+      Shape[Axis] := 1;
+      G := G.Reshape(Shape) / Deps[0].Shape[Axis];
+    end
     else
-      Deps[0].Grad := Deps[0].Grad + FullMultiArray(Deps[0].Data.Shape,
-        1 / Deps[0].Shape[Integer(Deps[1].Data.Get(0))]);
+      G := G / Deps[0].Data.Size;
+
+    Deps[0].Grad := Deps[0].Grad + G;
+  end;
 end;
 
 function Mean(A: TTensor): TTensor;
@@ -498,7 +509,7 @@ function CrossEntropy(YPred, Y: TTensor; Tol: single=1e-8): TTensor;
 begin
   if YPred.Data.Size <> Y.Data.Size then
     raise Exception.Create('A and B have different size.');
-  Exit(-(Sum(Y * Ln(YPred + Tol))) / Y.Shape[0]);
+  Exit(-Mean(Sum(Y * Ln(YPred + Tol), 1)));
 end;
 
 operator +(A, B: TTensor)C: TTensor;
