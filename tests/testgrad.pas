@@ -5,7 +5,7 @@ unit testgrad;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testregistry, noe2, multiarray, numerik;
+  Classes, SysUtils, fpcunit, testregistry, noe, multiarray, numerik;
 
 type
 
@@ -24,6 +24,7 @@ type
     procedure TestGradSumAxis2;
     { Sum with axis=1 and KeepDims=True }
     procedure TestGradSumAxis3;
+
   end;
 
 var
