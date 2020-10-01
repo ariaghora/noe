@@ -44,6 +44,7 @@ function CreateTensor(Data: TMultiArray; RequiresGrad: boolean = False): TTensor
 function BinarizeLabel(T: TTensor): TTensor;
 
 function Add(A, B: TTensor): TTensor; overload;
+function Conv2d(X, W: TTensor; Stride, Pad: longint): TTensor;
 function Divide(A, B: TTensor): TTensor; overload;
 function Exp(A: TTensor): TTensor; overload;
 function LeakyReLU(A: TTensor; Leakiness: single): TTensor; overload;
@@ -251,6 +252,41 @@ begin
       Deps[1].Data ** 2, Deps[1].Shape);
 end;
 
+procedure Conv2dBackward(var Deps: array of TTensor; G: TMultiArray);
+var
+  GFlat: TMultiArray;
+  TrailingDim: longint;
+begin
+  //if Deps[0].RequiresGrad then
+  //  Deps[0].Grad;
+  if Deps[1].RequiresGrad then
+  begin
+    PrintMultiArray(TSingleVector(G.Shape));
+    TrailingDim := G.Shape[1] * G.Shape[2] * G.Shape[3];
+    GFlat := Transpose(G, [1, 2, 3, 0]).Reshape([G.Shape[0], TrailingDim]);
+    Deps[1].Grad := Deps[1] + GFlat.Matmul(Deps[0].Data.T).Reshape(Deps[1].Shape);
+  end;
+end;
+
+function Conv2d(X, W: TTensor; Stride, Pad: longint): TTensor;
+var
+  deps: array of TTensor;
+  OutH, OutW: longint;
+  ConvRes, WCol, XCols: TMultiArray;
+begin
+  OutH := (X.Shape[2] - W.Shape[2]) div Stride + 1;
+  OutW := (X.Shape[3] - W.Shape[3]) div Stride + 1;
+  WCol := W.Data.Reshape([W.Shape[0], W.Shape[1] * W.Shape[2] * W.Shape[3]]);
+
+  XCols := Im2Col(X.Data, W.Shape[2], w.Shape[3], Stride, Pad);
+
+  ConvRes := WCol.matmul(XCols);
+  ConvRes := ConvRes.Reshape([X.Shape[0], W.Shape[0], OutH, OutW]).Contiguous;
+
+  deps := [XCols, W, Stride, Pad];
+  Exit(CreateOpNode(ConvRes, deps, @Conv2dBackward));
+end;
+
 function Divide(A, B: TTensor): TTensor;
 begin
   Exit(CreateOpNode(A.Data / B.Data, [A, B], @DivideBackward));
@@ -344,15 +380,12 @@ begin
       G := G.Reshape(Shape) / Deps[0].Shape[Axis];
     end
     else
-      G := G / Deps[0].Data.Size;
+    begin
+      G := G.Item / Deps[0].Data.Size;
+    end;
 
     Deps[0].Grad := Deps[0].Grad + G;
   end;
-end;
-
-function Mean(A: TTensor): TTensor;
-begin
-  Exit(CreateOpNode(Mean(A.Data), [A], @MeanBackward));
 end;
 
 function Mean(A: TTensor; axis: integer = -1; KeepDims: boolean = False): TTensor;

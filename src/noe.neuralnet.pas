@@ -159,7 +159,9 @@ var
 begin
   Result := X;
   for L in FLayerList do
+  begin
     Result := L.Eval(Result);
+  end;
 end;
 
 end.
