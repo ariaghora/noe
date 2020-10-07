@@ -390,7 +390,7 @@ end;
 
 function Mean(A: TTensor; axis: integer = -1; KeepDims: boolean = False): TTensor;
 begin
-  Exit(CreateOpNode(Mean(A.Data), [A, TMultiArray(axis), TMultiArray(integer(KeepDims))],
+  Exit(CreateOpNode(Mean(A.Data, axis, KeepDims), [A, TMultiArray(axis), TMultiArray(integer(KeepDims))],
     @MeanBackward));
 end;
 
