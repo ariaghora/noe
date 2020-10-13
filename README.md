@@ -11,7 +11,7 @@
 </div>
 
 Noe is a framework to build neural networks (and hence, the name — noe (뇌): brain: 🧠) in pure object pascal. Yes, pascal, so you will have readable codes and pretty fast compiled executable binary. Some of its key features:
-- Automatic differentiation
+- Automatic gradient computation
 - Creation of arbitrary rank tensor (a.k.a. multidimensional array) based on [numerik](https://github.com/ariaghora/numerik) library, that supports numpy-style broadcasting and is accelerated with *OpenBLAS* for the underlying heavy-lifting
 - (Optional) interface with *GNU plot* for plotting
 
