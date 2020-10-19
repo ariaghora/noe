@@ -405,7 +405,7 @@ function Max(A: TTensor; axis: integer; KeepDims: boolean = False): TTensor;
 var
   tmp1, tmp2: TMultiArray;
 begin
-  tmp1 := Max(A.Data, axis, True);
+  tmp1 := Max(A.Data, axis, KeepDims);
   tmp2 := tmp1.Copy();
   if not KeepDims then
     SqueezeMultiArrayAt(tmp2, axis);
