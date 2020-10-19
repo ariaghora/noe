@@ -372,7 +372,7 @@ begin
   begin
     { If axis is specified, then G should be reshaped accordingly to comply
       with broadcasting. }
-    Axis := Round(Deps[1].Data.Get(0));
+    Axis := Round(Deps[1].Data.Data[0]);
     if Axis > -1 then
     begin
       Shape := CopyVector(Deps[0].Shape);
@@ -434,8 +434,7 @@ var
 begin
   if Deps[0].RequiresGrad then
     for i := 0 to Deps[0].Data.Size - 1 do
-      if Deps[0].Data.Get(i) > 0 then
-        Deps[0].Grad.Data[i] := Deps[0].Grad.Data[i] + G.Data[i];
+      Deps[0].Grad.Data[i] := Deps[0].Grad.Data[i] + G.Data[i] * ord(Deps[0].Data.Data[i] > 0);
 end;
 
 function ReLU(A: TTensor): TTensor; overload;
