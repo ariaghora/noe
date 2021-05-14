@@ -87,7 +87,7 @@ Noe is hackable. If you want more control, you can skip `TNNModel` and `TLayer` 
 program xor_example;
 
 uses
-  multiarray, numerik, noe2;
+  multiarray, numerik, noe;
 
 var
   X, y, yPred, Loss: TTensor;
