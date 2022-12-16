@@ -3,7 +3,7 @@ program xor_example;
 {$mode objfpc}{$H+}
 
 uses
-  multiarray, numerik, noe2;
+  multiarray, numerik, noe;
 
 var
   X, y, yPred, W1, W2, b1, b2, Loss: TTensor;
